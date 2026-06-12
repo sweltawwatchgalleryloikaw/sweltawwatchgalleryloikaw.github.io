@@ -235,7 +235,7 @@
             </div>
 
             <div class="products-grid" id="productsContainer">
-                <p style="text-align: center; grid-column: 1/-1;">Getting data...</p>
+                <p style="text-align: center; grid-column: 1/-1;">Realtime Database မှ ဒေတာများ ဆွဲယူနေပါသည်...</p>
             </div>
         </div>
 
@@ -393,26 +393,54 @@
                 container.appendChild(card);
             });
 
-        
-            ddocument.querySelectorAll('.buy-now-btn').forEach(btn => {
+        document.querySelectorAll('.buy-now-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
         const sku = e.target.getAttribute('data-sku');
         const phoneNumber = "0959754735024"; 
         const draftText = `မင်္ဂလာပါ ခင်ဗျာ။ Swel Taw Watch Gallery မှ SKU: ${sku} နာရီကို ဝယ်ယူလိုပါသဖြင့် ဆက်သွယ်ရခြင်းဖြစ်ပါသည်။`;
         
-        // 1. Copy the draft text to the clipboard
+        // 1. Copy text to clipboard
         navigator.clipboard.writeText(draftText)
             .then(() => {
-                // 2. Once successfully copied, open the Viber URL
-                window.location.href = `viber://chat/?number=%2B${phoneNumber}&draft=${encodeURIComponent(draftText)}`;
+                // 2. Create and style the toast notification
+                const toast = document.createElement('div');
+                toast.textContent = "နာရီ၏sukအားcopyကူးပြီးပါပြီ Viberတွင်Pasteလုပ်ပါ။";
+                
+                // Styling the toast dynamically (Centered at the bottom)
+                Object.assign(toast.style, {
+                    position: 'fixed',
+                    bottom: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: '#333',
+                    color: '#fff',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    zIndex: '10000',
+                    fontFamily: 'sans-serif',
+                    fontSize: '14px',
+                    boxShadow: '0px 4px 10px rgba(0,0,0,0.3)',
+                    transition: 'opacity 0.3s ease'
+                });
+                
+                document.body.appendChild(toast);
+                
+                // 3. Wait 1.5 seconds (1500ms) before opening Viber
+                setTimeout(() => {
+                    window.location.href = `viber://chat/?number=%2B${phoneNumber}&draft=${encodeURIComponent(draftText)}`;
+                    
+                    // Clean up the toast element from the DOM after moving away
+                    toast.remove(); 
+                }, 2500);
             })
             .catch(err => {
                 console.error('Failed to copy text: ', err);
-                // Fallback: Still try to open Viber even if clipboard copy fails
+                // Fallback: If clipboard fails, go to Viber instantly
                 window.location.href = `viber://chat/?number=%2B${phoneNumber}&draft=${encodeURIComponent(draftText)}`;
             });
     });
 });
+        }
 
         function filterProducts() {
             const searchText = document.getElementById('mainSearch').value.toLowerCase();
