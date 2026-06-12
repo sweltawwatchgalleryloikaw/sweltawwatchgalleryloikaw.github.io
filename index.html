@@ -73,6 +73,11 @@
 
         .btn:hover { background-color: #a88b4a; }
         .btn:disabled { background-color: #cccccc; cursor: not-allowed; color: #666666; }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        .btn-danger:hover { background-color: #b71c1c; }
 
         .container {
             max-width: 1200px;
@@ -179,7 +184,6 @@
             margin-bottom: 15px;
         }
         .in-stock { color: var(--success-color); }
-        .out-of-stock { color: var(--danger-color); }
 
         .form-card {
             background: white;
@@ -209,6 +213,12 @@
 
         .back-btn {
             background: #666;
+            margin-top: 10px;
+        }
+
+        .action-buttons-group {
+            display: flex;
+            gap: 10px;
             margin-top: 10px;
         }
     </style>
@@ -308,7 +318,10 @@
                             <input type="number" id="watchStock" placeholder="ဥပမာ - 5" min="0" required>
                         </div>
                         
-                        <button type="submit" id="submitBtn" class="btn" style="width:100%; margin-top:10px;">Upload တင်မည်</button>
+                        <div class="action-buttons-group">
+                            <button type="submit" id="submitBtn" class="btn" style="flex: 2;">Upload တင်မည်</button>
+                            <button type="button" id="deleteBtn" class="btn btn-danger" style="flex: 1; display: none;">ဖျက်မည်</button>
+                        </div>
                     </div>
                     <button type="button" class="btn back-btn" style="width:100%;" id="logoutBtn">Logout (ထွက်ရန်)</button>
                 </form>
@@ -319,7 +332,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, get, child, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAwLW-VOsrJ0jLYXxI7LKvQQSDkKsfsVj4",
@@ -373,16 +386,13 @@
                 const card = document.createElement('div');
                 card.className = 'product-card';
                 
-                let stockHTML = product.stock > 0 
-                    ? `<div class="product-stock in-stock">● In Stock: ${product.stock} လုံးကျန်သေးသည်</div>`
-                    : `<div class="product-stock out-of-stock">✕ Out of Stock</div>`;
+                let stockHTML = `<div class="product-stock in-stock">● In Stock: ${product.stock} လုံးကျန်သေးသည်</div>`;
                 
-                // Primary image processing logic for multiple strings fallback setup
                 let displayImg = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500';
                 if (product.imgs && Array.isArray(product.imgs) && product.imgs.length > 0) {
                     displayImg = product.imgs[0];
                 } else if (product.img) {
-                    displayImg = product.img; // legacy structural support fallback
+                    displayImg = product.img; 
                 }
 
                 card.innerHTML = `
@@ -411,6 +421,9 @@
             const maxPrice = parseFloat(document.getElementById('filterPrice').value) || Infinity;
 
             const filtered = products.filter(product => {
+                // RULE CHANGE: Block out items that have 0 or negative stock value from rendering
+                const isAvailable = parseInt(product.stock) > 0;
+
                 const matchesSearch = (product.desc || '').toLowerCase().includes(searchText) || 
                                       (product.sku || '').toLowerCase().includes(searchText) || 
                                       (product.brand || '').toLowerCase().includes(searchText) ||
@@ -419,7 +432,7 @@
                 const matchesSex = (sexFilter === 'all') || (product.sex === sexFilter);
                 const matchesPrice = product.price <= maxPrice;
 
-                return matchesSearch && matchesSex && matchesPrice;
+                return isAvailable && matchesSearch && matchesSex && matchesPrice;
             });
 
             displayProducts(filtered);
@@ -427,8 +440,13 @@
 
         async function checkSkuRealtime(skuVal) {
             const msgDiv = document.getElementById('skuStatusMessage');
+            const deleteBtn = document.getElementById('deleteBtn');
             skuVal = skuVal.trim();
-            if(!skuVal) { msgDiv.style.display = 'none'; return; }
+            if(!skuVal) { 
+                msgDiv.style.display = 'none'; 
+                deleteBtn.style.display = 'none';
+                return; 
+            }
 
             try {
                 const snapshot = await get(ref(db, 'watches/' + skuVal.toUpperCase()));
@@ -436,8 +454,9 @@
                 msgDiv.style.display = 'block';
                 if (snapshot.exists()) {
                     isEditMode = true;
+                    deleteBtn.style.display = 'inline-block'; // Reveal Delete button if SKU matches DB
                     msgDiv.style.backgroundColor = '#fff3cd'; msgDiv.style.color = '#856404';
-                    msgDiv.innerText = "⚠️ ဤ SKU ရှိပြီးသားမို့ ဒေတာကို ပြင်ဆင် (Edit) သိမ်းပါမည်။";
+                    msgDiv.innerText = "⚠️ ဤ SKU ရှိပြီးသားမို့ ဒေတာကို ပြင်ဆင် (Edit) သို့မဟုတ် ဖျက်နိုင်ပါသည်။";
                     document.getElementById('submitBtn').innerText = 'အချက်အလက်ပြင်ဆင်မည် (Save Edit)';
                     
                     const prod = snapshot.val();
@@ -457,6 +476,7 @@
                     document.getElementById('watchStock').value = prod.stock || '';
                 } else {
                     isEditMode = false;
+                    deleteBtn.style.display = 'none'; // Hide if layout switches to standard creation entry
                     msgDiv.style.backgroundColor = '#d4edda'; msgDiv.style.color = '#155724';
                     msgDiv.innerText = "✨ SKU အသစ် ဖြစ်ပါသဖြင့် ဒေတာအသစ် Upload လုပ်နိုင်ပါသည်။";
                     document.getElementById('submitBtn').innerText = 'Upload တင်မည် (New Save)';
@@ -499,14 +519,38 @@
             try {
                 await set(ref(db, 'watches/' + sku), productData);
                 alert(isEditMode ? 'ပြင်ဆင်မှု အောင်မြင်ပါသည်!' : 'ဒေတာအသစ် တင်ပြီးပါပြီ!');
-                document.getElementById('uploadForm').reset();
-                document.getElementById('watchSku').value = '';
-                document.getElementById('skuStatusMessage').style.display = 'none';
+                resetAdminForm();
                 showView('userView');
                 fetchProductsFromFirebase();
             } catch (error) {
                 alert("Upload မအောင်မြင်ပါ- " + error.message);
             }
+        }
+
+        // Dedicated action logic implementation to delete reference nodes
+        async function handleDeleteItem() {
+            const sku = document.getElementById('watchSku').value.trim().toUpperCase();
+            if (!sku) return;
+
+            const confirmDelete = confirm(`⚠️ SKU: ${sku} အား ဒေတာဘေ့စ်ထဲမှ အပြီးတိုင် ဖျက်ပစ်ရန် သေချာပါသလား?`);
+            if (confirmDelete) {
+                try {
+                    await remove(ref(db, 'watches/' + sku));
+                    alert('ထုတ်ကုန်ကို အောင်မြင်စွာ ဖျက်ဆီးပြီးပါပြီ။');
+                    resetAdminForm();
+                    showView('userView');
+                    fetchProductsFromFirebase();
+                } catch (error) {
+                    alert("ဖျက်ဆီးခြင်း မအောင်မြင်ပါ- " + error.message);
+                }
+            }
+        }
+
+        function resetAdminForm() {
+            document.getElementById('uploadForm').reset();
+            document.getElementById('watchSku').value = '';
+            document.getElementById('skuStatusMessage').style.display = 'none';
+            document.getElementById('deleteBtn').style.display = 'none';
         }
 
         document.getElementById('mainSearch').addEventListener('input', (e) => {
@@ -523,12 +567,13 @@
                 document.getElementById('adminPassword').value = '';
                 showView('adminUploadView');
             } else {
-                alert('Password မှားယွင်းနေပါသည်။ (Demo: 1234)');
+                alert('Password မှားယွင်းနေပါသည်။');
             }
         });
 
         document.getElementById('watchSku').addEventListener('input', (e) => checkSkuRealtime(e.target.value));
         document.getElementById('uploadForm').addEventListener('submit', handleUploadOrEdit);
+        document.getElementById('deleteBtn').addEventListener('click', handleDeleteItem);
         document.getElementById('searchBtn').addEventListener('click', fetchProductsFromFirebase);
         document.getElementById('backToUserBtn').addEventListener('click', () => showView('userView'));
         document.getElementById('logoutBtn').addEventListener('click', () => showView('userView'));
