@@ -252,7 +252,7 @@
                 <h2>Admin Login</h2>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="adminPassword" placeholder="Password ရိုက်ထည့်ပါ (Demo: 1234)">
+                    <input type="password" id="adminPassword" placeholder="Password ရိုက်ထည့်ပါ။">
                 </div>
                 <button class="btn" id="loginBtn">Login ဝင်ရန်</button>
                 <button class="btn back-btn" id="backToUserBtn">အသုံးပြုသူစာမျက်နှာသို့ ပြန်သွားရန်</button>
@@ -519,7 +519,7 @@
         });
 
         document.getElementById('loginBtn').addEventListener('click', () => {
-            if(document.getElementById('adminPassword').value === '1234') {
+            if(document.getElementById('adminPassword').value === 'STLK@2026') {
                 document.getElementById('adminPassword').value = '';
                 showView('adminUploadView');
             } else {
