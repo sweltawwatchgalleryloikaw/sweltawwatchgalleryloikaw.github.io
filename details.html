@@ -300,7 +300,7 @@
             // Viber buy actions triggers with toast handler execution setup
             if (isAvailable) {
                 document.getElementById('buyViberBtn').addEventListener('click', () => {
-                    const phoneNumber = "0959754735024"; 
+                    const phoneNumber = "959754735024"; 
                     const draftText = `မင်္ဂလာပါ ခင်ဗျာ။ Swel Taw Watch Gallery မှ SKU: ${product.sku} နာရီကို ဝယ်ယူလိုပါသဖြင့် ဆက်သွယ်ရခြင်းဖြစ်ပါသည်။`;
                     
                     navigator.clipboard.writeText(draftText).then(() => {
@@ -326,7 +326,7 @@
                         document.body.appendChild(toast);
                         
                         setTimeout(() => {
-                            window.location.href = `viber://chat/?number=%2B${phoneNumber}`;
+                            window.location.href = `viber://chat/?number=%2B959754735024`;
                             toast.remove(); 
                         }, 1500);
                     }).catch(err => {
