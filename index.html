@@ -250,7 +250,6 @@
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
 
-        /* Excel Upload Drop Zone styling */
         .upload-drop-zone {
             border: 2px dashed var(--accent-color);
             background-color: #fdfbf7;
@@ -429,9 +428,14 @@
 
         let products = [];
         let isEditMode = false;
-        let selectedExcelData = null; // Store parsed rows temporarily
+        let selectedExcelData = null;
 
-        // Global function for layout switching between tabs
+        // Clean function to strip characters forbidden by Firebase keys (. # $ [ ] /)
+        function sanitizeSku(rawSku) {
+            if(!rawSku) return "";
+            return String(rawSku).trim().toUpperCase().replace(/[\.#\$\/\[\]]/g, '-');
+        }
+
         window.switchAdminTab = function(tabId, element) {
             document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
@@ -529,22 +533,23 @@
         async function checkSkuRealtime(skuVal) {
             const msgDiv = document.getElementById('skuStatusMessage');
             const deleteBtn = document.getElementById('deleteBtn');
-            skuVal = skuVal.trim();
-            if(!skuVal) { 
+            
+            const cleanSku = sanitizeSku(skuVal);
+            if(!cleanSku) { 
                 msgDiv.style.display = 'none'; 
                 deleteBtn.style.display = 'none';
                 return; 
             }
 
             try {
-                const snapshot = await get(ref(db, 'watches/' + skuVal.toUpperCase()));
+                const snapshot = await get(ref(db, 'watches/' + cleanSku));
 
                 msgDiv.style.display = 'block';
                 if (snapshot.exists()) {
                     isEditMode = true;
                     deleteBtn.style.display = 'inline-block';
                     msgDiv.style.backgroundColor = '#fff3cd'; msgDiv.style.color = '#856404';
-                    msgDiv.innerText = "⚠️ ဤ SKU ရှိပြီးသားမို့ ဒေတာကို ပြင်ဆင် (Edit) သို့မဟုတ် ဖျက်နိုင်ပါသည်။";
+                    msgDiv.innerText = `⚠️ SKU: "${cleanSku}" ရှိပြီးသားမို့ ပြင်ဆင်ခြင်း သို့မဟုတ် ဖျက်ခြင်း ပြုလုပ်နိုင်ပါသည်။`;
                     document.getElementById('submitBtn').innerText = 'အချက်အလက်ပြင်ဆင်မည် (Save Edit)';
                     
                     const prod = snapshot.val();
@@ -566,7 +571,7 @@
                     isEditMode = false;
                     deleteBtn.style.display = 'none';
                     msgDiv.style.backgroundColor = '#d4edda'; msgDiv.style.color = '#155724';
-                    msgDiv.innerText = "✨ SKU အသစ် ဖြစ်ပါသဖြင့် ဒေတာအသစ် Upload လုပ်နိုင်ပါသည်။";
+                    msgDiv.innerText = `✨ SKU အသစ် ("${cleanSku}") ဖြစ်ပါသဖြင့် ဒေတာအသစ် Upload လုပ်နိုင်ပါသည်။`;
                     document.getElementById('submitBtn').innerText = 'Upload တင်မည် (New Save)';
                     clearFieldsExceptSku();
                 }
@@ -587,7 +592,7 @@
 
         async function handleUploadOrEdit(e) {
             e.preventDefault();
-            const sku = document.getElementById('watchSku').value.trim().toUpperCase();
+            const sku = sanitizeSku(document.getElementById('watchSku').value);
             if(!sku) return alert('SKU ကုဒ် ထည့်ပါ');
 
             const imgLines = document.getElementById('watchImgs').value.split('\n').map(line => line.trim()).filter(line => line.length > 0);
@@ -616,7 +621,7 @@
         }
 
         async function handleDeleteItem() {
-            const sku = document.getElementById('watchSku').value.trim().toUpperCase();
+            const sku = sanitizeSku(document.getElementById('watchSku').value);
             if (!sku) return;
 
             const confirmDelete = confirm(`⚠️ SKU: ${sku} အား ဒေတာဘေ့စ်ထဲမှ အပြီးတိုင် ဖျက်ပစ်ရန် သေချာပါသလား?`);
@@ -639,10 +644,8 @@
         const fileInfoDisplay = document.getElementById('fileInfoDisplay');
         const processExcelBtn = document.getElementById('processExcelBtn');
 
-        // Click to upload triggers file input
         dropZone.addEventListener('click', () => fileInput.click());
 
-        // Drag and drop mechanics
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.backgroundColor = '#f5eedf'; });
         dropZone.addEventListener('dragleave', () => { dropZone.style.backgroundColor = '#fdfbf7'; });
         dropZone.addEventListener('drop', (e) => {
@@ -671,11 +674,8 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
                     
-                    // Read the first worksheet
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
-                    
-                    // Convert sheets data matrix into JSON objects array
                     const rawRows = XLSX.utils.sheet_to_json(worksheet);
                     
                     if(rawRows.length === 0) {
@@ -706,27 +706,24 @@
             let updatedCount = 0;
 
             try {
-                // Fetch existing database snapshot to check if items already exist
                 const dbRef = ref(db);
                 const snapshot = await get(child(dbRef, "watches"));
                 const currentData = snapshot.exists() ? snapshot.val() : {};
 
                 selectedExcelData.forEach((row) => {
-                    // Normalize keys to lowercase to bypass formatting human errors
                     const cleanRow = {};
                     for (let key in row) {
                         cleanRow[key.toLowerCase().trim()] = row[key];
                     }
 
-                    // SKU is mandatory
                     if (!cleanRow.sku) return;
-                    const sku = String(cleanRow.sku).trim().toUpperCase();
+                    
+                    // Fixed: Sanitize SKU string safely for Firebase compatibility
+                    const sku = sanitizeSku(cleanRow.sku);
 
-                    // Check if item already exists locally to identify if it's a new addition or just a stock update
                     const existingItem = currentData[sku];
 
                     if (existingItem) {
-                        // SCENARIO A: Item exists. Update its quantity (and optional price) safely without destroying other details.
                         if (cleanRow.stock !== undefined) {
                             updates[`watches/${sku}/stock`] = parseInt(cleanRow.stock) || 0;
                         }
@@ -735,7 +732,6 @@
                         }
                         updatedCount++;
                     } else {
-                        // SCENARIO B: Brand new item! Write full product structure data fields.
                         let parsedImgs = ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500"];
                         if (cleanRow.imgs) {
                             parsedImgs = String(cleanRow.imgs).split(',').map(l => l.trim()).filter(l => l.length > 0);
@@ -756,14 +752,12 @@
                     }
                 });
 
-                // Send bulk atomic object map updates payload straight to Firebase base path
                 await update(ref(db), updates);
                 
                 alert(`Excel Import အောင်မြင်ပါသည်!\n✨ ပစ္စည်းအသစ်ထည့်သွင်းမှု: ${addedCount} ခု\n🔄 လက်ကျန်အရေအတွက်ပြင်ဆင်မှု: ${updatedCount} ခု`);
                 
-                // Reset tab states
                 selectedExcelData = null;
-                fileInput.value = '';
+                document.getElementById('excelFileInput').value = '';
                 fileInfoDisplay.style.display = 'none';
                 processExcelBtn.disabled = true;
                 processExcelBtn.innerText = 'Excel ဖိုင်ကို ဖတ်ပြီး ဒေတာဘေ့စ်ထဲ သိမ်းမည်';
