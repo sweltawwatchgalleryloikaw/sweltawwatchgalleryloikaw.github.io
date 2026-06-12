@@ -393,18 +393,26 @@
                 container.appendChild(card);
             });
 
-            // Viber Link စနစ်အသစ် (viber://chat/?number=...&draft=...) ကို ပြောင်းလဲတပ်ဆင်ထားသည့်နေရာ
-            document.querySelectorAll('.buy-now-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const sku = e.target.getAttribute('data-sku');
-                    const phoneNumber = "0959754735024"; // အစ်ကို့ရဲ့ ဖုန်းနံပါတ်အမှန်
-                    const draftText = `မင်္ဂလာပါ ခင်ဗျာ။ Swel Taw Watch Gallery မှ SKU: ${sku} နာရီကို ဝယ်ယူလိုပါသဖြင့် ဆက်သွယ်ရခြင်းဖြစ်ပါသည်။`;
-                    
-                    // Chat Box ထဲ တိုက်ရိုက်ရောက်ပြီး စာသားပါဝင်မည့် Format
-                    window.location.href = `viber://chat/?number=%2B${phoneNumber}&draft=${encodeURIComponent(draftText)}`;
-                });
+        
+            ddocument.querySelectorAll('.buy-now-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const sku = e.target.getAttribute('data-sku');
+        const phoneNumber = "0959754735024"; 
+        const draftText = `မင်္ဂလာပါ ခင်ဗျာ။ Swel Taw Watch Gallery မှ SKU: ${sku} နာရီကို ဝယ်ယူလိုပါသဖြင့် ဆက်သွယ်ရခြင်းဖြစ်ပါသည်။`;
+        
+        // 1. Copy the draft text to the clipboard
+        navigator.clipboard.writeText(draftText)
+            .then(() => {
+                // 2. Once successfully copied, open the Viber URL
+                window.location.href = `viber://chat/?number=%2B${phoneNumber}&draft=${encodeURIComponent(draftText)}`;
+            })
+            .catch(err => {
+                console.error('Failed to copy text: ', err);
+                // Fallback: Still try to open Viber even if clipboard copy fails
+                window.location.href = `viber://chat/?number=%2B${phoneNumber}&draft=${encodeURIComponent(draftText)}`;
             });
-        }
+    });
+});
 
         function filterProducts() {
             const searchText = document.getElementById('mainSearch').value.toLowerCase();
