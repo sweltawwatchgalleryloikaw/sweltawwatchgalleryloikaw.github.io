@@ -40,6 +40,7 @@
             font-size: 22px;
             font-weight: bold;
             color: var(--accent-color);
+            text-decoration: none;
         }
 
         .search-container {
@@ -65,6 +66,9 @@
             cursor: pointer;
             font-weight: bold;
             transition: 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
         }
 
         .btn:hover { background-color: #a88b4a; }
@@ -156,6 +160,10 @@
             color: #666;
             margin-bottom: 15px;
             flex-grow: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .product-price {
@@ -208,7 +216,7 @@
 <body>
 
     <header>
-        <div class="logo">Swel Taw Watch Gallery (Loikaw)</div>
+        <a href="index.html" class="logo">Swel Taw Watch Gallery (Loikaw)</a>
         <div class="search-container">
             <input type="text" id="mainSearch" placeholder="looking for something?">
             <button class="btn" id="searchBtn">Refresh</button>
@@ -284,8 +292,8 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>နာရီပုံစံ (Image URL)</label>
-                            <input type="text" id="watchImg" placeholder="ဓာတ်ပုံ Link ထည့်ပါ" value="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500">
+                            <label>နာရီပုံစံများ (Image Links - တစ်ကြောင်းလျှင် link တစ်ခုစီထည့်ပါ)</label>
+                            <textarea id="watchImgs" rows="4" placeholder="https://link1.com&#10;https://link2.com" required></textarea>
                         </div>
                         <div class="form-group">
                             <label>Description (အကြောင်းအရာ)</label>
@@ -313,7 +321,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // အစ်ကို့ဖိုင်ထဲက ဒေတာဘေ့စ် URL အမှန်ကို မပြောင်းလဲဘဲ သုံးထားပါတယ်
         const firebaseConfig = {
             apiKey: "AIzaSyAwLW-VOsrJ0jLYXxI7LKvQQSDkKsfsVj4",
             authDomain: "sweltaw-8fff9.firebaseapp.com",
@@ -368,14 +375,18 @@
                 
                 let stockHTML = product.stock > 0 
                     ? `<div class="product-stock in-stock">● In Stock: ${product.stock} လုံးကျန်သေးသည်</div>`
-                    : `<div class="product-stock out-of-stock">✕ Out of Stock (ပစ္စည်းပြတ်နေပါသည်)</div>`;
+                    : `<div class="product-stock out-of-stock">✕ Out of Stock</div>`;
                 
-                let buttonHTML = product.stock > 0
-                    ? `<button class="btn buy-now-btn" style="width: 100%;" data-sku="${product.sku}">Buy Now (Viber)</button>`
-                    : `<button class="btn" style="width: 100%;" disabled>Out of Stock</button>`;
+                // Primary image processing logic for multiple strings fallback setup
+                let displayImg = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500';
+                if (product.imgs && Array.isArray(product.imgs) && product.imgs.length > 0) {
+                    displayImg = product.imgs[0];
+                } else if (product.img) {
+                    displayImg = product.img; // legacy structural support fallback
+                }
 
                 card.innerHTML = `
-                    <img src="${product.img || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500'}" alt="Watch" class="product-img">
+                    <img src="${displayImg}" alt="Watch" class="product-img">
                     <div class="product-info">
                         <div class="product-brand">${product.brand}</div>
                         <div class="product-tags">
@@ -387,59 +398,11 @@
                         <div class="product-desc">${product.desc}</div>
                         <div class="product-price">${product.price.toLocaleString()} MMK</div>
                         ${stockHTML}
-                        ${buttonHTML}
+                        <a href="details.html?sku=${encodeURIComponent(product.sku)}" class="btn" style="width: 100%; box-sizing: border-box;">View Details</a>
                     </div>
                 `;
                 container.appendChild(card);
             });
-
-        document.querySelectorAll('.buy-now-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        const sku = e.target.getAttribute('data-sku');
-        const phoneNumber = "0959754735024"; 
-        const draftText = `မင်္ဂလာပါ ခင်ဗျာ။ Swel Taw Watch Gallery မှ SKU: ${sku} နာရီကို ဝယ်ယူလိုပါသဖြင့် ဆက်သွယ်ရခြင်းဖြစ်ပါသည်။`;
-        
-        // 1. Copy text to clipboard
-        navigator.clipboard.writeText(draftText)
-            .then(() => {
-                // 2. Create and style the toast notification
-                const toast = document.createElement('div');
-                toast.textContent = "နာရီ၏sukအားcopyကူးပြီးပါပြီ Viberတွင်Pasteလုပ်ပါ။";
-                
-                // Styling the toast dynamically (Centered at the bottom)
-                Object.assign(toast.style, {
-                    position: 'fixed',
-                    bottom: '20px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    backgroundColor: '#333',
-                    color: '#fff',
-                    padding: '12px 24px',
-                    borderRadius: '8px',
-                    zIndex: '10000',
-                    fontFamily: 'sans-serif',
-                    fontSize: '14px',
-                    boxShadow: '0px 4px 10px rgba(0,0,0,0.3)',
-                    transition: 'opacity 0.3s ease'
-                });
-                
-                document.body.appendChild(toast);
-                
-                // 3. Wait 1.5 seconds (1500ms) before opening Viber
-                setTimeout(() => {
-                    window.location.href = `viber://chat/?number=%2B${phoneNumber}`;
-                    
-                    // Clean up the toast element from the DOM after moving away
-                    toast.remove(); 
-                }, 2500);
-            })
-            .catch(err => {
-                console.error('Failed to copy text: ', err);
-                // Fallback: If clipboard fails, go to Viber instantly
-                window.location.href = `viber://chat/?number=%2B${phoneNumber}`;
-            });
-    });
-});
         }
 
         function filterProducts() {
@@ -482,7 +445,13 @@
                     document.getElementById('watchCategory').value = prod.category || '';
                     document.getElementById('watchClass').value = prod.class || '';
                     document.getElementById('watchSex').value = prod.sex || 'Men';
-                    document.getElementById('watchImg').value = prod.img || '';
+                    
+                    if(prod.imgs && Array.isArray(prod.imgs)){
+                        document.getElementById('watchImgs').value = prod.imgs.join('\n');
+                    } else {
+                        document.getElementById('watchImgs').value = prod.img || '';
+                    }
+                    
                     document.getElementById('watchDesc').value = prod.desc || '';
                     document.getElementById('watchPrice').value = prod.price || '';
                     document.getElementById('watchStock').value = prod.stock || '';
@@ -502,6 +471,7 @@
             document.getElementById('watchBrand').value = '';
             document.getElementById('watchCategory').value = '';
             document.getElementById('watchClass').value = '';
+            document.getElementById('watchImgs').value = '';
             document.getElementById('watchDesc').value = '';
             document.getElementById('watchPrice').value = '';
             document.getElementById('watchStock').value = '';
@@ -512,13 +482,15 @@
             const sku = document.getElementById('watchSku').value.trim().toUpperCase();
             if(!sku) return alert('SKU ကုဒ် ထည့်ပါ');
 
+            const imgLines = document.getElementById('watchImgs').value.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+
             const productData = {
                 sku: sku,
                 brand: document.getElementById('watchBrand').value.trim(),
                 category: document.getElementById('watchCategory').value.trim(),
                 class: document.getElementById('watchClass').value.trim(),
                 sex: document.getElementById('watchSex').value,
-                img: document.getElementById('watchImg').value.trim() || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500",
+                imgs: imgLines.length > 0 ? imgLines : ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500"],
                 desc: document.getElementById('watchDesc').value.trim(),
                 price: parseFloat(document.getElementById('watchPrice').value) || 0,
                 stock: parseInt(document.getElementById('watchStock').value) || 0
@@ -560,6 +532,9 @@
         document.getElementById('searchBtn').addEventListener('click', fetchProductsFromFirebase);
         document.getElementById('backToUserBtn').addEventListener('click', () => showView('userView'));
         document.getElementById('logoutBtn').addEventListener('click', () => showView('userView'));
+
+        document.getElementById('filterSex').addEventListener('change', filterProducts);
+        document.getElementById('filterPrice').addEventListener('input', filterProducts);
 
         fetchProductsFromFirebase();
     </script>
