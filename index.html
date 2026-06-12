@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Swel Taw Watch Gallery (Loikaw)</title>
+    <!-- Include SheetJS for Excel Parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
             --primary-color: #1a1a1a;
@@ -13,6 +15,7 @@
             --text-color: #333;
             --danger-color: #d32f2f;
             --success-color: #388e3c;
+            --info-color: #0288d1;
         }
 
         body {
@@ -74,10 +77,11 @@
         .btn:hover { background-color: #a88b4a; }
         .btn:disabled { background-color: #cccccc; cursor: not-allowed; color: #666666; }
         
-        .btn-danger {
-            background-color: var(--danger-color);
-        }
+        .btn-danger { background-color: var(--danger-color); }
         .btn-danger:hover { background-color: #b71c1c; }
+
+        .btn-info { background-color: var(--info-color); }
+        .btn-info:hover { background-color: #01579b; }
 
         .container {
             max-width: 1200px;
@@ -187,8 +191,8 @@
 
         .form-card {
             background: white;
-            max-width: 500px;
-            margin: 50px auto;
+            max-width: 600px;
+            margin: 30px auto;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
@@ -221,6 +225,52 @@
             gap: 10px;
             margin-top: 10px;
         }
+
+        .admin-nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .nav-tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #666;
+            border-radius: 4px;
+        }
+
+        .nav-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* Excel Upload Drop Zone styling */
+        .upload-drop-zone {
+            border: 2px dashed var(--accent-color);
+            background-color: #fdfbf7;
+            border-radius: 6px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 15px;
+        }
+        .upload-drop-zone:hover {
+            background-color: #f5eedf;
+        }
+        .file-info-display {
+            font-size: 14px;
+            color: var(--success-color);
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -235,6 +285,7 @@
 
     <div class="container">
 
+        <!-- User View -->
         <div id="userView" class="view-section active">
             <div class="filter-container">
                 <div>
@@ -257,6 +308,7 @@
             </div>
         </div>
 
+        <!-- Admin Login View -->
         <div id="adminLoginView" class="view-section">
             <div class="form-card">
                 <h2>Admin Login</h2>
@@ -269,62 +321,89 @@
             </div>
         </div>
 
+        <!-- Admin Control Center -->
         <div id="adminUploadView" class="view-section">
             <div class="form-card">
-                <h2>Admin Product Management</h2>
+                <h2>Admin Control Center</h2>
                 
-                <div class="form-group" style="background: #f0f0f0; padding: 15px; border-radius: 6px;">
-                    <label style="font-weight: bold; color: var(--primary-color);">၁။ SKU ကုဒ်ကို အရင်ရိုက်ထည့်ပါ</label>
-                    <input type="text" id="watchSku" placeholder="ဥပမာ - MW-1002" required>
-                    <div id="skuStatusMessage" class="sku-status"></div>
+                <div class="admin-nav-tabs">
+                    <div class="nav-tab active" onclick="switchAdminTab('singleTab', this)">Single Product</div>
+                    <div class="nav-tab" onclick="switchAdminTab('batchTab', this)">Excel (XLSX) Upload</div>
                 </div>
 
-                <form id="uploadForm">
-                    <div id="formFields" style="margin-top: 15px;">
-                        <div class="form-group">
-                            <label>Brand Name (ဘရန်းအမည်)</label>
-                            <input type="text" id="watchBrand" placeholder="ဥပမာ - Casio, Rolex" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Category (အုပ်စုခွဲ)</label>
-                            <input type="text" id="watchCategory" placeholder="ဥပမာ - Chronograph, Digital" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Class (အဆင့်အတန်း)</label>
-                            <input type="text" id="watchClass" placeholder="ဥပမာ - Premium, Luxury, Standard" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Sex (အမျိုးအစား)</label>
-                            <select id="watchSex">
-                                <option value="Men">Men</option>
-                                <option value="Women">Women</option>
-                                <option value="Unisex">Unisex</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>နာရီပုံစံများ (Image Links - တစ်ကြောင်းလျှင် link တစ်ခုစီထည့်ပါ)</label>
-                            <textarea id="watchImgs" rows="4" placeholder="https://link1.com&#10;https://link2.com" required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Description (အကြောင်းအရာ)</label>
-                            <textarea id="watchDesc" rows="3" placeholder="နာရီအကြောင်းအရာ ရေးရန်" required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Price (ဈေးနှုန်း - ကျပ်)</label>
-                            <input type="number" id="watchPrice" placeholder="ဥပမာ - 150000" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Stock Quantity (လက်ကျန်အရေအတွက်)</label>
-                            <input type="number" id="watchStock" placeholder="ဥပမာ - 5" min="0" required>
-                        </div>
-                        
-                        <div class="action-buttons-group">
-                            <button type="submit" id="submitBtn" class="btn" style="flex: 2;">Upload တင်မည်</button>
-                            <button type="button" id="deleteBtn" class="btn btn-danger" style="flex: 1; display: none;">ဖျက်မည်</button>
-                        </div>
+                <!-- Tab 1: Single Product Management -->
+                <div id="singleTab" class="tab-panel active">
+                    <div class="form-group" style="background: #f0f0f0; padding: 15px; border-radius: 6px;">
+                        <label style="font-weight: bold; color: var(--primary-color);">၁။ SKU ကုဒ်ကို အရင်ရိုက်ထည့်ပါ</label>
+                        <input type="text" id="watchSku" placeholder="ဥပမာ - MW-1002">
+                        <div id="skuStatusMessage" class="sku-status"></div>
                     </div>
-                    <button type="button" class="btn back-btn" style="width:100%;" id="logoutBtn">Logout (ထွက်ရန်)</button>
-                </form>
+
+                    <form id="uploadForm">
+                        <div id="formFields" style="margin-top: 15px;">
+                            <div class="form-group">
+                                <label>Brand Name (ဘရန်းအမည်)</label>
+                                <input type="text" id="watchBrand" placeholder="ဥပမာ - Casio, Rolex" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Category (အုပ်စုခွဲ)</label>
+                                <input type="text" id="watchCategory" placeholder="ဥပမာ - Chronograph, Digital" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Class (အဆင့်အတန်း)</label>
+                                <input type="text" id="watchClass" placeholder="ဥပမာ - Premium, Luxury, Standard" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Sex (အမျိုးအစား)</label>
+                                <select id="watchSex">
+                                    <option value="Men">Men</option>
+                                    <option value="Women">Women</option>
+                                    <option value="Unisex">Unisex</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>နာရီပုံစံများ (Image Links - တစ်ကြောင်းလျှင် link တစ်ခုစီထည့်ပါ)</label>
+                                <textarea id="watchImgs" rows="4" placeholder="https://link1.com&#10;https://link2.com" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Description (အကြောင်းအရာ)</label>
+                                <textarea id="watchDesc" rows="3" placeholder="နာရီအကြောင်းအရာ ရေးရန်" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Price (ဈေးနှုန်း - ကျပ်)</label>
+                                <input type="number" id="watchPrice" placeholder="ဥပမာ - 150000" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Stock Quantity (လက်ကျန်အရေအတွက်)</label>
+                                <input type="number" id="watchStock" placeholder="ဥပမာ - 5" min="0" required>
+                            </div>
+                            
+                            <div class="action-buttons-group">
+                                <button type="submit" id="submitBtn" class="btn" style="flex: 2;">Upload တင်မည်</button>
+                                <button type="button" id="deleteBtn" class="btn btn-danger" style="flex: 1; display: none;">ဖျက်မည်</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tab 2: Excel Upload Feature -->
+                <div id="batchTab" class="tab-panel">
+                    <p style="font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 15px;">
+                        နာရီအသစ်များထည့်ရန် သို့မဟုတ် ရှိပြီးသားနာရီများ၏ အရေအတွက်/ဈေးနှုန်းများကို Excel ဖိုင်ဖြင့် ပြင်ဆင်ရန်။<br>
+                        <strong>သတ်မှတ်ချက်ကော်လံခေါင်းစဉ်များ:</strong> <code style="background:#eee; padding:2px 4px;">sku</code>, <code style="background:#eee; padding:2px 4px;">brand</code>, <code style="background:#eee; padding:2px 4px;">category</code>, <code style="background:#eee; padding:2px 4px;">class</code>, <code style="background:#eee; padding:2px 4px;">sex</code>, <code style="background:#eee; padding:2px 4px;">price</code>, <code style="background:#eee; padding:2px 4px;">stock</code>, <code style="background:#eee; padding:2px 4px;">desc</code>, <code style="background:#eee; padding:2px 4px;">imgs</code>
+                    </p>
+                    
+                    <div class="upload-drop-zone" id="dropZone">
+                        <p style="margin: 0; font-weight: bold; color: #555;">ဤနေရာတွင် Excel (.xlsx) ဖိုင်ကို ဆွဲထည့်ပါ သို့မဟုတ် နှိပ်၍ ရွေးချယ်ပါ</p>
+                        <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="display: none;">
+                        <div id="fileInfoDisplay" class="file-info-display"></div>
+                    </div>
+
+                    <button type="button" id="processExcelBtn" class="btn btn-info" style="width: 100%;" disabled>Excel ဖိုင်ကို ဖတ်ပြီး ဒေတာဘေ့စ်ထဲ သိမ်းမည်</button>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                <button type="button" class="btn back-btn" style="width:100%; margin-top: 0;" id="logoutBtn">Logout (ထွက်ရန်)</button>
             </div>
         </div>
 
@@ -332,7 +411,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, child, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, get, child, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAwLW-VOsrJ0jLYXxI7LKvQQSDkKsfsVj4",
@@ -350,6 +429,16 @@
 
         let products = [];
         let isEditMode = false;
+        let selectedExcelData = null; // Store parsed rows temporarily
+
+        // Global function for layout switching between tabs
+        window.switchAdminTab = function(tabId, element) {
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        };
 
         function showView(viewId) {
             document.querySelectorAll('.view-section').forEach(section => section.classList.remove('active'));
@@ -421,7 +510,6 @@
             const maxPrice = parseFloat(document.getElementById('filterPrice').value) || Infinity;
 
             const filtered = products.filter(product => {
-                // RULE CHANGE: Block out items that have 0 or negative stock value from rendering
                 const isAvailable = parseInt(product.stock) > 0;
 
                 const matchesSearch = (product.desc || '').toLowerCase().includes(searchText) || 
@@ -454,7 +542,7 @@
                 msgDiv.style.display = 'block';
                 if (snapshot.exists()) {
                     isEditMode = true;
-                    deleteBtn.style.display = 'inline-block'; // Reveal Delete button if SKU matches DB
+                    deleteBtn.style.display = 'inline-block';
                     msgDiv.style.backgroundColor = '#fff3cd'; msgDiv.style.color = '#856404';
                     msgDiv.innerText = "⚠️ ဤ SKU ရှိပြီးသားမို့ ဒေတာကို ပြင်ဆင် (Edit) သို့မဟုတ် ဖျက်နိုင်ပါသည်။";
                     document.getElementById('submitBtn').innerText = 'အချက်အလက်ပြင်ဆင်မည် (Save Edit)';
@@ -476,7 +564,7 @@
                     document.getElementById('watchStock').value = prod.stock || '';
                 } else {
                     isEditMode = false;
-                    deleteBtn.style.display = 'none'; // Hide if layout switches to standard creation entry
+                    deleteBtn.style.display = 'none';
                     msgDiv.style.backgroundColor = '#d4edda'; msgDiv.style.color = '#155724';
                     msgDiv.innerText = "✨ SKU အသစ် ဖြစ်ပါသဖြင့် ဒေတာအသစ် Upload လုပ်နိုင်ပါသည်။";
                     document.getElementById('submitBtn').innerText = 'Upload တင်မည် (New Save)';
@@ -527,7 +615,6 @@
             }
         }
 
-        // Dedicated action logic implementation to delete reference nodes
         async function handleDeleteItem() {
             const sku = document.getElementById('watchSku').value.trim().toUpperCase();
             if (!sku) return;
@@ -543,6 +630,151 @@
                 } catch (error) {
                     alert("ဖျက်ဆီးခြင်း မအောင်မြင်ပါ- " + error.message);
                 }
+            }
+        }
+
+        // --- EXCEL UPLOAD AND PARSING INTELLIGENCE ---
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('excelFileInput');
+        const fileInfoDisplay = document.getElementById('fileInfoDisplay');
+        const processExcelBtn = document.getElementById('processExcelBtn');
+
+        // Click to upload triggers file input
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop mechanics
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.backgroundColor = '#f5eedf'; });
+        dropZone.addEventListener('dragleave', () => { dropZone.style.backgroundColor = '#fdfbf7'; });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.backgroundColor = '#fdfbf7';
+            if(e.dataTransfer.files.length > 0) {
+                handleFileSelection(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                handleFileSelection(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelection(file) {
+            if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+                alert('ကျေးဇူးပြု၍ .xlsx သို့မဟုတ် .xls ဖိုင်အမျိုးအစားကိုသာ ရွေးချယ်ပေးပါ။');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Read the first worksheet
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // Convert sheets data matrix into JSON objects array
+                    const rawRows = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    if(rawRows.length === 0) {
+                        alert('Excel ဖိုင်ထဲတွင် မည်သည့်ဒေတာမှ မရှိပါ။');
+                        return;
+                    }
+
+                    selectedExcelData = rawRows;
+                    fileInfoDisplay.innerText = `📄 ဖတ်ပြီးသောဖိုင် - ${file.name} (တွေ့ရှိသော ထုတ်ကုန်အရေအတွက်: ${rawRows.length} ခု)`;
+                    fileInfoDisplay.style.display = 'block';
+                    processExcelBtn.disabled = false;
+
+                } catch (err) {
+                    alert('Excel ဖိုင် ဖတ်ရှုခြင်း မအောင်မြင်ပါ- ' + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        async function saveExcelDataToFirebase() {
+            if(!selectedExcelData || selectedExcelData.length === 0) return;
+
+            processExcelBtn.disabled = true;
+            processExcelBtn.innerText = 'ဒေတာများကို သိမ်းဆည်းနေပါသည်...';
+
+            const updates = {};
+            let addedCount = 0;
+            let updatedCount = 0;
+
+            try {
+                // Fetch existing database snapshot to check if items already exist
+                const dbRef = ref(db);
+                const snapshot = await get(child(dbRef, "watches"));
+                const currentData = snapshot.exists() ? snapshot.val() : {};
+
+                selectedExcelData.forEach((row) => {
+                    // Normalize keys to lowercase to bypass formatting human errors
+                    const cleanRow = {};
+                    for (let key in row) {
+                        cleanRow[key.toLowerCase().trim()] = row[key];
+                    }
+
+                    // SKU is mandatory
+                    if (!cleanRow.sku) return;
+                    const sku = String(cleanRow.sku).trim().toUpperCase();
+
+                    // Check if item already exists locally to identify if it's a new addition or just a stock update
+                    const existingItem = currentData[sku];
+
+                    if (existingItem) {
+                        // SCENARIO A: Item exists. Update its quantity (and optional price) safely without destroying other details.
+                        if (cleanRow.stock !== undefined) {
+                            updates[`watches/${sku}/stock`] = parseInt(cleanRow.stock) || 0;
+                        }
+                        if (cleanRow.price !== undefined) {
+                            updates[`watches/${sku}/price`] = parseFloat(cleanRow.price) || 0;
+                        }
+                        updatedCount++;
+                    } else {
+                        // SCENARIO B: Brand new item! Write full product structure data fields.
+                        let parsedImgs = ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500"];
+                        if (cleanRow.imgs) {
+                            parsedImgs = String(cleanRow.imgs).split(',').map(l => l.trim()).filter(l => l.length > 0);
+                        }
+
+                        updates[`watches/${sku}`] = {
+                            sku: sku,
+                            brand: cleanRow.brand ? String(cleanRow.brand).trim() : "Generic",
+                            category: cleanRow.category ? String(cleanRow.category).trim() : "Standard",
+                            class: cleanRow.class ? String(cleanRow.class).trim() : "Standard",
+                            sex: cleanRow.sex ? String(cleanRow.sex).trim() : "Unisex",
+                            imgs: parsedImgs,
+                            desc: cleanRow.desc ? String(cleanRow.desc).trim() : "No description provided.",
+                            price: parseFloat(cleanRow.price) || 0,
+                            stock: parseInt(cleanRow.stock) || 0
+                        };
+                        addedCount++;
+                    }
+                });
+
+                // Send bulk atomic object map updates payload straight to Firebase base path
+                await update(ref(db), updates);
+                
+                alert(`Excel Import အောင်မြင်ပါသည်!\n✨ ပစ္စည်းအသစ်ထည့်သွင်းမှု: ${addedCount} ခု\n🔄 လက်ကျန်အရေအတွက်ပြင်ဆင်မှု: ${updatedCount} ခု`);
+                
+                // Reset tab states
+                selectedExcelData = null;
+                fileInput.value = '';
+                fileInfoDisplay.style.display = 'none';
+                processExcelBtn.disabled = true;
+                processExcelBtn.innerText = 'Excel ဖိုင်ကို ဖတ်ပြီး ဒေတာဘေ့စ်ထဲ သိမ်းမည်';
+                
+                showView('userView');
+                fetchProductsFromFirebase();
+
+            } catch (error) {
+                alert("ဒေတာဘေ့စ်သိမ်းဆည်းမှု မအောင်မြင်ပါ- " + error.message);
+                processExcelBtn.disabled = false;
+                processExcelBtn.innerText = 'Excel ဖိုင်ကို ဖတ်ပြီး ဒေတာဘေ့စ်ထဲ သိမ်းမည်';
             }
         }
 
@@ -574,6 +806,7 @@
         document.getElementById('watchSku').addEventListener('input', (e) => checkSkuRealtime(e.target.value));
         document.getElementById('uploadForm').addEventListener('submit', handleUploadOrEdit);
         document.getElementById('deleteBtn').addEventListener('click', handleDeleteItem);
+        document.getElementById('processExcelBtn').addEventListener('click', saveExcelDataToFirebase);
         document.getElementById('searchBtn').addEventListener('click', fetchProductsFromFirebase);
         document.getElementById('backToUserBtn').addEventListener('click', () => showView('userView'));
         document.getElementById('logoutBtn').addEventListener('click', () => showView('userView'));
