@@ -610,7 +610,7 @@
                 category: document.getElementById('watchCategory').value.trim(),
                 class: document.getElementById('watchClass').value.trim(),
                 sex: document.getElementById('watchSex').value,
-                imgs: imgLines.length > 0 ? imgLines : ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500"],
+                imgs: imgLines.length > 0 ? imgLines : ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"],
                 desc: document.getElementById('watchDesc').value.trim(),
                 price: parseFloat(document.getElementById('watchPrice').value) || 0,
                 stock: parseInt(document.getElementById('watchStock').value) || 0
@@ -774,7 +774,7 @@
                         }
                         updatedCount++;
                     } else {
-                        let parsedImgs = ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500"];
+                        let parsedImgs = ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"];
                         if (cleanRow.imgs) {
                             parsedImgs = String(cleanRow.imgs).split(',').map(l => l.trim()).filter(l => l.length > 0);
                         }
