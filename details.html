@@ -273,18 +273,18 @@
                     <div class="thumbnails-grid">${thumbsHTML}</div>
                 </div>
                 <div class="info-container">
-                    <div class="watch-brand">${product.brand}</div>
+                    <div class="watch-brand">${product.brand || ''}</div>
                     <div class="watch-sku" id="skuClickArea" style="cursor: pointer; user-select: none;" title="နမူနာပြထားသော SKU ကို ကူးယူရန် နှိပ်ပါ။ စီမံခန့်ခွဲမှုစနစ်ဖွင့်ရန် ၁ စက္ကန့်အတွင်း ၄ ကြိမ်ဆက်တိုက် နှိပ်ပါ။">
                         SKU: <span style="text-decoration: underline; color: var(--primary-color); font-weight: bold;">${product.sku}</span>
                     </div>
                     <div class="tags">
-                        <span class="badge badge-sex">${product.sex}</span>
-                        <span class="badge badge-cat">${product.category}</span>
-                        <span class="badge badge-class">${product.class}</span>
+                        <span class="badge badge-sex">${product.sex || ''}</span>
+                        <span class="badge badge-cat">${product.category || ''}</span>
+                        <span class="badge badge-class">${product.class || ''}</span>
                     </div>
-                    <div class="watch-price">${product.price.toLocaleString()} MMK</div>
+                    <div class="watch-price">${(product.price || 0).toLocaleString()} MMK</div>
                     ${stockStatusHTML}
-                    <div class="watch-desc">${product.desc}</div>
+                    <div class="watch-desc">${product.desc || ''}</div>
                     ${actionButtonHTML}
                 </div>
             `;
@@ -321,7 +321,7 @@
                 // If user clicks exactly 4 times (or more) within a rolling window of 1 second
                 if (clickTimes.length >= 4) {
                     clickTimes = []; // Clear register to prevent accidental re-triggers
-                    showAdminLoginModal(product);
+                    showAdminLoginModal(product, imgArray);
                 }
             });
 
@@ -379,7 +379,7 @@
         }
 
         // Admin Auth and Real-time Structural Modification Overlay
-        function showAdminLoginModal(product) {
+        function showAdminLoginModal(product, imgArray) {
             if(document.getElementById('adminModalOverlay')) return; // Avoid duplication
 
             const overlay = document.createElement('div');
@@ -387,11 +387,15 @@
             Object.assign(overlay.style, {
                 position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
                 backgroundColor: 'rgba(0,0,0,0.6)', zIndex: '20000', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif'
+                alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif',
+                overflowY: 'auto'
             });
 
+            // Convert current image array back to a comma-separated text string for editing
+            const imageLinksString = imgArray.join(', ');
+
             overlay.innerHTML = `
-                <div style="background: #fff; padding: 25px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                <div style="background: #fff; padding: 25px; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 40px auto; max-height: 85vh; overflow-y: auto;">
                     
                     <!-- Login Gateway Section View -->
                     <div id="loginGate">
@@ -404,23 +408,50 @@
                         </div>
                     </div>
 
-                    <!-- Live Content Editor Mutation Section View -->
+                    <!-- Expanded Content Editor Mutation Section View -->
                     <div id="editPane" style="display:none;">
                         <h3 style="margin-top:0; color:var(--primary-color);">Update SKU: ${product.sku}</h3>
                         
                         <div style="margin-bottom:12px;">
-                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">စျေးနှုန်း (MMK)</label>
-                            <input type="number" id="editPrice" value="${product.price}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Brand Name</label>
+                            <input type="text" id="editBrand" value="${product.brand || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                        </div>
+
+                        <div style="margin-bottom:12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Category</label>
+                                <input type="text" id="editCategory" value="${product.category || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Class</label>
+                                <input type="text" id="editClass" value="${product.class || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Sex</label>
+                                <input type="text" id="editSex" value="${product.sex || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">လက်ကျန်အရေအတွက် (Stock)</label>
+                                <input type="number" id="editStock" value="${product.stock || 0}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                            </div>
                         </div>
 
                         <div style="margin-bottom:12px;">
-                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">လက်ကျန်အရေအတွက် (Stock)</label>
-                            <input type="number" id="editStock" value="${product.stock}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">စျေးနှုန်း (MMK)</label>
+                            <input type="number" id="editPrice" value="${product.price || 0}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                        </div>
+
+                        <div style="margin-bottom:12px;">
+                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Image Links (Comma ဖြင့်ခြား၍ အများကြီးထည့်နိုင်သည်)</label>
+                            <textarea id="editImgs" rows="3" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; font-family:sans-serif; resize:vertical;">${imageLinksString}</textarea>
                         </div>
 
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">အကြောင်းအရာ ဖော်ပြချက် (Description)</label>
-                            <textarea id="editDesc" rows="4" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; resize:vertical; font-family:sans-serif;">${product.desc}</textarea>
+                            <textarea id="editDesc" rows="4" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; resize:vertical; font-family:sans-serif;">${product.desc || ''}</textarea>
                         </div>
 
                         <div style="display:flex; justify-content:flex-end; gap:10px;">
@@ -444,7 +475,6 @@
             // Authentication Checking Event
             document.getElementById('loginAuthBtn').addEventListener('click', () => {
                 const enteredPass = document.getElementById('adminPassField').value;
-                // You can substitute 'admin123' with any specific key code logic you prefer
                 if(enteredPass === 'admin123') {
                     loginGate.style.display = 'none';
                     editPane.style.display = 'block';
@@ -455,9 +485,19 @@
 
             // Write-Back Firebase Mutation Handler Implementation
             document.getElementById('saveEditBtn').addEventListener('click', async () => {
+                const newBrand = document.getElementById('editBrand').value.trim();
+                const newCategory = document.getElementById('editCategory').value.trim();
+                const newClass = document.getElementById('editClass').value.trim();
+                const newSex = document.getElementById('editSex').value.trim();
                 const newPrice = parseInt(document.getElementById('editPrice').value, 10);
                 const newStock = parseInt(document.getElementById('editStock').value, 10);
                 const newDesc = document.getElementById('editDesc').value;
+                
+                // Parse image string into array clean elements
+                const rawImgText = document.getElementById('editImgs').value;
+                const newImgsArray = rawImgText.split(',')
+                                                .map(link => link.trim())
+                                                .filter(link => link.length > 0);
 
                 if (isNaN(newPrice) || isNaN(newStock)) {
                     alert('စျေးနှုန်းနှင့် လက်ကျန်အရေအတွက်အား မှန်ကန်စွာ ဖြည့်စွက်ပါ။');
@@ -466,10 +506,18 @@
 
                 try {
                     const dbTargetRef = ref(db, 'watches/' + product.sku.toUpperCase());
+                    
+                    // Comprehensive configuration layout sync
                     await update(dbTargetRef, {
+                        brand: newBrand,
+                        category: newCategory,
+                        class: newClass,
+                        sex: newSex,
                         price: newPrice,
                         stock: newStock,
-                        desc: newDesc
+                        desc: newDesc,
+                        imgs: newImgsArray,
+                        img: newImgsArray[0] || "" // Also synchronize baseline unified variable object
                     });
 
                     showToast('ပြင်ဆင်မှုများအား သိမ်းဆည်းပြီးပါပြီ။');
