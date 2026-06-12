@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swel Taw Watch Gallery (Loikaw)</title>
+    <style>
+        :root {
+            --primary-color: #1a1a1a;
+            --accent-color: #bfa15f; 
+            --bg-color: #f9f9f9;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --danger-color: #d32f2f;
+            --success-color: #388e3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-container input, .filter-container select, .filter-container input, .form-group input, .form-group textarea, .form-group select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .search-container input { width: 250px; }
+
+        .btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn:hover { background-color: #a88b4a; }
+        .btn:disabled { background-color: #cccccc; cursor: not-allowed; color: #666666; }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .filter-container {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .product-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover { transform: translateY(-5px); }
+
+        .product-img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background-color: #eee;
+        }
+
+        .product-info {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .product-brand {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-color);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .product-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+        .badge-cat { background: #e1f5fe; color: #0288d1; }
+        .badge-class { background: #efebe9; color: #5d4037; }
+        .badge-sex { background: #f3e5f5; color: #8e24aa; }
+
+        .product-sku { color: #888; font-size: 12px; margin-bottom: 5px; }
+
+        .product-desc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+            flex-grow: 1;
+        }
+
+        .product-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .product-stock {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .in-stock { color: var(--success-color); }
+        .out-of-stock { color: var(--danger-color); }
+
+        .form-card {
+            background: white;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .form-card h2 { margin-top: 0; color: var(--primary-color); }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .sku-status {
+            font-size: 13px;
+            font-weight: bold;
+            padding: 5px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .back-btn {
+            background: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Swel Taw Watch Gallery (Loikaw)</div>
+        <div class="search-container">
+            <input type="text" id="mainSearch" placeholder="looking for something?">
+            <button class="btn" id="searchBtn">Refresh</button>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <div id="userView" class="view-section active">
+            <div class="filter-container">
+                <div>
+                    <label>Sex: </label>
+                    <select id="filterSex">
+                        <option value="all">အားလုံး</option>
+                        <option value="Men">Men</option>
+                        <option value="Women">Women</option>
+                        <option value="Unisex">Unisex</option>
+                    </select>
+                </div>
+                <div>
+                    <label>အမြင့်ဆုံးဈေးနှုန်း: </label>
+                    <input type="number" id="filterPrice" placeholder="ဥပမာ - 500000">
+                </div>
+            </div>
+
+            <div class="products-grid" id="productsContainer">
+                <p style="text-align: center; grid-column: 1/-1;">Realtime Database မှ ဒေတာများ ဆွဲယူနေပါသည်...</p>
+            </div>
+        </div>
+
+        <div id="adminLoginView" class="view-section">
+            <div class="form-card">
+                <h2>Admin Login</h2>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="adminPassword" placeholder="Password ရိုက်ထည့်ပါ (Demo: 1234)">
+                </div>
+                <button class="btn" id="loginBtn">Login ဝင်ရန်</button>
+                <button class="btn back-btn" id="backToUserBtn">အသုံးပြုသူစာမျက်နှာသို့ ပြန်သွားရန်</button>
+            </div>
+        </div>
+
+        <div id="adminUploadView" class="view-section">
+            <div class="form-card">
+                <h2>Admin Product Management</h2>
+                
+                <div class="form-group" style="background: #f0f0f0; padding: 15px; border-radius: 6px;">
+                    <label style="font-weight: bold; color: var(--primary-color);">၁။ SKU ကုဒ်ကို အရင်ရိုက်ထည့်ပါ</label>
+                    <input type="text" id="watchSku" placeholder="ဥပမာ - MW-1002" required>
+                    <div id="skuStatusMessage" class="sku-status"></div>
+                </div>
+
+                <form id="uploadForm">
+                    <div id="formFields" style="margin-top: 15px;">
+                        <div class="form-group">
+                            <label>Brand Name (ဘရန်းအမည်)</label>
+                            <input type="text" id="watchBrand" placeholder="ဥပမာ - Casio, Rolex" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Category (အုပ်စုခွဲ)</label>
+                            <input type="text" id="watchCategory" placeholder="ဥပမာ - Chronograph, Digital" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Class (အဆင့်အတန်း)</label>
+                            <input type="text" id="watchClass" placeholder="ဥပမာ - Premium, Luxury, Standard" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Sex (အမျိုးအစား)</label>
+                            <select id="watchSex">
+                                <option value="Men">Men</option>
+                                <option value="Women">Women</option>
+                                <option value="Unisex">Unisex</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>နာရီပုံစံ (Image URL)</label>
+                            <input type="text" id="watchImg" placeholder="ဓာတ်ပုံ Link ထည့်ပါ" value="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500">
+                        </div>
+                        <div class="form-group">
+                            <label>Description (အကြောင်းအရာ)</label>
+                            <textarea id="watchDesc" rows="3" placeholder="နာရီအကြောင်းအရာ ရေးရန်" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Price (ဈေးနှုန်း - ကျပ်)</label>
+                            <input type="number" id="watchPrice" placeholder="ဥပမာ - 150000" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Stock Quantity (လက်ကျန်အရေအတွက်)</label>
+                            <input type="number" id="watchStock" placeholder="ဥပမာ - 5" min="0" required>
+                        </div>
+                        
+                        <button type="submit" id="submitBtn" class="btn" style="width:100%; margin-top:10px;">Upload တင်မည်</button>
+                    </div>
+                    <button type="button" class="btn back-btn" style="width:100%;" id="logoutBtn">Logout (ထွက်ရန်)</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // အစ်ကို့ဖိုင်ထဲက ဒေတာဘေ့စ် URL အမှန်ကို မပြောင်းလဲဘဲ သုံးထားပါတယ်
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwLW-VOsrJ0jLYXxI7LKvQQSDkKsfsVj4",
+            authDomain: "sweltaw-8fff9.firebaseapp.com",
+            databaseURL: "https://sweltaw-8fff9-default-rtdb.firebaseio.com", 
+            projectId: "sweltaw-8fff9",
+            storageBucket: "sweltaw-8fff9.firebasestorage.app",
+            messagingSenderId: "290777829005",
+            appId: "1:290777829005:web:789afc0c1885fb15f35cc4",
+            measurementId: "G-HYL8QXWTY7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app); 
+
+        let products = [];
+        let isEditMode = false;
+
+        function showView(viewId) {
+            document.querySelectorAll('.view-section').forEach(section => section.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        async function fetchProductsFromFirebase() {
+            try {
+                const dbRef = ref(db);
+                const snapshot = await get(child(dbRef, "watches"));
+                products = [];
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    for (let key in data) {
+                        products.push(data[key]);
+                    }
+                }
+                filterProducts();
+            } catch (error) {
+                console.error("Error fetching data: ", error);
+            }
+        }
+
+        function displayProducts(productsList) {
+            const container = document.getElementById('productsContainer');
+            container.innerHTML = '';
+
+            if(productsList.length === 0) {
+                container.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #888;">ရှာဖွေနေသော နာရီမရှိပါ။</p>';
+                return;
+            }
+
+            productsList.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                
+                let stockHTML = product.stock > 0 
+                    ? `<div class="product-stock in-stock">● In Stock: ${product.stock} လုံးကျန်သေးသည်</div>`
+                    : `<div class="product-stock out-of-stock">✕ Out of Stock (ပစ္စည်းပြတ်နေပါသည်)</div>`;
+                
+                let buttonHTML = product.stock > 0
+                    ? `<button class="btn buy-now-btn" style="width: 100%;" data-sku="${product.sku}">Buy Now (Viber)</button>`
+                    : `<button class="btn" style="width: 100%;" disabled>Out of Stock</button>`;
+
+                card.innerHTML = `
+                    <img src="${product.img || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500'}" alt="Watch" class="product-img">
+                    <div class="product-info">
+                        <div class="product-brand">${product.brand}</div>
+                        <div class="product-tags">
+                            <span class="badge badge-sex">${product.sex}</span>
+                            <span class="badge badge-cat">${product.category}</span>
+                            <span class="badge badge-class">${product.class}</span>
+                        </div>
+                        <div class="product-sku">SKU: ${product.sku}</div>
+                        <div class="product-desc">${product.desc}</div>
+                        <div class="product-price">${product.price.toLocaleString()} MMK</div>
+                        ${stockHTML}
+                        ${buttonHTML}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Viber Link စနစ်အသစ် (viber://chat/?number=...&draft=...) ကို ပြောင်းလဲတပ်ဆင်ထားသည့်နေရာ
+            document.querySelectorAll('.buy-now-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const sku = e.target.getAttribute('data-sku');
+                    const phoneNumber = "0959754735024"; // အစ်ကို့ရဲ့ ဖုန်းနံပါတ်အမှန်
+                    const draftText = `မင်္ဂလာပါ ခင်ဗျာ။ Swel Taw Watch Gallery မှ SKU: ${sku} နာရီကို ဝယ်ယူလိုပါသဖြင့် ဆက်သွယ်ရခြင်းဖြစ်ပါသည်။`;
+                    
+                    // Chat Box ထဲ တိုက်ရိုက်ရောက်ပြီး စာသားပါဝင်မည့် Format
+                    window.location.href = `viber://chat/?number=%2B${phoneNumber}&draft=${encodeURIComponent(draftText)}`;
+                });
+            });
+        }
+
+        function filterProducts() {
+            const searchText = document.getElementById('mainSearch').value.toLowerCase();
+            const sexFilter = document.getElementById('filterSex').value;
+            const maxPrice = parseFloat(document.getElementById('filterPrice').value) || Infinity;
+
+            const filtered = products.filter(product => {
+                const matchesSearch = (product.desc || '').toLowerCase().includes(searchText) || 
+                                      (product.sku || '').toLowerCase().includes(searchText) || 
+                                      (product.brand || '').toLowerCase().includes(searchText) ||
+                                      (product.category || '').toLowerCase().includes(searchText) ||
+                                      (product.class || '').toLowerCase().includes(searchText);
+                const matchesSex = (sexFilter === 'all') || (product.sex === sexFilter);
+                const matchesPrice = product.price <= maxPrice;
+
+                return matchesSearch && matchesSex && matchesPrice;
+            });
+
+            displayProducts(filtered);
+        }
+
+        async function checkSkuRealtime(skuVal) {
+            const msgDiv = document.getElementById('skuStatusMessage');
+            skuVal = skuVal.trim();
+            if(!skuVal) { msgDiv.style.display = 'none'; return; }
+
+            try {
+                const snapshot = await get(ref(db, 'watches/' + skuVal.toUpperCase()));
+
+                msgDiv.style.display = 'block';
+                if (snapshot.exists()) {
+                    isEditMode = true;
+                    msgDiv.style.backgroundColor = '#fff3cd'; msgDiv.style.color = '#856404';
+                    msgDiv.innerText = "⚠️ ဤ SKU ရှိပြီးသားမို့ ဒေတာကို ပြင်ဆင် (Edit) သိမ်းပါမည်။";
+                    document.getElementById('submitBtn').innerText = 'အချက်အလက်ပြင်ဆင်မည် (Save Edit)';
+                    
+                    const prod = snapshot.val();
+                    document.getElementById('watchBrand').value = prod.brand || '';
+                    document.getElementById('watchCategory').value = prod.category || '';
+                    document.getElementById('watchClass').value = prod.class || '';
+                    document.getElementById('watchSex').value = prod.sex || 'Men';
+                    document.getElementById('watchImg').value = prod.img || '';
+                    document.getElementById('watchDesc').value = prod.desc || '';
+                    document.getElementById('watchPrice').value = prod.price || '';
+                    document.getElementById('watchStock').value = prod.stock || '';
+                } else {
+                    isEditMode = false;
+                    msgDiv.style.backgroundColor = '#d4edda'; msgDiv.style.color = '#155724';
+                    msgDiv.innerText = "✨ SKU အသစ် ဖြစ်ပါသဖြင့် ဒေတာအသစ် Upload လုပ်နိုင်ပါသည်။";
+                    document.getElementById('submitBtn').innerText = 'Upload တင်မည် (New Save)';
+                    clearFieldsExceptSku();
+                }
+            } catch (err) {
+                console.error("SKU Check Error:", err);
+            }
+        }
+
+        function clearFieldsExceptSku() {
+            document.getElementById('watchBrand').value = '';
+            document.getElementById('watchCategory').value = '';
+            document.getElementById('watchClass').value = '';
+            document.getElementById('watchDesc').value = '';
+            document.getElementById('watchPrice').value = '';
+            document.getElementById('watchStock').value = '';
+        }
+
+        async function handleUploadOrEdit(e) {
+            e.preventDefault();
+            const sku = document.getElementById('watchSku').value.trim().toUpperCase();
+            if(!sku) return alert('SKU ကုဒ် ထည့်ပါ');
+
+            const productData = {
+                sku: sku,
+                brand: document.getElementById('watchBrand').value.trim(),
+                category: document.getElementById('watchCategory').value.trim(),
+                class: document.getElementById('watchClass').value.trim(),
+                sex: document.getElementById('watchSex').value,
+                img: document.getElementById('watchImg').value.trim() || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500",
+                desc: document.getElementById('watchDesc').value.trim(),
+                price: parseFloat(document.getElementById('watchPrice').value) || 0,
+                stock: parseInt(document.getElementById('watchStock').value) || 0
+            };
+
+            try {
+                await set(ref(db, 'watches/' + sku), productData);
+                alert(isEditMode ? 'ပြင်ဆင်မှု အောင်မြင်ပါသည်!' : 'ဒေတာအသစ် တင်ပြီးပါပြီ!');
+                document.getElementById('uploadForm').reset();
+                document.getElementById('watchSku').value = '';
+                document.getElementById('skuStatusMessage').style.display = 'none';
+                showView('userView');
+                fetchProductsFromFirebase();
+            } catch (error) {
+                alert("Upload မအောင်မြင်ပါ- " + error.message);
+            }
+        }
+
+        document.getElementById('mainSearch').addEventListener('input', (e) => {
+            if (e.target.value.trim().toLowerCase() === 'adminpanel') {
+                e.target.value = '';
+                showView('adminLoginView');
+            } else {
+                filterProducts();
+            }
+        });
+
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            if(document.getElementById('adminPassword').value === '1234') {
+                document.getElementById('adminPassword').value = '';
+                showView('adminUploadView');
+            } else {
+                alert('Password မှားယွင်းနေပါသည်။ (Demo: 1234)');
+            }
+        });
+
+        document.getElementById('watchSku').addEventListener('input', (e) => checkSkuRealtime(e.target.value));
+        document.getElementById('uploadForm').addEventListener('submit', handleUploadOrEdit);
+        document.getElementById('searchBtn').addEventListener('click', fetchProductsFromFirebase);
+        document.getElementById('backToUserBtn').addEventListener('click', () => showView('userView'));
+        document.getElementById('logoutBtn').addEventListener('click', () => showView('userView'));
+
+        fetchProductsFromFirebase();
+    </script>
+</body>
+</html>
