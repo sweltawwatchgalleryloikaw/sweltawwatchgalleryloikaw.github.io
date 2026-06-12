@@ -402,6 +402,13 @@
                 </div>
 
                 <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                
+                <!-- Danger Zone Action Box -->
+                <div style="background-color: #fff5f5; border: 1px dashed var(--danger-color); padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                    <p style="margin: 0 0 10px 0; font-size: 13px; color: var(--danger-color); font-weight: bold;">⚠️ Danger Zone (အန္တရာယ်ရှိဇုန်)</p>
+                    <button type="button" class="btn btn-danger" style="width: 100%;" id="deleteAllBtn">ဒေတာအားလုံး တစ်ပြိုင်နက် ဖျက်ဆီးမည် (Delete All Items)</button>
+                </div>
+
                 <button type="button" class="btn back-btn" style="width:100%; margin-top: 0;" id="logoutBtn">Logout (ထွက်ရန်)</button>
             </div>
         </div>
@@ -638,7 +645,44 @@
             }
         }
 
-        // --- EXCEL UPLOAD AND PARSING INTELLIGENCE ---
+        // --- MATH CAPTCHA DELETE ALL ITEMS LOGIC ---
+        async function handleDeleteAllItems() {
+            const extremeWarning = confirm("⚠️ သတိပေးချက်!\nဤလုပ်ဆောင်ချက်သည် ဒေတာဘေ့စ်ရှိ ထုတ်ကုန်ပစ္စည်း (နာရီ) အားလုံးကို အပြီးတိုင် ဖျက်ဆီးပစ်မည် ဖြစ်သည်။\nဆက်လက်လုပ်ဆောင်ရန် သေချာပါသလား?");
+            if (!extremeWarning) return;
+
+            // Generate simple math values (Numbers between 2 and 9)
+            const num1 = Math.floor(Math.random() * 8) + 2;
+            const num2 = Math.floor(Math.random() * 8) + 2;
+            const correctAnswer = num1 * num2;
+
+            // Trigger recaptcha prompt input
+            const userAnswer = prompt(`🤖 Security ReCAPTCHA Verification:\n\nမှားယွင်းဖျက်မိခြင်းမှ ကာကွယ်ရန် အောက်ပါသင်္ချာပုစ္ဆာကို တွက်ပေးပါ။\n\n${num1} x ${num2} = ? ဘယ်လောက်လဲ။`);
+            
+            if (userAnswer === null) return; // User pressed Cancel
+
+            if (parseInt(userAnswer.trim()) === correctAnswer) {
+                try {
+                    document.getElementById('deleteAllBtn').disabled = true;
+                    document.getElementById('deleteAllBtn').innerText = 'ဒေတာများကို အကုန်ဖျက်နေပါသည်...';
+                    
+                    await remove(ref(db, 'watches'));
+                    
+                    alert('💥 ဒေတာဘေ့စ်ထဲမှ ပစ္စည်းအားလုံးကို အောင်မြင်စွာ အပြီးတိုင် ဖျက်ဆီးလိုက်ပါပြီ။');
+                    resetAdminForm();
+                    showView('userView');
+                    fetchProductsFromFirebase();
+                } catch (error) {
+                    alert('ဖျက်ဆီးခြင်း မအောင်မြင်ပါ- ' + error.message);
+                } finally {
+                    document.getElementById('deleteAllBtn').disabled = false;
+                    document.getElementById('deleteAllBtn').innerText = 'ဒေတာအားလုံး တစ်ပြိုင်နက် ဖျက်ဆီးမည် (Delete All Items)';
+                }
+            } else {
+                alert('❌ သင်္ချာအဖြေ မှားယွင်းနေပါသည်။ ဒေတာဖျက်ခြင်း လုပ်ငန်းစဉ်ကို ရပ်ဆိုင်းလိုက်သည်။');
+            }
+        }
+
+        // --- EXCEL UPLOAD AND PARSING ---
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('excelFileInput');
         const fileInfoDisplay = document.getElementById('fileInfoDisplay');
@@ -718,9 +762,7 @@
 
                     if (!cleanRow.sku) return;
                     
-                    // Fixed: Sanitize SKU string safely for Firebase compatibility
                     const sku = sanitizeSku(cleanRow.sku);
-
                     const existingItem = currentData[sku];
 
                     if (existingItem) {
@@ -800,6 +842,7 @@
         document.getElementById('watchSku').addEventListener('input', (e) => checkSkuRealtime(e.target.value));
         document.getElementById('uploadForm').addEventListener('submit', handleUploadOrEdit);
         document.getElementById('deleteBtn').addEventListener('click', handleDeleteItem);
+        document.getElementById('deleteAllBtn').addEventListener('click', handleDeleteAllItems);
         document.getElementById('processExcelBtn').addEventListener('click', saveExcelDataToFirebase);
         document.getElementById('searchBtn').addEventListener('click', fetchProductsFromFirebase);
         document.getElementById('backToUserBtn').addEventListener('click', () => showView('userView'));
