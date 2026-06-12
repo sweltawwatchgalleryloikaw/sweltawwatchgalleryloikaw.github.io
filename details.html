@@ -198,7 +198,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAwLW-VOsrJ0jLYXxI7LKvQQSDkKsfsVj4",
@@ -274,7 +274,9 @@
                 </div>
                 <div class="info-container">
                     <div class="watch-brand">${product.brand}</div>
-                    <div class="watch-sku">SKU: ${product.sku}</div>
+                    <div class="watch-sku" id="skuClickArea" style="cursor: pointer; user-select: none;" title="နမူနာပြထားသော SKU ကို ကူးယူရန် နှိပ်ပါ။ စီမံခန့်ခွဲမှုစနစ်ဖွင့်ရန် ၁ စက္ကန့်အတွင်း ၄ ကြိမ်ဆက်တိုက် နှိပ်ပါ။">
+                        SKU: <span style="text-decoration: underline; color: var(--primary-color); font-weight: bold;">${product.sku}</span>
+                    </div>
                     <div class="tags">
                         <span class="badge badge-sex">${product.sex}</span>
                         <span class="badge badge-cat">${product.category}</span>
@@ -297,6 +299,32 @@
                 });
             });
 
+            // Tracking Click Frequency on SKU
+            let clickTimes = [];
+            const skuArea = document.getElementById('skuClickArea');
+
+            skuArea.addEventListener('click', () => {
+                // 1. Core Task: Copy SKU plain-text to clipboard instantly
+                navigator.clipboard.writeText(product.sku).then(() => {
+                    showToast(`SKU: ${product.sku} ကို Copy ကူးယူပြီးပါပြီ။`);
+                }).catch(err => {
+                    console.error('Clipboard error:', err);
+                });
+
+                // 2. Secret Multi-Click Tracking Logic
+                const currentTime = Date.now();
+                clickTimes.push(currentTime);
+
+                // Filter timestamps keeping only those within the past 1 second (1000ms)
+                clickTimes = clickTimes.filter(timestamp => currentTime - timestamp <= 1000);
+
+                // If user clicks exactly 4 times (or more) within a rolling window of 1 second
+                if (clickTimes.length >= 4) {
+                    clickTimes = []; // Clear register to prevent accidental re-triggers
+                    showAdminLoginModal(product);
+                }
+            });
+
             // Viber buy actions triggers with toast handler execution setup
             if (isAvailable) {
                 document.getElementById('buyViberBtn').addEventListener('click', () => {
@@ -304,30 +332,10 @@
                     const draftText = `မင်္ဂလာပါ ခင်ဗျာ။ Swel Taw Watch Gallery မှ SKU: ${product.sku} နာရီကို ဝယ်ယူလိုပါသဖြင့် ဆက်သွယ်ရခြင်းဖြစ်ပါသည်။`;
                     
                     navigator.clipboard.writeText(draftText).then(() => {
-                        const toast = document.createElement('div');
-                        toast.textContent = "နာရီ၏ SKU အား Copy ကူးပြီးပါပြီ။ Viber တွင် Paste လုပ်ပါ။";
-                        
-                        Object.assign(toast.style, {
-                            position: 'fixed',
-                            bottom: '20px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            backgroundColor: '#333',
-                            color: '#fff',
-                            padding: '12px 24px',
-                            borderRadius: '8px',
-                            zIndex: '10000',
-                            fontFamily: 'sans-serif',
-                            fontSize: '14px',
-                            boxShadow: '0px 4px 10px rgba(0,0,0,0.3)',
-                            transition: 'opacity 0.3s ease'
-                        });
-                        
-                        document.body.appendChild(toast);
+                        showToast("နာရီ၏ SKU အား Copy ကူးပြီးပါပြီ။ Viber တွင် Paste လုပ်ပါ။");
                         
                         setTimeout(() => {
                             window.location.href = `viber://chat/?number=%2B959754735024`;
-                            toast.remove(); 
                         }, 1500);
                     }).catch(err => {
                         console.error('Clipboard copy issue', err);
@@ -335,6 +343,145 @@
                     });
                 });
             }
+        }
+
+        // Global Modular Floating Toast Notification Element
+        function showToast(text) {
+            const existingToast = document.getElementById('appDynamicToast');
+            if(existingToast) existingToast.remove();
+
+            const toast = document.createElement('div');
+            toast.id = 'appDynamicToast';
+            toast.textContent = text;
+            
+            Object.assign(toast.style, {
+                position: 'fixed',
+                bottom: '20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                backgroundColor: '#333',
+                color: '#fff',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                zIndex: '10000',
+                fontFamily: 'sans-serif',
+                fontSize: '14px',
+                boxShadow: '0px 4px 10px rgba(0,0,0,0.3)',
+                transition: 'opacity 0.3s ease'
+            });
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+
+        // Admin Auth and Real-time Structural Modification Overlay
+        function showAdminLoginModal(product) {
+            if(document.getElementById('adminModalOverlay')) return; // Avoid duplication
+
+            const overlay = document.createElement('div');
+            overlay.id = 'adminModalOverlay';
+            Object.assign(overlay.style, {
+                position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+                backgroundColor: 'rgba(0,0,0,0.6)', zIndex: '20000', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif'
+            });
+
+            overlay.innerHTML = `
+                <div style="background: #fff; padding: 25px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                    
+                    <!-- Login Gateway Section View -->
+                    <div id="loginGate">
+                        <h3 style="margin-top:0; color:var(--primary-color);">Admin Access Required</h3>
+                        <p style="font-size:13px; color:#666;">စနစ်အတွင်းသို့ဝင်ရောက်ရန် Admin စကားဝှက်ကို ရိုက်ထည့်ပေးပါ။</p>
+                        <input type="password" id="adminPassField" placeholder="Password" style="width:100%; padding:10px; margin:15px 0; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                        <div style="display:flex; justify-content:flex-end; gap:10px;">
+                            <button id="closeAuthBtn" style="padding:8px 16px; background:#ccc; border:none; border-radius:4px; cursor:pointer;">Cancel</button>
+                            <button id="loginAuthBtn" style="padding:8px 16px; background:var(--accent-color); color:white; border:none; border-radius:4px; cursor:pointer;">Confirm</button>
+                        </div>
+                    </div>
+
+                    <!-- Live Content Editor Mutation Section View -->
+                    <div id="editPane" style="display:none;">
+                        <h3 style="margin-top:0; color:var(--primary-color);">Update SKU: ${product.sku}</h3>
+                        
+                        <div style="margin-bottom:12px;">
+                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">စျေးနှုန်း (MMK)</label>
+                            <input type="number" id="editPrice" value="${product.price}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                        </div>
+
+                        <div style="margin-bottom:12px;">
+                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">လက်ကျန်အရေအတွက် (Stock)</label>
+                            <input type="number" id="editStock" value="${product.stock}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                        </div>
+
+                        <div style="margin-bottom:16px;">
+                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">အကြောင်းအရာ ဖော်ပြချက် (Description)</label>
+                            <textarea id="editDesc" rows="4" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; resize:vertical; font-family:sans-serif;">${product.desc}</textarea>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:10px;">
+                            <button id="closeEditBtn" style="padding:8px 16px; background:#ccc; border:none; border-radius:4px; cursor:pointer;">Close</button>
+                            <button id="saveEditBtn" style="padding:8px 16px; background:var(--success-color); color:white; border:none; border-radius:4px; cursor:pointer;">Save Updates</button>
+                        </div>
+                    </div>
+
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            const loginGate = document.getElementById('loginGate');
+            const editPane = document.getElementById('editPane');
+
+            // Overlay Dismiss Events
+            document.getElementById('closeAuthBtn').addEventListener('click', () => overlay.remove());
+            document.getElementById('closeEditBtn').addEventListener('click', () => overlay.remove());
+
+            // Authentication Checking Event
+            document.getElementById('loginAuthBtn').addEventListener('click', () => {
+                const enteredPass = document.getElementById('adminPassField').value;
+                // You can substitute 'admin123' with any specific key code logic you prefer
+                if(enteredPass === 'admin123') {
+                    loginGate.style.display = 'none';
+                    editPane.style.display = 'block';
+                } else {
+                    alert('စကားဝှက် မှားယွင်းနေပါသည်။ ပြန်လည် ကြိုးစားကြည့်ပါ။');
+                }
+            });
+
+            // Write-Back Firebase Mutation Handler Implementation
+            document.getElementById('saveEditBtn').addEventListener('click', async () => {
+                const newPrice = parseInt(document.getElementById('editPrice').value, 10);
+                const newStock = parseInt(document.getElementById('editStock').value, 10);
+                const newDesc = document.getElementById('editDesc').value;
+
+                if (isNaN(newPrice) || isNaN(newStock)) {
+                    alert('စျေးနှုန်းနှင့် လက်ကျန်အရေအတွက်အား မှန်ကန်စွာ ဖြည့်စွက်ပါ။');
+                    return;
+                }
+
+                try {
+                    const dbTargetRef = ref(db, 'watches/' + product.sku.toUpperCase());
+                    await update(dbTargetRef, {
+                        price: newPrice,
+                        stock: newStock,
+                        desc: newDesc
+                    });
+
+                    showToast('ပြင်ဆင်မှုများအား သိမ်းဆည်းပြီးပါပြီ။');
+                    overlay.remove();
+                    
+                    // Refresh view context with fresh operational modifications
+                    loadProductDetails();
+                } catch(error) {
+                    console.error("Error writing document update states back to Firebase node:", error);
+                    alert("အချက်အလက် ပြင်ဆင်မှု မအောင်မြင်ပါ။ Network အား စစ်ဆေးပါ။");
+                }
+            });
         }
 
         loadProductDetails();
