@@ -427,7 +427,7 @@
                 
                 // 3. Wait 1.5 seconds (1500ms) before opening Viber
                 setTimeout(() => {
-                    window.location.href = `viber://chat/?number=%2B${phoneNumber}&draft=${encodeURIComponent(draftText)}`;
+                    window.location.href = `viber://chat/?number=%2B${phoneNumber}`;
                     
                     // Clean up the toast element from the DOM after moving away
                     toast.remove(); 
@@ -436,7 +436,7 @@
             .catch(err => {
                 console.error('Failed to copy text: ', err);
                 // Fallback: If clipboard fails, go to Viber instantly
-                window.location.href = `viber://chat/?number=%2B${phoneNumber}&draft=${encodeURIComponent(draftText)}`;
+                window.location.href = `viber://chat/?number=%2B${phoneNumber}`;
             });
     });
 });
