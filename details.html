@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch Details</title>
+    <style>
+        :root {
+            --primary-color: #1a1a1a;
+            --accent-color: #bfa15f; 
+            --bg-color: #f9f9f9;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --danger-color: #d32f2f;
+            --success-color: #388e3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .detail-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        @media (max-width: 768px) {
+            .detail-wrapper { grid-template-columns: 1fr; gap: 20px; }
+        }
+
+        /* Multi-Image Gallery Styling */
+        .gallery-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .main-img-view {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 8px;
+            background-color: #eee;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .thumbnails-grid {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .thumb-img {
+            width: 75px;
+            height: 75px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+            background-color: #eee;
+        }
+
+        .thumb-img:hover, .thumb-img.active {
+            border-color: var(--accent-color);
+        }
+
+        /* Right Content Styling */
+        .info-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .watch-brand {
+            font-size: 14px;
+            text-transform: uppercase;
+            color: var(--accent-color);
+            font-weight: bold;
+            letter-spacing: 1.5px;
+            margin-bottom: 5px;
+        }
+
+        .watch-sku {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .tags {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .badge {
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .badge-cat { background: #e1f5fe; color: #0288d1; }
+        .badge-class { background: #efebe9; color: #5d4037; }
+        .badge-sex { background: #f3e5f5; color: #8e24aa; }
+
+        .watch-price {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .watch-desc {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 25px;
+            white-space: pre-line;
+        }
+
+        .stock-status {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .in-stock { color: var(--success-color); }
+        .out-of-stock { color: var(--danger-color); }
+
+        .btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: 0.3s;
+            text-align: center;
+            text-decoration: none;
+        }
+        .btn:hover { background-color: #a88b4a; }
+        .btn:disabled { background-color: #cccccc; cursor: not-allowed; color: #666666; }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #666;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .back-link:hover { color: var(--primary-color); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">Swel Taw Watch Gallery (Loikaw)</a>
+    </header>
+
+    <div class="container">
+        <a href="index.html" class="back-link">← စာမျက်နှာအဟောင်းသို့ ပြန်သွားရန်</a>
+        
+        <div class="detail-wrapper" id="detailContent">
+            <p style="text-align: center; grid-column: 1/-1;">Loading watch details...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwLW-VOsrJ0jLYXxI7LKvQQSDkKsfsVj4",
+            authDomain: "sweltaw-8fff9.firebaseapp.com",
+            databaseURL: "https://sweltaw-8fff9-default-rtdb.firebaseio.com", 
+            projectId: "sweltaw-8fff9",
+            storageBucket: "sweltaw-8fff9.firebasestorage.app",
+            messagingSenderId: "290777829005",
+            appId: "1:290777829005:web:789afc0c1885fb15f35cc4",
+            measurementId: "G-HYL8QXWTY7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Get SKU from URL query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentSku = urlParams.get('sku');
+
+        async function loadProductDetails() {
+            const container = document.getElementById('detailContent');
+            if (!currentSku) {
+                container.innerHTML = `<p style="grid-column:1/-1; text-align:center;">SKU parameters error.</p>`;
+                return;
+            }
+
+            try {
+                const snapshot = await get(ref(db, 'watches/' + currentSku.toUpperCase()));
+                if (snapshot.exists()) {
+                    const product = snapshot.val();
+                    renderProduct(product);
+                } else {
+                    container.innerHTML = `<p style="grid-column:1/-1; text-align:center;">နမူနာပြထားသော SKU ကို ရှာမတွေ့ပါ။</p>`;
+                }
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = `<p style="grid-column:1/-1; text-align:center;">Error fetching details.</p>`;
+            }
+        }
+
+        function renderProduct(product) {
+            const container = document.getElementById('detailContent');
+            
+            // Build image collection array checking fallback properties
+            let imgArray = [];
+            if (product.imgs && Array.isArray(product.imgs)) {
+                imgArray = product.imgs;
+            } else if (product.img) {
+                imgArray = [product.img];
+            } else {
+                imgArray = ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500"];
+            }
+
+            // Create Thumbnails Element Block
+            let thumbsHTML = '';
+            imgArray.forEach((imgUrl, idx) => {
+                thumbsHTML += `<img src="${imgUrl}" class="thumb-img ${idx === 0 ? 'active' : ''}" data-index="${idx}" alt="Thumb">`;
+            });
+
+            let isAvailable = product.stock > 0;
+            let stockStatusHTML = isAvailable 
+                ? `<div class="stock-status in-stock">● In Stock: ${product.stock} လုံး လက်ကျန်ရှိပါသည်</div>`
+                : `<div class="stock-status out-of-stock">✕ Out of Stock (ပစ္စည်းပြတ်နေပါသည်)</div>`;
+
+            let actionButtonHTML = isAvailable
+                ? `<button id="buyViberBtn" class="btn">Buy Now (Viber)</button>`
+                : `<button class="btn" disabled>Out of Stock</button>`;
+
+            container.innerHTML = `
+                <div class="gallery-container">
+                    <img src="${imgArray[0]}" id="mainDisplayImg" class="main-img-view" alt="Watch Main View">
+                    <div class="thumbnails-grid">${thumbsHTML}</div>
+                </div>
+                <div class="info-container">
+                    <div class="watch-brand">${product.brand}</div>
+                    <div class="watch-sku">SKU: ${product.sku}</div>
+                    <div class="tags">
+                        <span class="badge badge-sex">${product.sex}</span>
+                        <span class="badge badge-cat">${product.category}</span>
+                        <span class="badge badge-class">${product.class}</span>
+                    </div>
+                    <div class="watch-price">${product.price.toLocaleString()} MMK</div>
+                    ${stockStatusHTML}
+                    <div class="watch-desc">${product.desc}</div>
+                    ${actionButtonHTML}
+                </div>
+            `;
+
+            // Thumbnail Click Event Logic Handler
+            const mainImg = document.getElementById('mainDisplayImg');
+            document.querySelectorAll('.thumb-img').forEach(thumb => {
+                thumb.addEventListener('click', (e) => {
+                    document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    mainImg.src = e.target.src;
+                });
+            });
+
+            // Viber buy actions triggers with toast handler execution setup
+            if (isAvailable) {
+                document.getElementById('buyViberBtn').addEventListener('click', () => {
+                    const phoneNumber = "0959754735024"; 
+                    const draftText = `မင်္ဂလာပါ ခင်ဗျာ။ Swel Taw Watch Gallery မှ SKU: ${product.sku} နာရီကို ဝယ်ယူလိုပါသဖြင့် ဆက်သွယ်ရခြင်းဖြစ်ပါသည်။`;
+                    
+                    navigator.clipboard.writeText(draftText).then(() => {
+                        const toast = document.createElement('div');
+                        toast.textContent = "နာရီ၏ SKU အား Copy ကူးပြီးပါပြီ။ Viber တွင် Paste လုပ်ပါ။";
+                        
+                        Object.assign(toast.style, {
+                            position: 'fixed',
+                            bottom: '20px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            backgroundColor: '#333',
+                            color: '#fff',
+                            padding: '12px 24px',
+                            borderRadius: '8px',
+                            zIndex: '10000',
+                            fontFamily: 'sans-serif',
+                            fontSize: '14px',
+                            boxShadow: '0px 4px 10px rgba(0,0,0,0.3)',
+                            transition: 'opacity 0.3s ease'
+                        });
+                        
+                        document.body.appendChild(toast);
+                        
+                        setTimeout(() => {
+                            window.location.href = `viber://chat/?number=%2B${phoneNumber}`;
+                            toast.remove(); 
+                        }, 1500);
+                    }).catch(err => {
+                        console.error('Clipboard copy issue', err);
+                        window.location.href = `viber://chat/?number=%2B${phoneNumber}`;
+                    });
+                });
+            }
+        }
+
+        loadProductDetails();
+    </script>
+</body>
+</html>
