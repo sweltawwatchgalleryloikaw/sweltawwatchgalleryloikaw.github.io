@@ -355,8 +355,8 @@
                             <div class="form-group">
                                 <label>Sex (အမျိုးအစား)</label>
                                 <select id="watchSex">
-                                    <option value="Men">Men</option>
-                                    <option value="Women">Women</option>
+                                    <option value="Gent">Gent</option>
+                                    <option value="Lady">Lady</option>
                                     <option value="Unisex">Unisex</option>
                                 </select>
                             </div>
@@ -563,7 +563,7 @@
                     document.getElementById('watchBrand').value = prod.brand || '';
                     document.getElementById('watchCategory').value = prod.category || '';
                     document.getElementById('watchClass').value = prod.class || '';
-                    document.getElementById('watchSex').value = prod.sex || 'Men';
+                    document.getElementById('watchSex').value = prod.sex || 'Gent';
                     
                     if(prod.imgs && Array.isArray(prod.imgs)){
                         document.getElementById('watchImgs').value = prod.imgs.join('\n');
