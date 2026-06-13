@@ -756,33 +756,42 @@
             });
         }
 
-        function filterProducts() {
-            const searchText = document.getElementById('mainSearch').value.toLowerCase();
-            const sexFilter = document.getElementById('filterSex').value;
-            const brandFilter = document.getElementById('filterBrand').value;
-            const classFilter = document.getElementById('filterClass').value;
-            const maxPrice = parseFloat(document.getElementById('filterPrice').value) || Infinity;
+       function filterProducts() {
+    const searchText = document.getElementById('mainSearch').value.toLowerCase().trim();
+    const sexFilter = document.getElementById('filterSex').value;
+    const brandFilter = document.getElementById('filterBrand').value;
+    const classFilter = document.getElementById('filterClass').value;
+    const maxPrice = parseFloat(document.getElementById('filterPrice').value) || Infinity;
 
-            const filtered = products.filter(product => {
-                const isAvailable = parseInt(product.stock) > 0;
+    const filtered = products.filter(product => {
+        // Safe parsing to protect against NaN or missing data fields
+        const stockQty = parseInt(product.stock, 10) || 0;
+        const productPrice = parseFloat(product.price) || 0;
 
-                const matchesSearch = (product.desc || '').toLowerCase().includes(searchText) || 
-                                      (product.sku || '').toLowerCase().includes(searchText) || 
-                                      (product.brand || '').toLowerCase().includes(searchText) ||
-                                      (product.category || '').toLowerCase().includes(searchText) ||
-                                      (product.class || '').toLowerCase().includes(searchText);
-                
-                const matchesSex = (sexFilter === 'all') || (product.sex === sexFilter);
-                const matchesBrand = (brandFilter === 'all') || ((product.brand || '').trim() === brandFilter);
-                const matchesClass = (classFilter === 'all') || ((product.class || '').trim() === classFilter);
-                const matchesPrice = product.price <= maxPrice;
+        // 1. Check stock availability safely
+        const isAvailable = stockQty > 0;
 
-                return isAvailable && matchesSearch && matchesSex && matchesBrand && matchesClass && matchesPrice;
-            });
+        // 2. Text Search matching with fallback strings to prevent undefined crashes
+        const matchesSearch = !searchText || 
+                              (product.desc || '').toLowerCase().includes(searchText) || 
+                              (product.sku || '').toLowerCase().includes(searchText) || 
+                              (product.brand || '').toLowerCase().includes(searchText) ||
+                              (product.category || '').toLowerCase().includes(searchText) ||
+                              (product.class || '').toLowerCase().includes(searchText);
+        
+        // 3. Dropdown filters
+        const matchesSex = (sexFilter === 'all') || (product.sex === sexFilter);
+        const matchesBrand = (brandFilter === 'all') || ((product.brand || '').trim() === brandFilter);
+        const matchesClass = (classFilter === 'all') || ((product.class || '').trim() === classFilter);
+        
+        // 4. Price condition
+        const matchesPrice = productPrice <= maxPrice;
 
-            displayProducts(filtered);
-        }
+        return isAvailable && matchesSearch && matchesSex && matchesBrand && matchesClass && matchesPrice;
+    });
 
+    displayProducts(filtered);
+}
         function renderSpreadsheetGrid() {
             const tbody = document.getElementById('spreadsheetBody');
             tbody.innerHTML = '';
