@@ -16,11 +16,12 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Pyidaungsu';
             margin: 0;
             padding: 0;
             background-color: var(--bg-color);
             color: var(--text-color);
+            -webkit-font-smoothing: antialiased;
         }
 
         header {
@@ -41,7 +42,7 @@
 
         .container {
             max-width: 1000px;
-            margin: 40px auto;
+            margin: 30px auto;
             padding: 0 20px;
         }
 
@@ -52,14 +53,15 @@
             background: white;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            position: relative;
         }
 
         @media (max-width: 768px) {
-            .detail-wrapper { grid-template-columns: 1fr; gap: 20px; }
+            .detail-wrapper { grid-template-columns: 1fr; gap: 20px; padding: 20px; }
         }
 
-        /* Multi-Image Gallery Styling */
+        /* Gallery Components */
         .gallery-container {
             display: flex;
             flex-direction: column;
@@ -68,38 +70,44 @@
 
         .main-img-view {
             width: 100%;
-            height: 400px;
+            height: auto;
+            aspect-ratio: 1 / 1;
             object-fit: cover;
             border-radius: 8px;
-            background-color: #eee;
+            background-color: #f0f0f0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: opacity 0.2s ease-in-out;
         }
 
         .thumbnails-grid {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
+            overflow-x: auto;
+            padding-bottom: 5px;
         }
 
         .thumb-img {
-            width: 75px;
-            height: 75px;
+            width: 70px;
+            height: 70px;
             object-fit: cover;
             border-radius: 4px;
             cursor: pointer;
             border: 2px solid transparent;
-            transition: 0.2s;
-            background-color: #eee;
+            transition: all 0.15s ease;
+            background-color: #f0f0f0;
+            flex-shrink: 0;
         }
 
         .thumb-img:hover, .thumb-img.active {
             border-color: var(--accent-color);
+            transform: scale(0.96);
         }
 
-        /* Right Content Styling */
+        /* Right Meta Text Info Components */
         .info-container {
             display: flex;
             flex-direction: column;
+            gap: 12px;
         }
 
         .watch-brand {
@@ -108,50 +116,50 @@
             color: var(--accent-color);
             font-weight: bold;
             letter-spacing: 1.5px;
-            margin-bottom: 5px;
         }
 
         .watch-sku {
-            color: #777;
-            font-size: 14px;
-            margin-bottom: 15px;
+            color: #555;
+            font-size: 15px;
+            font-weight: 500;
         }
 
         .tags {
             display: flex;
+            flex-wrap: wrap;
             gap: 8px;
-            margin-bottom: 20px;
         }
 
         .badge {
             font-size: 12px;
-            padding: 5px 12px;
+            padding: 5px 14px;
             border-radius: 20px;
             font-weight: bold;
+            display: none; /* Hide by default, show when text exists */
         }
         .badge-cat { background: #e1f5fe; color: #0288d1; }
         .badge-class { background: #efebe9; color: #5d4037; }
         .badge-sex { background: #f3e5f5; color: #8e24aa; }
 
         .watch-price {
-            font-size: 28px;
-            font-weight: bold;
+            font-size: 30px;
+            font-weight: 700;
             color: var(--primary-color);
-            margin-bottom: 15px;
+            margin: 5px 0;
         }
 
         .watch-desc {
-            font-size: 16px;
-            line-height: 1.6;
-            color: #555;
-            margin-bottom: 25px;
+            font-size: 15px;
+            line-height: 1.7;
+            color: #444;
             white-space: pre-line;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
         }
 
         .stock-status {
             font-size: 14px;
             font-weight: bold;
-            margin-bottom: 20px;
         }
         .in-stock { color: var(--success-color); }
         .out-of-stock { color: var(--danger-color); }
@@ -160,17 +168,19 @@
             background-color: var(--accent-color);
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 6px;
+            padding: 16px 30px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             font-size: 16px;
-            transition: 0.3s;
+            transition: all 0.2s;
             text-align: center;
             text-decoration: none;
+            box-shadow: 0 4px 10px rgba(191, 161, 95, 0.2);
+            margin-top: 10px;
         }
-        .btn:hover { background-color: #a88b4a; }
-        .btn:disabled { background-color: #cccccc; cursor: not-allowed; color: #666666; }
+        .btn:hover { background-color: #a88b4a; transform: translateY(-1px); }
+        .btn:disabled { background-color: #cccccc; cursor: not-allowed; color: #666666; box-shadow: none; transform: none; }
         
         .back-link {
             display: inline-block;
@@ -180,6 +190,20 @@
             font-weight: bold;
         }
         .back-link:hover { color: var(--primary-color); }
+
+        /* Full page instant screen level initial loader skeleton states */
+        #screenLoader {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #777;
+            border-radius: 12px;
+            z-index: 10;
+        }
     </style>
 </head>
 <body>
@@ -191,8 +215,31 @@
     <div class="container">
         <a href="index.html" class="back-link">← Back To Home</a>
         
-        <div class="detail-wrapper" id="detailContent">
-            <p style="text-align: center; grid-column: 1/-1;">Loading watch details...</p>
+        <div class="detail-wrapper">
+            <div id="screenLoader">ခဏစောင့်ပေးပါ... နာရီအချက်အလက်များကို ရယူနေပါသည်။</div>
+
+            <div class="gallery-container">
+                <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100%' height='100%' fill='%23eee'/></svg>" id="mainDisplayImg" class="main-img-view" alt="Watch Main View">
+                <div class="thumbnails-grid" id="thumbnailsContainer"></div>
+            </div>
+
+            <div class="info-container">
+                <div class="watch-brand" id="wBrand">LOADING...</div>
+                <div class="watch-sku" id="skuClickArea" style="cursor: pointer; user-select: none;">
+                    SKU: <span id="wSku" style="text-decoration: underline; color: var(--accent-color); font-weight: bold;">-</span>
+                </div>
+                <div class="tags">
+                    <span class="badge badge-sex" id="badgeSex"></span>
+                    <span class="badge badge-cat" id="badgeCat"></span>
+                    <span class="badge badge-class" id="badgeClass"></span>
+                </div>
+                <div class="watch-price" id="wPrice">0 MMK</div>
+                <div class="stock-status" id="wStock"></div>
+                <div class="watch-desc" id="wDesc"></div>
+                <div id="actionButtonWrapper">
+                    <button class="btn" id="mainActionBtn" disabled>Loading...</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -214,138 +261,142 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Get SKU from URL query parameter
         const urlParams = new URLSearchParams(window.location.search);
         const currentSku = urlParams.get('sku');
 
         async function loadProductDetails() {
-            const container = document.getElementById('detailContent');
+            const loader = document.getElementById('screenLoader');
+            
             if (!currentSku) {
-                container.innerHTML = `<p style="grid-column:1/-1; text-align:center;">SKU parameters error.</p>`;
+                loader.textContent = "URL Parameter တွင် SKU ကုဒ် မှားယွင်းနေပါသည်။";
                 return;
             }
 
+            // Trim any potential white spaces and safely parse target ID code structure
+            const cleanSku = currentSku.trim().toUpperCase();
+
             try {
-                const snapshot = await get(ref(db, 'watches/' + currentSku.toUpperCase()));
+                const snapshot = await get(ref(db, 'watches/' + cleanSku));
                 if (snapshot.exists()) {
                     const product = snapshot.val();
-                    renderProduct(product);
+                    renderProductData(product);
+                    // Hide loader overlay layer instantly on visual operational success
+                    loader.style.display = 'none';
                 } else {
-                    container.innerHTML = `<p style="grid-column:1/-1; text-align:center;">နမူနာပြထားသော SKU ကို ရှာမတွေ့ပါ။</p>`;
+                    loader.textContent = `ပြသရန် SKU နာရီအချက်အလက်ကို ရှာမတွေ့ပါ။ (SKU: ${cleanSku})`;
                 }
             } catch (err) {
                 console.error(err);
-                container.innerHTML = `<p style="grid-column:1/-1; text-align:center;">Error fetching details.</p>`;
+                loader.textContent = "Error fetching details. လိုင်းအခြေအနေ ပြန်လည်စစ်ဆေးပါ။";
             }
         }
 
-        function renderProduct(product) {
-            const container = document.getElementById('detailContent');
-            
-            // Build image collection array checking fallback properties
+        function renderProductData(product) {
+            // Setup optimized collection structure values
             let imgArray = [];
             if (product.imgs && Array.isArray(product.imgs)) {
-                imgArray = product.imgs;
+                imgArray = product.imgs.filter(l => l && l.trim().length > 0);
             } else if (product.img) {
                 imgArray = [product.img];
-            } else {
+            }
+            if (imgArray.length === 0) {
                 imgArray = ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"];
             }
 
-            // Create Thumbnails Element Block
-            let thumbsHTML = '';
-            imgArray.forEach((imgUrl, idx) => {
-                thumbsHTML += `<img src="${imgUrl}" class="thumb-img ${idx === 0 ? 'active' : ''}" data-index="${idx}" alt="Thumb">`;
-            });
-
-            let isAvailable = product.stock > 0;
-            let stockStatusHTML = isAvailable 
-                ? `<div class="stock-status in-stock">● In Stock: ${product.stock} လုံး လက်ကျန်ရှိပါသည်</div>`
-                : `<div class="stock-status out-of-stock">✕ Out of Stock (ပစ္စည်းပြတ်နေပါသည်)</div>`;
-
-            let actionButtonHTML = isAvailable
-                ? `<button id="buyViberBtn" class="btn">Buy Now (Viber)</button>`
-                : `<button class="btn" disabled>Out of Stock</button>`;
-
-            container.innerHTML = `
-                <div class="gallery-container">
-                    <img src="${imgArray[0]}" id="mainDisplayImg" class="main-img-view" alt="Watch Main View">
-                    <div class="thumbnails-grid">${thumbsHTML}</div>
-                </div>
-                <div class="info-container">
-                    <div class="watch-brand">${product.brand || ''}</div>
-                    <div class="watch-sku" id="skuClickArea" style="cursor: pointer; user-select: none;">
-                        SKU: <span style="text-decoration: underline; color: var(--primary-color); font-weight: bold;">${product.sku}</span>
-                    </div>
-                    <div class="tags">
-                        <span class="badge badge-sex">${product.sex || ''}</span>
-                        <span class="badge badge-cat">${product.category || ''}</span>
-                        <span class="badge badge-class">${product.class || ''}</span>
-                    </div>
-                    <div class="watch-price">${(product.price || 0).toLocaleString()} MMK</div>
-                    ${stockStatusHTML}
-                    <div class="watch-desc">${product.desc || ''}</div>
-                    ${actionButtonHTML}
-                </div>
-            `;
-
-            // Thumbnail Click Event Logic Handler
+            // Main Display Content Insertion Layer Logic Targets
             const mainImg = document.getElementById('mainDisplayImg');
-            document.querySelectorAll('.thumb-img').forEach(thumb => {
-                thumb.addEventListener('click', (e) => {
-                    document.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
-                    e.target.classList.add('active');
-                    mainImg.src = e.target.src;
-                });
-            });
+            mainImg.src = imgArray[0];
 
-            // Tracking Click Frequency on SKU
+            // Render Thumbnails Fast Structure Building Pipeline Fragment Loops
+            const thumbsContainer = document.getElementById('thumbnailsContainer');
+            if(imgArray.length > 1) {
+                let thumbsHTML = '';
+                imgArray.forEach((imgUrl, idx) => {
+                    thumbsHTML += `<img src="${imgUrl}" class="thumb-img ${idx === 0 ? 'active' : ''}" data-index="${idx}" alt="Thumb">`;
+                });
+                thumbsContainer.innerHTML = thumbsHTML;
+
+                // Event handling on thumbnails click switches
+                thumbsContainer.querySelectorAll('.thumb-img').forEach(thumb => {
+                    thumb.addEventListener('click', (e) => {
+                        thumbsContainer.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
+                        e.target.classList.add('active');
+                        mainImg.style.opacity = 0.5;
+                        mainImg.src = e.target.src;
+                        mainImg.onload = () => { mainImg.style.opacity = 1; };
+                    });
+                });
+            } else {
+                thumbsContainer.style.display = 'none';
+            }
+
+            // Direct inner text mapping injection optimizations
+            document.getElementById('wBrand').textContent = product.brand || 'NO BRAND';
+            document.getElementById('wSku').textContent = product.sku || 'N/A';
+            document.getElementById('wPrice').textContent = (parseInt(product.price, 10) || 0).toLocaleString() + " MMK";
+            document.getElementById('wDesc').textContent = product.desc || 'အသေးစိတ်အချက်အလက် မရှိသေးပါ။';
+
+            // Badges Configuration Logic Rendering
+            setupBadge('badgeSex', product.sex);
+            setupBadge('badgeCat', product.category);
+            setupBadge('badgeClass', product.class);
+
+            // Stock Availability Logic
+            const parsedStock = parseInt(product.stock, 10) || 0;
+            const stockElement = document.getElementById('wStock');
+            const actionBtnWrapper = document.getElementById('actionButtonWrapper');
+
+            if(parsedStock > 0) {
+                stockElement.className = "stock-status in-stock";
+                stockElement.textContent = `● In Stock: ${parsedStock} လုံး လက်ကျန်ရှိပါသည်`;
+                actionBtnWrapper.innerHTML = `<button id="buyViberBtn" class="btn">Buy Now (Viber)</button>`;
+                
+                // Active Action Events Bind Triggers
+                document.getElementById('buyViberBtn').addEventListener('click', () => {
+                    const draftText = `မင်္ဂလာပါ ခင်ဗျာ။ Swel Taw Watch Gallery မှ SKU: ${product.sku || ''} နာရီကို ဝယ်ယူလိုပါသဖြင့် ဆက်သွယ်ရခြင်းဖြစ်ပါသည်။`;
+                    navigator.clipboard.writeText(draftText).then(() => {
+                        showToast("နာရီ၏ SKU အား Copy ကူးပြီးပါပြီ။ Viber တွင် Paste လုပ်ပါ။");
+                        setTimeout(() => {
+                            window.location.href = `viber://chat/?number=%2B959754735024`;
+                        }, 1200);
+                    }).catch(() => {
+                        window.location.href = `viber://chat/?number=%2B959754735024`;
+                    });
+                });
+            } else {
+                stockElement.className = "stock-status out-of-stock";
+                stockElement.textContent = `✕ Out of Stock (ပစ္စည်းပြတ်နေပါသည်)`;
+                actionBtnWrapper.innerHTML = `<button class="btn" disabled>Out of Stock</button>`;
+            }
+
+            // Track multi-click logic pattern on SKU fields
             let clickTimes = [];
-            const skuArea = document.getElementById('skuClickArea');
+            document.getElementById('skuClickArea').addEventListener('click', () => {
+                navigator.clipboard.writeText(product.sku || '');
+                showToast(`SKU: ${product.sku} ကို Copy ကူးယူပြီးပါပြီ။`);
 
-            skuArea.addEventListener('click', () => {
-                // 1. Core Task: Copy SKU plain-text to clipboard instantly
-                navigator.clipboard.writeText(product.sku).then(() => {
-                    showToast(`SKU: ${product.sku} ကို Copy ကူးယူပြီးပါပြီ။`);
-                }).catch(err => {
-                    console.error('Clipboard error:', err);
-                });
-
-                // 2. Secret Multi-Click Tracking Logic
                 const currentTime = Date.now();
                 clickTimes.push(currentTime);
+                clickTimes = clickTimes.filter(t => currentTime - t <= 1000);
 
-                // Filter timestamps keeping only those within the past 1 second (1000ms)
-                clickTimes = clickTimes.filter(timestamp => currentTime - timestamp <= 1000);
-
-                // If user clicks exactly 4 times (or more) within a rolling window of 1 second
                 if (clickTimes.length >= 4) {
-                    clickTimes = []; // Clear register to prevent accidental re-triggers
+                    clickTimes = [];
                     showAdminLoginModal(product, imgArray);
                 }
             });
+        }
 
-            // Viber buy actions triggers with toast handler execution setup
-            if (isAvailable) {
-                document.getElementById('buyViberBtn').addEventListener('click', () => {
-                    const phoneNumber = "959754735024"; 
-                    const draftText = `မင်္ဂလာပါ ခင်ဗျာ။ Swel Taw Watch Gallery မှ SKU: ${product.sku} နာရီကို ဝယ်ယူလိုပါသဖြင့် ဆက်သွယ်ရခြင်းဖြစ်ပါသည်။`;
-                    
-                    navigator.clipboard.writeText(draftText).then(() => {
-                        showToast("နာရီ၏ SKU အား Copy ကူးပြီးပါပြီ။ Viber တွင် Paste လုပ်ပါ။");
-                        
-                        setTimeout(() => {
-                            window.location.href = `viber://chat/?number=%2B959754735024`;
-                        }, 1500);
-                    }).catch(err => {
-                        console.error('Clipboard copy issue', err);
-                        window.location.href = `viber://chat/?number=%2B${phoneNumber}`;
-                    });
-                });
+        function setupBadge(id, value) {
+            const el = document.getElementById(id);
+            if(value && value.trim().length > 0) {
+                el.textContent = value;
+                el.style.display = 'inline-block';
+            } else {
+                el.style.display = 'none';
             }
         }
 
-        // Global Modular Floating Toast Notification Element
+        // Global Modular Dynamic Floating Toast
         function showToast(text) {
             const existingToast = document.getElementById('appDynamicToast');
             if(existingToast) existingToast.remove();
@@ -355,32 +406,23 @@
             toast.textContent = text;
             
             Object.assign(toast.style, {
-                position: 'fixed',
-                bottom: '20px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                backgroundColor: '#333',
-                color: '#fff',
-                padding: '12px 24px',
-                borderRadius: '8px',
-                zIndex: '10000',
-                fontFamily: 'sans-serif',
-                fontSize: '14px',
-                boxShadow: '0px 4px 10px rgba(0,0,0,0.3)',
-                transition: 'opacity 0.3s ease'
+                position: 'fixed', bottom: '20px', left: '50%',
+                transform: 'translateX(-50%)', backgroundColor: '#333',
+                color: '#fff', padding: '12px 24px', borderRadius: '8px',
+                zIndex: '10000', fontFamily: 'sans-serif', fontSize: '14px',
+                boxShadow: '0px 4px 10px rgba(0,0,0,0.3)', transition: 'opacity 0.2s ease'
             });
             
             document.body.appendChild(toast);
-            
             setTimeout(() => {
                 toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
+                setTimeout(() => toast.remove(), 200);
             }, 2000);
         }
 
-        // Admin Auth and Real-time Structural Modification Overlay
+        // Admin Multi-Mutation Dynamic Overlay Modals
         function showAdminLoginModal(product, imgArray) {
-            if(document.getElementById('adminModalOverlay')) return; // Avoid duplication
+            if(document.getElementById('adminModalOverlay')) return;
 
             const overlay = document.createElement('div');
             overlay.id = 'adminModalOverlay';
@@ -391,13 +433,8 @@
                 overflowY: 'auto'
             });
 
-            // Convert current image array back to a comma-separated text string for editing
-            const imageLinksString = imgArray.join(', ');
-
             overlay.innerHTML = `
                 <div style="background: #fff; padding: 25px; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 40px auto; max-height: 85vh; overflow-y: auto;">
-                    
-                    <!-- Login Gateway Section View -->
                     <div id="loginGate">
                         <h3 style="margin-top:0; color:var(--primary-color);">Admin Access Required</h3>
                         <p style="font-size:13px; color:#666;">စနစ်အတွင်းသို့ဝင်ရောက်ရန် Admin စကားဝှက်ကို ရိုက်ထည့်ပေးပါ။</p>
@@ -408,15 +445,12 @@
                         </div>
                     </div>
 
-                    <!-- Expanded Content Editor Mutation Section View -->
                     <div id="editPane" style="display:none;">
                         <h3 style="margin-top:0; color:var(--primary-color);">Update SKU: ${product.sku}</h3>
-                        
                         <div style="margin-bottom:12px;">
                             <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Brand Name</label>
                             <input type="text" id="editBrand" value="${product.brand || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
                         </div>
-
                         <div style="margin-bottom:12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                             <div>
                                 <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Category</label>
@@ -427,7 +461,6 @@
                                 <input type="text" id="editClass" value="${product.class || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
                             </div>
                         </div>
-
                         <div style="margin-bottom:12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                             <div>
                                 <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Sex</label>
@@ -438,28 +471,23 @@
                                 <input type="number" id="editStock" value="${product.stock || 0}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
                             </div>
                         </div>
-
                         <div style="margin-bottom:12px;">
                             <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">စျေးနှုန်း (MMK)</label>
                             <input type="number" id="editPrice" value="${product.price || 0}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
                         </div>
-
                         <div style="margin-bottom:12px;">
-                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Image Links (Comma ဖြင့်ခြား၍ အများကြီးထည့်နိုင်သည်)</label>
-                            <textarea id="editImgs" rows="3" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; font-family:sans-serif; resize:vertical;">${imageLinksString}</textarea>
+                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Image Links (Comma ဖြင့်ခြားပါ)</label>
+                            <textarea id="editImgs" rows="3" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; font-family:sans-serif; resize:vertical;">${imgArray.join(', ')}</textarea>
                         </div>
-
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">အကြောင်းအရာ ဖော်ပြချက် (Description)</label>
                             <textarea id="editDesc" rows="4" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; resize:vertical; font-family:sans-serif;">${product.desc || ''}</textarea>
                         </div>
-
                         <div style="display:flex; justify-content:flex-end; gap:10px;">
                             <button id="closeEditBtn" style="padding:8px 16px; background:#ccc; border:none; border-radius:4px; cursor:pointer;">Close</button>
                             <button id="saveEditBtn" style="padding:8px 16px; background:var(--success-color); color:white; border:none; border-radius:4px; cursor:pointer;">Save Updates</button>
                         </div>
                     </div>
-
                 </div>
             `;
 
@@ -468,14 +496,11 @@
             const loginGate = document.getElementById('loginGate');
             const editPane = document.getElementById('editPane');
 
-            // Overlay Dismiss Events
             document.getElementById('closeAuthBtn').addEventListener('click', () => overlay.remove());
             document.getElementById('closeEditBtn').addEventListener('click', () => overlay.remove());
 
-            // Authentication Checking Event
             document.getElementById('loginAuthBtn').addEventListener('click', () => {
-                const enteredPass = document.getElementById('adminPassField').value;
-                if(enteredPass === 'STLK@2026') {
+                if(document.getElementById('adminPassField').value === 'STLK@2026') {
                     loginGate.style.display = 'none';
                     editPane.style.display = 'block';
                 } else {
@@ -483,21 +508,11 @@
                 }
             });
 
-            // Write-Back Firebase Mutation Handler Implementation
             document.getElementById('saveEditBtn').addEventListener('click', async () => {
-                const newBrand = document.getElementById('editBrand').value.trim();
-                const newCategory = document.getElementById('editCategory').value.trim();
-                const newClass = document.getElementById('editClass').value.trim();
-                const newSex = document.getElementById('editSex').value.trim();
                 const newPrice = parseInt(document.getElementById('editPrice').value, 10);
                 const newStock = parseInt(document.getElementById('editStock').value, 10);
-                const newDesc = document.getElementById('editDesc').value;
-                
-                // Parse image string into array clean elements
                 const rawImgText = document.getElementById('editImgs').value;
-                const newImgsArray = rawImgText.split(',')
-                                                .map(link => link.trim())
-                                                .filter(link => link.length > 0);
+                const newImgsArray = rawImgText.split(',').map(l => l.trim()).filter(l => l.length > 0);
 
                 if (isNaN(newPrice) || isNaN(newStock)) {
                     alert('စျေးနှုန်းနှင့် လက်ကျန်အရေအတွက်အား မှန်ကန်စွာ ဖြည့်စွက်ပါ။');
@@ -506,32 +521,29 @@
 
                 try {
                     const dbTargetRef = ref(db, 'watches/' + product.sku.toUpperCase());
-                    
-                    // Comprehensive configuration layout sync
                     await update(dbTargetRef, {
-                        brand: newBrand,
-                        category: newCategory,
-                        class: newClass,
-                        sex: newSex,
+                        brand: document.getElementById('editBrand').value.trim(),
+                        category: document.getElementById('editCategory').value.trim(),
+                        class: document.getElementById('editClass').value.trim(),
+                        sex: document.getElementById('editSex').value.trim(),
                         price: newPrice,
                         stock: newStock,
-                        desc: newDesc,
+                        desc: document.getElementById('editDesc').value,
                         imgs: newImgsArray,
-                        img: newImgsArray[0] || "" // Also synchronize baseline unified variable object
+                        img: newImgsArray[0] || ""
                     });
 
                     showToast('ပြင်ဆင်မှုများအား သိမ်းဆည်းပြီးပါပြီ။');
                     overlay.remove();
-                    
-                    // Refresh view context with fresh operational modifications
                     loadProductDetails();
                 } catch(error) {
-                    console.error("Error writing document update states back to Firebase node:", error);
+                    console.error(error);
                     alert("အချက်အလက် ပြင်ဆင်မှု မအောင်မြင်ပါ။ Network အား စစ်ဆေးပါ။");
                 }
             });
         }
 
+        // Initialize Call Action On Start Execution Pipeline
         loadProductDetails();
     </script>
 </body>
