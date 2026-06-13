@@ -29,7 +29,7 @@
         header {
             background-color: var(--primary-color);
             color: white;
-            padding: 20px;
+            padding: 15px 20px;
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
@@ -40,7 +40,7 @@
         }
 
         .logo {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: bold;
             color: var(--accent-color);
             text-decoration: none;
@@ -51,14 +51,14 @@
             gap: 10px;
         }
 
-        .search-container input, .filter-container select, .filter-container input, .form-group input, .form-group textarea, .form-group select {
+        .search-container input, .form-group input, .form-group textarea, .form-group select {
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
             font-size: 14px;
         }
 
-        .search-container input { width: 220px; }
+        .search-container input { width: 200px; }
 
         .btn {
             background-color: var(--accent-color);
@@ -88,44 +88,48 @@
 
         .container {
             max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 20px;
+            margin: 15px auto;
+            padding: 0 15px;
         }
 
-        /* Fixed & Locked Filter Bar on Scroll */
+        /* ၄ ကွက်လုံး Device Width ထဲမှာ ကွက်တိဆန့်စေမယ့် Filter Container */
         .filter-container {
             background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-            margin-bottom: 25px;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
             display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            align-items: center;
+            gap: 8px; /* Box တစ်ခုနဲ့တစ်ခုကြား ကွာဝေးမှု */
             position: sticky;
-            top: 72px; /* Sticks right below the header */
+            top: 65px; 
             z-index: 999;
             border: 1px solid #eee;
+            box-sizing: border-box;
+            width: 100%;
         }
 
         .filter-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+            flex: 1; /* အကွက် ၄ ခုလုံး မိုဘိုင်းမျက်နှာပြင်အကျယ်ကို ညီတူညီမျှ ခွဲယူစေမယ် */
+            min-width: 0; /* Flexbox text overflow မဖြစ်အောင် ကာကွယ်ပေးတယ် */
         }
 
+        /* Label တွေကို ဖုန်းထဲမှာ နေရာမစားအောင် ဖျောက်ထားပါတယ် */
         .filter-item label {
-            font-size: 12px;
-            font-weight: bold;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            display: none; 
         }
 
         .filter-item select, .filter-item input {
-            min-width: 160px;
+            width: 100%;
+            box-sizing: border-box;
             background-color: #fff;
+            padding: 8px 5px; /* ဘေးဘယ်ညာ padding ကို လျှော့ချထားပါတယ် */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 12px; /* စာလုံးအရွယ်အစားကို ဆန့်အောင် အနည်းငယ် သေးထားပါတယ် */
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
         }
 
         .view-section { display: none; }
@@ -134,7 +138,7 @@
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
+            gap: 20px;
         }
 
         .product-card {
@@ -371,6 +375,36 @@
             flex-wrap: wrap;
             gap: 10px;
         }
+
+        /* Mobile Screens Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+                padding: 10px;
+            }
+            .search-container {
+                width: 100%;
+            }
+            .search-container input {
+                flex-grow: 1;
+                width: auto;
+                padding: 8px;
+            }
+            .btn {
+                padding: 8px 15px;
+            }
+            .filter-container {
+                top: 105px; /* Sticky top matching mobile layout header */
+                padding: 8px 5px;
+                gap: 5px;
+            }
+            .filter-item select, .filter-item input {
+                font-size: 11px;
+                padding: 8px 3px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -390,35 +424,35 @@
                 <div class="filter-item">
                     <label>Gender</label>
                     <select id="filterSex">
-                        <option value="all">All Genders</option>
+                        <option value="all">Genders</option>
                         <option value="Gent">Gent</option>
                         <option value="Lady">Lady</option>
                         <option value="Unisex">Unisex</option>
                     </select>
                 </div>
                 <div class="filter-item">
-                    <label>Brand (ဘရန်း)</label>
+                    <label>Brand</label>
                     <select id="filterBrand">
-                        <option value="all">All Brands</option>
-                        </select>
-                </div>
-                <div class="filter-item">
-                    <label>Class (အဆင့်အတန်း)</label>
-                    <select id="filterClass">
-                        <option value="all">All Classes</option>
-						 <option value="Authentic">Authentic</option>
-                        <option value="Premium">Premium</option>
-                        <option value="Copy">Copy</option>
-                        <option value="Standard">Standard</option>
-						 <option value="Basic">Basic</option>
-						  <option value="Wallclock">Wallclock</option>
-						    <option value="Table clock">Table clock</option>
-							 <option value="Tally">Tally</option>
+                        <option value="all">Brands</option>
                     </select>
                 </div>
                 <div class="filter-item">
-                    <label>အမြင့်ဆုံးဈေးနှုန်း (Max Price)</label>
-                    <input type="number" id="filterPrice" placeholder="ဥပမာ - 500000">
+                    <label>Class</label>
+                    <select id="filterClass">
+                        <option value="all">Classes</option>
+                        <option value="Authentic">Authentic</option>
+                        <option value="Premium">Premium</option>
+                        <option value="Copy">Copy</option>
+                        <option value="Standard">Standard</option>
+                        <option value="Basic">Basic</option>
+                        <option value="Wallclock">Wallclock</option>
+                        <option value="Table clock">Table clock</option>
+                        <option value="Tally">Tally</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>Max Price</label>
+                    <input type="number" id="filterPrice" placeholder="Max Price">
                 </div>
             </div>
 
@@ -543,7 +577,7 @@
                                 </tr>
                             </thead>
                             <tbody id="spreadsheetBody">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
 
@@ -569,7 +603,7 @@
                                 </tr>
                             </thead>
                             <tbody id="brandInventoryBody">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -641,7 +675,6 @@
             }
         }
 
-        // Persistent realtime listener
         function listenToProductsFirebase() {
             const container = document.getElementById('productsContainer');
             const dbRef = ref(db, "watches");
@@ -662,13 +695,11 @@
             });
         }
 
-        // Dynamically parse unique brands to fill the User View filter list
         function populateBrandDropdown() {
             const brandDropdown = document.getElementById('filterBrand');
-            const savedValue = brandDropdown.value; // Preserve current user selection if refreshed
+            const savedValue = brandDropdown.value; 
             
-            // Clear all except option 1
-            brandDropdown.innerHTML = '<option value="all">All Brands</option>';
+            brandDropdown.innerHTML = '<option value="all">Brands</option>';
             
             const uniqueBrands = [...new Set(products.map(p => (p.brand || 'Generic').trim()))].sort();
             uniqueBrands.forEach(brand => {
@@ -678,7 +709,6 @@
                 brandDropdown.appendChild(opt);
             });
 
-            // Restore selection if it still exists
             if (uniqueBrands.includes(savedValue)) {
                 brandDropdown.value = savedValue;
             }
@@ -836,7 +866,6 @@
             return inventorySummary;
         }
 
-        // --- EXPORT SPREADSHEET TO EXCEL FEATURE ---
         function exportSpreadsheetToExcel() {
             const tbody = document.getElementById('spreadsheetBody');
             const rows = tbody.querySelectorAll('tr');
@@ -870,7 +899,6 @@
             XLSX.writeFile(workbook, `SwelTaw_Database_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
-        // --- EXPORT BRAND INVENTORY TO EXCEL FEATURE ---
         function exportBrandInventoryToExcel() {
             if(products.length === 0) {
                 alert("ထုတ်ယူရန် မည်သည့် ဘရန်းဒေတာမှမရှိပါ။");
@@ -1047,7 +1075,7 @@
             const sku = sanitizeSku(document.getElementById('watchSku').value);
             if (!sku) return;
 
-            const confirmDelete = confirm(`⚠️ SKU: ${sku} အား ဒေတာဘေ့စ်ထဲမှ အပြီးတိုင် ဖျက်ပစ်ရန် သေချာပါသလား?`);
+            const confirmDelete = confirm(`⚠️ SKU: ${sku} အား ဒေတာဘေ့စ်ထဲမှ အပြီးတိုင် ဖျက်ပစ်ရန် သေჩာပါသလား?`);
             if (confirmDelete) {
                 try {
                     await remove(ref(db, 'watches/' + sku));
@@ -1259,13 +1287,11 @@
         document.getElementById('backToUserBtn').addEventListener('click', () => showView('userView'));
         document.getElementById('logoutBtn').addEventListener('click', () => showView('userView'));
 
-        // Filter event listeners triggering on change/input
         document.getElementById('filterSex').addEventListener('change', filterProducts);
         document.getElementById('filterBrand').addEventListener('change', filterProducts);
         document.getElementById('filterClass').addEventListener('change', filterProducts);
         document.getElementById('filterPrice').addEventListener('input', filterProducts);
 
-        // Bootstrap continuous WebSocket sync stream
         listenToProductsFirebase();
     </script>
 </body>
