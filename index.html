@@ -135,14 +135,12 @@
         .view-section { display: none; }
         .view-section.active { display: block; }
 
-        /* Default Layout Base */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
         }
 
-        /* Mobile Enforced Multi-Column Structures */
         .products-grid.grid-cols-3 {
             grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
             gap: 8px !important;
@@ -165,7 +163,6 @@
 
         .product-card:hover { transform: translateY(-5px); }
 
-        /* Perfect 1x1 Square Aspect Scaling Rule */
         .product-img {
             width: 100% !important;
             height: auto !important;
@@ -182,7 +179,6 @@
             flex-grow: 1;
         }
 
-        /* Responsive structural adjustments for dense mobile grid displays */
         .products-grid.grid-cols-3 .product-info {
             padding: 6px !important;
         }
@@ -407,7 +403,6 @@
             gap: 10px;
         }
 
-        /* Hide image toggle wrapper container completely on Desktop or large screens */
         .grid-control-item {
             display: none; 
             flex: 0 0 auto;
@@ -455,7 +450,6 @@
                 padding: 8px 3px;
             }
 
-            /* Display layout structural controls strictly on small screens */
             .grid-control-item {
                 display: block;
             }
@@ -510,7 +504,6 @@
                     <input type="number" id="filterPrice" placeholder="Max Price">
                 </div>
 
-                <!-- Action Button Element Interface Container Layer (Mobile Only) -->
                 <div class="grid-control-item">
                     <button id="gridToggleBtn" class="grid-image-btn" title="Toggle Grid Layout">
                         <img src="https://i.ibb.co/n8LCSF7T/two-grids.png" alt="Switch Layout" id="toggleButtonIcon">
@@ -845,7 +838,6 @@
         let products = [];
         let isEditMode = false;
 
-        // Adaptive layout constant configurations
         const IMG_THREE_GRIDS = "https://i.ibb.co/svL9Q04W/three-grids.png";
         const IMG_TWO_GRIDS = "https://i.ibb.co/n8LCSF7T/two-grids.png";
 
@@ -861,7 +853,6 @@
             supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             listenToProductsSupabase();
 
-            // Mobile Layout Switcher Engine initialization
             const gridToggleBtn = document.getElementById('gridToggleBtn');
             const toggleButtonIcon = document.getElementById('toggleButtonIcon');
             const productsContainer = document.getElementById('productsContainer');
@@ -946,7 +937,6 @@
             if (networkTelemetryActive) window.addDebugResource(telemetryUrl, "FETCH", "pending");
             
             try {
-                // FIXED: Explicitly sort product records alphabetically by Brand Name column matching A-Z sequence rules.
                 const { data, error } = await supabaseClient
                     .from('watches')
                     .select('*')
@@ -1128,7 +1118,8 @@
                         imgs: row.querySelector('.row-imgs').value.trim() || ""
                     };
 
-                    await supabaseClient.from('watches').upsert(itemData);
+                    // FIXED: Added targeting options parameter to handle conflicts explicitly on columns inside database index
+                    await supabaseClient.from('watches').upsert(itemData, { onConflict: 'sku' });
                 }
                 alert('Spreadsheet ဒေတာများ သိမ်းဆည်းပြီးပါပြီ။');
                 showView('userView');
@@ -1241,9 +1232,10 @@
             };
 
             try {
-                const { error } = await supabaseClient.from('watches').upsert(data);
+                // FIXED: Explicitly defined 'sku' key parameter inside conflict config block for single forms logic stream
+                const { error } = await supabaseClient.from('watches').upsert(data, { onConflict: 'sku' });
                 if (error) throw error;
-                alert(isEditMode ? 'ပြင်ဆင်ပြီး' : 'တင်ပြီး');
+                alert(isEditMode ? 'ပြင်ဆင်ပြီးပါပြီ' : 'တင်ပြီးပါပြီ');
                 showView('userView');
             } catch(err) { alert("မအောင်မြင်ပါ: " + err.message); }
         }
@@ -1322,7 +1314,8 @@
                         desc: String(row.desc || "").trim(),
                         imgs: String(row.imgs || "").trim()
                     };
-                    await supabaseClient.from('watches').upsert(formattedRow);
+                    // FIXED: Standardized batch processing stream constraint target
+                    await supabaseClient.from('watches').upsert(formattedRow, { onConflict: 'sku' });
                 }
                 alert("Batch operations parsed and synchronized successfully.");
                 showView('userView');
