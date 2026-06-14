@@ -511,8 +511,8 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>နာရီပုံစံများ (Image Links သို့မဟုတ် ImgBB HTML Code)</label>
-                                <textarea id="watchImgs" rows="4" placeholder="တစ်ကြောင်းလျှင် link တစ်ခုစီထည့်ပါ သို့မဟုတ် ImgBB HTML links အစုလိုက် ထည့်ပါ" required></textarea>
+                                <label>နာရီပုံစံများ (Image Links - တစ်ကြောင်းလျှင် link တစ်ခုစီထည့်ပါ)</label>
+                                <textarea id="watchImgs" rows="4" placeholder="https://link1.com&#10;https://link2.com" required></textarea>
                             </div>
                             <div class="form-group">
                                 <label>Description (အကြောင်းအရာ)</label>
@@ -553,7 +553,7 @@
                 <div id="spreadsheetTab" class="tab-panel">
                     <div class="tab-action-bar">
                         <p style="font-size: 13px; color: #666; line-height: 1.5; margin: 0; max-width: 70%;">
-                            ဒေတာဘေ့စ်ရှိ ထုတ်ကုန်ပစ္စည်းများကို Excel Grid Layout အတိုင်း အကွက်များထဲတွင် တိုက်ရိုက် ပြင်ဆင်နိုင်သည်။ Image links များကို ကော်မာ ( , ) ခြားပြီး ရိုက်ထည့်ပါ သို့မဟုတ် ImgBB embed HTML tags များ တိုက်ရိုက်ထည့်ပါ။
+                            ဒေတာဘေ့စ်ရှိ ထုတ်ကုန်ပစ္စည်းများကို Excel Grid Layout အတိုင်း အကွက်များထဲတွင် တိုက်ရိုက် ပြင်ဆင်နိုင်သည်။ Image links များကို ကော်မာ ( , ) ခြားပြီး ရိုက်ထည့်ပါ။
                         </p>
                         <button type="button" id="exportSpreadsheetBtn" class="btn btn-info" style="font-size: 12px; padding: 8px 15px;">📥 Export Spreadsheet to Excel</button>
                     </div>
@@ -570,7 +570,7 @@
                                     <th style="width: 100px;">Price (MMK)</th>
                                     <th style="width: 80px;">Stock</th>
                                     <th style="width: 250px;">Description</th>
-                                    <th style="width: 250px;">Image Links / HTML Embeds</th>
+                                    <th style="width: 250px;">Image Links (Comma Sep.)</th>
                                 </tr>
                             </thead>
                             <tbody id="spreadsheetBody">
@@ -619,19 +619,19 @@
     </div>
 
     <script>
+        let dbModeStatus = "Supabase API Core Engine Layer";
+        let networkTelemetryActive = false;
+        const urlParams = new URLSearchParams(window.location.search);
+        const isDebugMode = urlParams.has('debug');
+
         (function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const isDebugMode = urlParams.has('debug');
-            
             if (!isDebugMode) return;
+            networkTelemetryActive = true;
             
-            // Resource tracking
             const resources = [];
             let resourceId = 0;
-            let firebaseConnected = false;
-            let lastFirebaseUpdate = null;
             
-            function addResource(url, type, status = 'pending') {
+            window.addDebugResource = function(url, type, status = 'pending') {
                 if (!url) return null;
                 const existing = resources.find(r => r.url === url);
                 if (existing) return existing;
@@ -646,9 +646,9 @@
                 resources.push(resource);
                 updateDebugDisplay();
                 return resource;
-            }
+            };
             
-            function updateResourceStatus(url, status) {
+            window.updateDebugResourceStatus = function(url, status) {
                 const resource = resources.find(r => r.url === url);
                 if (resource && resource.status !== status) {
                     resource.status = status;
@@ -658,7 +658,7 @@
                     }
                     updateDebugDisplay();
                 }
-            }
+            };
             
             function getStats() {
                 const total = resources.length;
@@ -669,36 +669,22 @@
                 return { total, loaded, failed, pending, percentComplete };
             }
             
-            // Create debug panel
             const debugPanel = document.createElement('div');
             debugPanel.id = 'debugPanel';
             debugPanel.style.cssText = `
-                position: fixed;
-                bottom: 10px;
-                right: 10px;
-                width: 500px;
-                max-width: 95vw;
-                max-height: 70vh;
-                background: #0a0a0a;
-                color: #0f0;
-                font-family: 'Courier New', monospace;
-                font-size: 10px;
-                z-index: 10000;
-                border-radius: 10px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.6);
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
-                border: 1px solid #0f0;
+                position: fixed; bottom: 10px; right: 10px; width: 500px; max-width: 95vw; max-height: 70vh;
+                background: #0a0a0a; color: #0f0; font-family: 'Courier New', monospace; font-size: 10px;
+                z-index: 10000; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); overflow: hidden;
+                display: flex; flex-direction: column; border: 1px solid #0f0;
             `;
             
             debugPanel.innerHTML = `
                 <div style="background: #1a1a1a; padding: 8px 12px; cursor: move; display: flex; justify-content: space-between; user-select: none; border-bottom: 1px solid #0f0;">
-                    <strong>🔍 DEBUG CONSOLE - Network Monitor</strong>
+                    <strong>🔍 SUPABASE NETWORK MONITOR</strong>
                     <span id="debugClose" style="cursor: pointer; color: #0f0; font-size: 18px;">✕</span>
                 </div>
                 <div id="debugContent" style="padding: 10px; overflow-y: auto; flex: 1; max-height: calc(70vh - 40px);">
-                    <div id="debugStatus">Initializing...</div>
+                    <div id="debugStatus">Initializing REST Client Streams...</div>
                     <div id="debugStats"></div>
                     <div id="debugProgressBar" style="margin: 10px 0;"></div>
                     <div id="debugFirebaseStatus"></div>
@@ -707,7 +693,6 @@
             `;
             document.body.appendChild(debugPanel);
             
-            // Make draggable
             let isDragging = false;
             let dragOffsetX, dragOffsetY;
             const header = debugPanel.querySelector('div:first-child');
@@ -716,14 +701,10 @@
                 isDragging = true;
                 dragOffsetX = e.clientX - debugPanel.offsetLeft;
                 dragOffsetY = e.clientY - debugPanel.offsetTop;
-                debugPanel.style.position = 'fixed';
-                debugPanel.style.bottom = 'auto';
-                debugPanel.style.right = 'auto';
-                debugPanel.style.top = debugPanel.offsetTop + 'px';
-                debugPanel.style.left = debugPanel.offsetLeft + 'px';
             });
             document.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
+                debugPanel.style.position = 'fixed'; debugPanel.style.bottom = 'auto'; debugPanel.style.right = 'auto';
                 debugPanel.style.left = (e.clientX - dragOffsetX) + 'px';
                 debugPanel.style.top = (e.clientY - dragOffsetY) + 'px';
             });
@@ -734,268 +715,90 @@
                 const stats = getStats();
                 const progressPercent = stats.percentComplete;
                 
-                // Update stats
                 const statsDiv = document.getElementById('debugStats');
                 if (statsDiv) {
                     statsDiv.innerHTML = `
                         <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 8px;">
-                            <span style="color: #0f0;">✅ Loaded: ${stats.loaded}</span>
-                            <span style="color: #f00;">❌ Failed: ${stats.failed}</span>
-                            <span style="color: #ff0;">⏳ Pending: ${stats.pending}</span>
-                            <span style="color: #0ff;">📦 Total: ${stats.total}</span>
-                            <span style="color: #f0f;">📊 ${progressPercent}% Complete</span>
+                            <span style="color: #0f0;">✅ Resolved: ${stats.loaded}</span>
+                            <span style="color: #f00;">❌ Errors: ${stats.failed}</span>
+                            <span style="color: #ff0;">⏳ Active XHR: ${stats.pending}</span>
+                            <span style="color: #0ff;">📦 Objects: ${stats.total}</span>
+                            <span style="color: #f0f;">📊 ${progressPercent}% Connected</span>
                         </div>
                     `;
                 }
                 
-                // Progress bar
                 const progressDiv = document.getElementById('debugProgressBar');
                 if (progressDiv) {
                     progressDiv.innerHTML = `
                         <div style="background: #333; border-radius: 5px; overflow: hidden; height: 8px;">
                             <div style="background: #0f0; width: ${progressPercent}%; height: 100%; transition: width 0.3s;"></div>
                         </div>
-                        <div style="display: flex; justify-content: space-between; margin-top: 4px;">
-                            <span>Loading Progress</span>
-                            <span>${progressPercent}%</span>
-                        </div>
                     `;
                 }
                 
-                // Firebase status
                 const fbDiv = document.getElementById('debugFirebaseStatus');
                 if (fbDiv) {
                     fbDiv.innerHTML = `
-                        <div style="margin: 8px 0; padding: 6px; background: #111; border-radius: 4px;">
-                            <div style="color: ${firebaseConnected ? '#0f0' : '#f00'}">
-                                🔥 Firebase: ${firebaseConnected ? 'CONNECTED ✓' : 'DISCONNECTED / CONNECTING...'}
-                            </div>
-                            ${lastFirebaseUpdate ? `<div style="font-size: 9px; color: #888;">Last data: ${lastFirebaseUpdate}</div>` : ''}
-                            <div style="font-size: 9px; color: #888;">DB URL: sweltaw-8fff9-default-rtdb.firebaseio.com</div>
+                        <div style="margin: 8px 0; padding: 6px; background: #111; border-radius: 4px; color: #0ff;">
+                            ⚡ Pipeline: ${dbModeStatus}<br>
+                            📡 Target Host: ifykqthpqvqvifbjcgsd.supabase.co
                         </div>
                     `;
                 }
                 
-                // Resources list (show all pending and failed prominently)
                 const resourcesDiv = document.getElementById('debugResourcesList');
                 if (resourcesDiv) {
                     const pendingList = resources.filter(r => r.status === 'pending');
                     const failedList = resources.filter(r => r.status === 'failed');
-                    const recentLoaded = resources.filter(r => r.status === 'loaded').slice(-10);
+                    const recentLoaded = resources.filter(r => r.status === 'loaded').slice(-4);
                     
                     resourcesDiv.innerHTML = `
-                        <div style="margin-top: 10px;">
-                            <div style="color: #ff0; font-weight: bold;">⏳ PENDING / STUCK (${pendingList.length})</div>
-                            ${pendingList.length === 0 ? '<div style="color: #888; margin-left: 10px;">None - all resolved</div>' : 
-                              pendingList.map(r => `<div style="margin-left: 10px; margin-top: 5px; padding: 3px; background: #2a2a00; border-radius: 3px; word-break: break-all;">
-                                  ⏰ [${r.type}] ${r.url.substring(0, 80)}${r.url.length > 80 ? '...' : ''}
-                                  <span style="color: #888; font-size: 9px;"> (${Math.round((Date.now() - r.startTime)/1000)}s waiting)</span>
-                              </div>`).join('')}
-                        </div>
-                        
-                        <div style="margin-top: 10px;">
-                            <div style="color: #f00; font-weight: bold;">❌ FAILED (${failedList.length})</div>
-                            ${failedList.length === 0 ? '<div style="color: #888; margin-left: 10px;">None</div>' : 
-                              failedList.map(r => `<div style="margin-left: 10px; margin-top: 5px; padding: 3px; background: #2a0000; border-radius: 3px; word-break: break-all;">
-                                  💀 [${r.type}] ${r.url.substring(0, 80)}${r.url.length > 80 ? '...' : ''}
-                                  ${r.latency ? `<span style="color: #888;"> (failed after ${r.latency}ms)</span>` : ''}
-                              </div>`).join('')}
-                        </div>
-                        
-                        <div style="margin-top: 10px;">
-                            <div style="color: #0f0; font-weight: bold;">✓ RECENT LOADED (last 10)</div>
-                            ${recentLoaded.length === 0 ? '<div style="color: #888; margin-left: 10px;">None yet</div>' : 
-                              recentLoaded.map(r => `<div style="margin-left: 10px; font-size: 9px; color: #aaa; word-break: break-all;">
-                                  ✓ [${r.type}] ${r.url.substring(0, 70)}${r.url.length > 70 ? '...' : ''}
-                                  <span style="color: #888;"> (${r.latency}ms)</span>
-                              </div>`).join('')}
-                        </div>
-                        
-                        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #333;">
-                            <div style="color: #0ff;">ℹ️ PAGE INFO</div>
-                            <div>URL: ${window.location.href}</div>
-                            <div>Time: ${new Date().toLocaleTimeString()}</div>
-                            <div>Products in DB: ${window.products ? window.products.length : 'Waiting...'}</div>
-                            <div>UA: ${navigator.userAgent.substring(0, 50)}...</div>
-                        </div>
+                        <div style="color: #ff0; font-weight: bold; margin-top:5px;">⏳ ASYNC HANDSHAKES (${pendingList.length})</div>
+                        ${pendingList.map(r => `<div style="color:#ff0; padding-left:10px;">• [${r.type}] ${r.url.substring(0,60)}...</div>`).join('')}
+                        <div style="color: #f00; font-weight: bold; margin-top:5px;">❌ CONNECTION BLOCKS (${failedList.length})</div>
+                        ${failedList.map(r => `<div style="color:#f00; padding-left:10px;">• ${r.url.substring(0,60)}</div>`).join('')}
+                        <div style="color: #0f0; font-weight: bold; margin-top:5px;">✓ LIVE BUFFER CACHE</div>
+                        ${recentLoaded.map(r => `<div style="color:#aaa; padding-left:10px;">✓ [${r.type}] ${r.url.substring(0,50)}... (${r.latency}ms)</div>`).join('')}
                     `;
-                }
-                
-                const statusDiv = document.getElementById('debugStatus');
-                if (statusDiv && stats.total > 0) {
-                    if (stats.pending === 0 && stats.failed === 0 && stats.loaded > 0) {
-                        statusDiv.innerHTML = '✅ ALL RESOURCES LOADED SUCCESSFULLY';
-                        statusDiv.style.color = '#0f0';
-                    } else if (stats.failed > 0) {
-                        statusDiv.innerHTML = `⚠️ ${stats.failed} RESOURCES FAILED TO LOAD - Check below`;
-                        statusDiv.style.color = '#f80';
-                    } else if (stats.pending > 0) {
-                        statusDiv.innerHTML = `⏳ Loading... ${stats.pending} resources pending (${stats.percentComplete}% complete)`;
-                        statusDiv.style.color = '#ff0';
-                    }
                 }
             }
             
-            // Track existing resources
             document.querySelectorAll('link[rel="stylesheet"], script[src], img').forEach(el => {
                 let url = el.src || el.href;
                 if (url && url.startsWith('http')) {
-                    const resource = addResource(url, el.tagName, 'pending');
-                    if (el.tagName === 'LINK' || el.tagName === 'SCRIPT') {
-                        el.addEventListener('load', () => updateResourceStatus(url, 'loaded'));
-                        el.addEventListener('error', () => updateResourceStatus(url, 'failed'));
-                    } else if (el.tagName === 'IMG') {
-                        if (el.complete) {
-                            updateResourceStatus(url, el.naturalWidth > 0 ? 'loaded' : 'failed');
-                        } else {
-                            el.addEventListener('load', () => updateResourceStatus(url, 'loaded'));
-                            el.addEventListener('error', () => updateResourceStatus(url, 'failed'));
-                        }
-                    }
+                    addDebugResource(url, el.tagName, 'loaded');
                 }
             });
             
-            // Track Firebase connections via XHR/fetch
-            const originalFetch = window.fetch;
-            window.fetch = function(...args) {
-                const url = typeof args[0] === 'string' ? args[0] : (args[0].url || 'unknown');
-                if (url.includes('firebaseio.com') || url.includes('googleapis.com')) {
-                    addResource(url, 'FETCH', 'pending');
-                    return originalFetch.apply(this, args)
-                        .then(response => {
-                            updateResourceStatus(url, response.ok ? 'loaded' : 'failed');
-                            if (url.includes('firebaseio.com') && response.ok) {
-                                firebaseConnected = true;
-                                lastFirebaseUpdate = new Date().toLocaleTimeString();
-                                updateDebugDisplay();
-                            }
-                            return response;
-                        })
-                        .catch(err => {
-                            updateResourceStatus(url, 'failed');
-                            throw err;
-                        });
-                }
-                return originalFetch.apply(this, args);
-            };
-            
-            // Track XMLHttpRequest
-            const originalXHROpen = XMLHttpRequest.prototype.open;
-            XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-                this._debugUrl = url;
-                if (url && (url.includes('firebaseio.com') || url.includes('googleapis.com'))) {
-                    addResource(url, 'XHR', 'pending');
-                    this.addEventListener('load', () => {
-                        if (this.status >= 200 && this.status < 400) {
-                            updateResourceStatus(url, 'loaded');
-                            if (url.includes('firebaseio.com')) {
-                                firebaseConnected = true;
-                                lastFirebaseUpdate = new Date().toLocaleTimeString();
-                                updateDebugDisplay();
-                            }
-                        } else {
-                            updateResourceStatus(url, 'failed');
-                        }
-                    });
-                    this.addEventListener('error', () => updateResourceStatus(url, 'failed'));
-                }
-                return originalXHROpen.call(this, method, url, ...rest);
-            };
-            
-            // Monitor Firebase realtime connection via presence
-            setTimeout(() => {
-                const checkFirebase = setInterval(() => {
-                    if (window.db) {
-                        import("https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js").then(({ ref, onValue }) => {
-                            const connectedRef = ref(window.db, '.info/connected');
-                            onValue(connectedRef, (snap) => {
-                                firebaseConnected = snap.val() === true;
-                                if (firebaseConnected) lastFirebaseUpdate = new Date().toLocaleTimeString();
-                                updateDebugDisplay();
-                            });
-                        }).catch(() => {});
-                        clearInterval(checkFirebase);
-                    }
-                }, 500);
-            }, 100);
-            
-            // Also track any dynamically added images
-            const observer = new MutationObserver(() => {
-                document.querySelectorAll('img:not([data-debug-tracked])').forEach(img => {
-                    if (img.src && img.src.startsWith('http')) {
-                        img.setAttribute('data-debug-tracked', 'true');
-                        addResource(img.src, 'IMG', 'pending');
-                        if (img.complete) {
-                            updateResourceStatus(img.src, img.naturalWidth > 0 ? 'loaded' : 'failed');
-                        } else {
-                            img.addEventListener('load', () => updateResourceStatus(img.src, 'loaded'));
-                            img.addEventListener('error', () => updateResourceStatus(img.src, 'failed'));
-                        }
-                    }
-                });
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
-            
-            // Track XLSX library load
-            if (window.XLSX) {
-                addResource('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js', 'SCRIPT', 'loaded');
-            }
-            
-            setInterval(() => updateDebugDisplay(), 500);
-            
-            console.log('%c🔍 ENHANCED DEBUG MODE ACTIVE', 'background: #0f0; color: #000; font-size: 14px; padding: 8px;');
-            console.log('Monitoring ALL network connections including Firebase');
-            console.log('Add ?debug to URL to see this panel');
+            setInterval(() => updateDebugDisplay(), 1000);
         })();
     </script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, child, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwLW-VOsrJ0jLYXxI7LKvQQSDkKsfsVj4",
-            authDomain: "sweltaw-8fff9.firebaseapp.com",
-            databaseURL: "https://sweltaw-8fff9-default-rtdb.firebaseio.com", 
-            projectId: "sweltaw-8fff9",
-            storageBucket: "sweltaw-8fff9.firebasestorage.app",
-            messagingSenderId: "290777829005",
-            appId: "1:290777829005:web:789afc0c1885fb15f35cc4",
-            measurementId: "G-HYL8QXWTY7"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app); 
-        window.db = db;
-
+    <script>
+        let supabaseClient = null;
         let products = [];
         let isEditMode = false;
-        let selectedExcelData = null;
+
+        // Initialize Native Client Connector
+        document.addEventListener("DOMContentLoaded", () => {
+            const SUPABASE_URL = "https://ifykqthpqvqvifbjcgsd.supabase.co"; 
+            const SUPABASE_ANON_KEY = "sb_publishable_kdiHUUF7k6kRE6fOsQGELQ_Pc4Fqrqw";
+
+            if (typeof supabase === 'undefined') {
+                console.error("Supabase CDN library did not execute or download properly.");
+                return;
+            }
+
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            listenToProductsSupabase();
+        });
 
         function sanitizeSku(rawSku) {
             if(!rawSku) return "";
-            return String(rawSku).trim().toUpperCase().replace(/[\.#\$\/\[\]]/g, '-');
-        }
-
-        // Helper function to extract direct image links from text mixed with ImgBB HTML code
-        function parseImageInput(inputText) {
-            if (!inputText) return [];
-            
-            // Regex match for src attribute in img tags
-            const imgTagRegex = /<img[^>]+src="([^">]+)"/gi;
-            let matches = [];
-            let match;
-            
-            while ((match = imgTagRegex.exec(inputText)) !== null) {
-                if (match[1]) matches.push(match[1].trim());
-            }
-            
-            // If HTML tags weren't detected, fall back to matching normal newline/comma separated lists
-            if (matches.length === 0) {
-                return inputText.split(/[\n,]+/).map(line => line.trim()).filter(line => line.length > 0);
-            }
-            
-            return matches;
+            return String(rawSku).trim().toUpperCase();
         }
 
         window.switchAdminTab = function(tabId, element) {
@@ -1025,44 +828,58 @@
             }
         }
 
-        function listenToProductsFirebase() {
-            const container = document.getElementById('productsContainer');
-            const dbRef = ref(db, "watches");
+        // Live WebSockets Change Synchronization Engine
+        async function listenToProductsSupabase() {
+            fetchWatchData(); // Initial payload load
 
-            onValue(dbRef, (snapshot) => {
-                products = [];
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    for (let key in data) {
-                        products.push(data[key]);
+            supabaseClient
+                .channel('realtime-watches-gallery')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'watches' }, (payload) => {
+                    console.log("Background real-time change transaction verified:", payload);
+                    if (networkTelemetryActive) {
+                        window.addDebugResource("https://ifykqthpqvqvifbjcgsd.supabase.co/rest/v1/watches?realtime=true", "WS_SYNC", "pending");
+                        setTimeout(() => window.updateDebugResourceStatus("https://ifykqthpqvqvifbjcgsd.supabase.co/rest/v1/watches?realtime=true", "loaded"), 400);
                     }
-                }
-                populateBrandDropdown();
+                    fetchWatchData();
+                })
+                .subscribe();
+        }
+
+        async function fetchWatchData() {
+            const container = document.getElementById('productsContainer');
+            const telemetryUrl = "https://ifykqthpqvqvifbjcgsd.supabase.co/rest/v1/watches";
+            
+            if (networkTelemetryActive) window.addDebugResource(telemetryUrl, "FETCH", "pending");
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('watches')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                products = data || [];
                 
-                // If url has ?adminpanel keyword, override layout directly into adminLoginView
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.has('adminpanel')) {
-                    showView('adminLoginView');
-                } else {
-                    filterProducts();
-                }
-            }, (error) => {
-                console.error("Firebase Sync Error: ", error);
+                if (networkTelemetryActive) window.updateDebugResourceStatus(telemetryUrl, "loaded");
+                
+                populateBrandDropdown();
+                filterProducts();
+            } catch (err) {
+                console.error("Supabase Database Retrieval fault:", err);
+                if (networkTelemetryActive) window.updateDebugResourceStatus(telemetryUrl, "failed");
                 container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--danger-color); font-weight: bold;">ဒေတာချိတ်ဆက်မှု အဆင်မပြေပါ (Network / Permission Error)</p>`;
-            });
+            }
         }
 
         function populateBrandDropdown() {
             const brandDropdown = document.getElementById('filterBrand');
             const savedValue = brandDropdown.value; 
-            
             brandDropdown.innerHTML = '<option value="all">Brands</option>';
             
             const uniqueBrands = [...new Set(products.map(p => (p.brand || 'Generic').trim()))].sort();
             uniqueBrands.forEach(brand => {
                 const opt = document.createElement('option');
-                opt.value = brand;
-                opt.innerText = brand;
+                opt.value = brand; opt.innerText = brand;
                 brandDropdown.appendChild(opt);
             });
 
@@ -1087,14 +904,12 @@
                 let stockHTML = `<div class="product-stock in-stock">● In Stock: ${product.stock} လုံးကျန်သေးသည်</div>`;
                 
                 let displayImg = 'https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif';
-                if (product.imgs && Array.isArray(product.imgs) && product.imgs.length > 0) {
-                    displayImg = product.imgs[0];
-                } else if (product.img) {
-                    displayImg = product.img; 
+                if (product.imgs) {
+                    displayImg = product.imgs.split(',')[0].trim();
                 }
 
                 card.innerHTML = `
-                    <img src="${displayImg}" alt="Watch" class="product-img">
+                    <img src="${displayImg}" alt="Watch" class="product-img" loading="lazy">
                     <div class="product-info">
                         <div class="product-brand">${product.brand}</div>
                         <div class="product-tags">
@@ -1103,8 +918,8 @@
                             <span class="badge badge-class">${product.class}</span>
                         </div>
                         <div class="product-sku">SKU: ${product.sku}</div>
-                        <div class="product-desc">${product.desc}</div>
-                        <div class="product-price">${product.price.toLocaleString()} MMK</div>
+                        <div class="product-desc">${product.desc || ''}</div>
+                        <div class="product-price">${Number(product.price).toLocaleString()} MMK</div>
                         ${stockHTML}
                         <a href="details.html?sku=${encodeURIComponent(product.sku)}" class="btn" style="width: 100%; box-sizing: border-box;">View Details</a>
                     </div>
@@ -1152,7 +967,6 @@
             }
             products.forEach((prod) => {
                 const tr = document.createElement('tr');
-                const imgString = (prod.imgs && Array.isArray(prod.imgs)) ? prod.imgs.join(', ') : (prod.img || '');
                 tr.innerHTML = `
                     <td style="font-weight:bold;"><input type="hidden" class="row-sku-hidden" value="${prod.sku}">${prod.sku}</td>
                     <td><input type="text" class="excel-input row-brand" value="${prod.brand || ''}"></td>
@@ -1162,7 +976,7 @@
                     <td><input type="number" class="excel-input row-price" value="${prod.price || 0}"></td>
                     <td><input type="number" class="excel-input row-stock" value="${prod.stock || 0}"></td>
                     <td><input type="text" class="excel-input row-desc" value="${prod.desc || ''}"></td>
-                    <td><input type="text" class="excel-input row-imgs" value="${imgString}"></td>
+                    <td><input type="text" class="excel-input row-imgs" value="${prod.imgs || ''}"></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -1197,40 +1011,36 @@
 
         async function saveSpreadsheetData() {
             const saveBtn = document.getElementById('saveSpreadsheetBtn');
-            saveBtn.disabled = true;
-            saveBtn.innerText = 'သိမ်းဆည်းနေပါသည်...';
-            const tbody = document.getElementById('spreadsheetBody');
-            const rows = tbody.querySelectorAll('tr');
-            const updates = {};
-            rows.forEach(row => {
-                const skuEl = row.querySelector('.row-sku-hidden');
-                if(!skuEl) return;
-                const sku = skuEl.value;
-                const brand = row.querySelector('.row-brand').value.trim();
-                const category = row.querySelector('.row-category').value.trim();
-                const classVal = row.querySelector('.row-class').value.trim();
-                const sex = row.querySelector('.row-sex').value.trim();
-                const price = parseFloat(row.querySelector('.row-price').value) || 0;
-                const stock = parseInt(row.querySelector('.row-stock').value, 10) || 0;
-                const desc = row.querySelector('.row-desc').value.trim();
-                const rawImgs = row.querySelector('.row-imgs').value;
-                
-                // Enhanced handler with ibb parsing capacity
-                const imgsArray = parseImageInput(rawImgs);
-                
-                updates[`watches/${sku}`] = {
-                    sku, brand: brand || "Generic", category: category || "Standard", class: classVal || "Standard",
-                    sex: sex || "Unisex", price, stock, desc: desc || "No description provided.",
-                    imgs: imgsArray.length ? imgsArray : ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"],
-                    img: imgsArray[0] || "https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"
-                };
-            });
+            saveBtn.disabled = true; saveBtn.innerText = 'သိမ်းဆည်းနေပါသည်...';
+            
+            const rows = document.querySelectorAll('#spreadsheetBody tr');
             try {
-                await update(ref(db), updates);
+                for (let row of rows) {
+                    const skuEl = row.querySelector('.row-sku-hidden');
+                    if(!skuEl) continue;
+                    const sku = skuEl.value;
+                    
+                    const itemData = {
+                        sku,
+                        brand: row.querySelector('.row-brand').value.trim() || "Generic",
+                        category: row.querySelector('.row-category').value.trim() || "Standard",
+                        class: row.querySelector('.row-class').value.trim() || "Standard",
+                        sex: row.querySelector('.row-sex').value.trim() || "Unisex",
+                        price: parseFloat(row.querySelector('.row-price').value) || 0,
+                        stock: parseInt(row.querySelector('.row-stock').value, 10) || 0,
+                        desc: row.querySelector('.row-desc').value.trim() || "",
+                        imgs: row.querySelector('.row-imgs').value.trim() || ""
+                    };
+
+                    await supabaseClient.from('watches').upsert(itemData);
+                }
                 alert('Spreadsheet ဒေတာများ သိမ်းဆည်းပြီးပါပြီ။');
                 showView('userView');
-            } catch (err) { alert('အမှား: ' + err.message); } 
-            finally { saveBtn.disabled = false; saveBtn.innerText = 'Save Spreadsheet Updates'; }
+            } catch (err) { 
+                alert('အမှား: ' + err.message); 
+            } finally { 
+                saveBtn.disabled = false; saveBtn.innerText = 'အပြောင်းအလဲများကို သိမ်းဆည်းမည် (Save Spreadsheet Updates)'; 
+            }
         }
 
         function exportSpreadsheetToExcel() {
@@ -1279,30 +1089,31 @@
             const deleteBtn = document.getElementById('deleteBtn');
             const cleanSku = sanitizeSku(skuVal);
             if(!cleanSku) { msgDiv.style.display='none'; deleteBtn.style.display='none'; return; }
+            
             try {
-                const snapshot = await get(ref(db, 'watches/' + cleanSku));
+                const { data, error } = await supabaseClient.from('watches').select('*').eq('sku', cleanSku).maybeSingle();
                 msgDiv.style.display = 'block';
-                if(snapshot.exists()) {
-                    isEditMode = true;
-                    deleteBtn.style.display = 'inline-block';
+                
+                if(data) {
+                    isEditMode = true; deleteBtn.style.display = 'inline-block';
                     msgDiv.style.backgroundColor = '#fff3cd'; msgDiv.style.color = '#856404';
                     msgDiv.innerText = `⚠️ SKU "${cleanSku}" ရှိပြီးသား - ပြင်ဆင်နိုင်ပါသည်။`;
                     document.getElementById('submitBtn').innerText = 'ပြင်ဆင်မည်';
-                    const prod = snapshot.val();
-                    document.getElementById('watchBrand').value = prod.brand || '';
-                    document.getElementById('watchCategory').value = prod.category || '';
-                    document.getElementById('watchClass').value = prod.class || '';
-                    document.getElementById('watchSex').value = prod.sex || 'Gent';
-                    document.getElementById('watchImgs').value = (prod.imgs && Array.isArray(prod.imgs)) ? prod.imgs.join('\n') : (prod.img || '');
-                    document.getElementById('watchDesc').value = prod.desc || '';
-                    document.getElementById('watchPrice').value = prod.price || '';
-                    document.getElementById('watchStock').value = prod.stock || '';
+                    
+                    document.getElementById('watchBrand').value = data.brand || '';
+                    document.getElementById('watchCategory').value = data.category || '';
+                    document.getElementById('watchClass').value = data.class || '';
+                    document.getElementById('watchSex').value = data.sex || 'Gent';
+                    document.getElementById('watchImgs').value = data.imgs ? data.imgs.replace(/,/g, '\n') : '';
+                    document.getElementById('watchDesc').value = data.desc || '';
+                    document.getElementById('watchPrice').value = data.price || '';
+                    document.getElementById('watchStock').value = data.stock || '';
                 } else {
-                    isEditMode = false;
-                    deleteBtn.style.display = 'none';
+                    isEditMode = false; deleteBtn.style.display = 'none';
                     msgDiv.style.backgroundColor = '#d4edda'; msgDiv.style.color = '#155724';
                     msgDiv.innerText = `✨ SKU "${cleanSku}" အသစ် - Upload လုပ်နိုင်ပါသည်။`;
                     document.getElementById('submitBtn').innerText = 'Upload တင်မည်';
+                    
                     document.getElementById('watchBrand').value = '';
                     document.getElementById('watchCategory').value = '';
                     document.getElementById('watchClass').value = '';
@@ -1319,29 +1130,33 @@
             const sku = sanitizeSku(document.getElementById('watchSku').value);
             if(!sku) return alert('SKU ထည့်ပါ');
             
-            // Runs custom helper engine to extract data from raw HTML or generic strings
-            const imgLines = parseImageInput(document.getElementById('watchImgs').value);
-            
+            const rawImgs = document.getElementById('watchImgs').value.split('\n').map(l=>l.trim()).filter(l=>l.length).join(', ');
+
             const data = {
-                sku, brand: document.getElementById('watchBrand').value.trim(), category: document.getElementById('watchCategory').value.trim(),
-                class: document.getElementById('watchClass').value.trim(), sex: document.getElementById('watchSex').value,
-                imgs: imgLines.length ? imgLines : ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"],
-                img: imgLines[0] || "https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif",
-                desc: document.getElementById('watchDesc').value.trim(), price: parseFloat(document.getElementById('watchPrice').value) || 0,
-                stock: parseInt(document.getElementById('watchStock').value) || 0
+                sku,
+                brand: document.getElementById('watchBrand').value.trim() || "Generic",
+                category: document.getElementById('watchCategory').value.trim() || "Standard",
+                class: document.getElementById('watchClass').value.trim() || "Standard",
+                sex: document.getElementById('watchSex').value,
+                imgs: rawImgs || "https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif",
+                desc: document.getElementById('watchDesc').value.trim(),
+                price: parseFloat(document.getElementById('watchPrice').value) || 0,
+                stock: parseInt(document.getElementById('watchStock').value, 10) || 0
             };
+
             try {
-                await set(ref(db, 'watches/' + sku), data);
+                const { error } = await supabaseClient.from('watches').upsert(data);
+                if (error) throw error;
                 alert(isEditMode ? 'ပြင်ဆင်ပြီး' : 'တင်ပြီး');
                 showView('userView');
-            } catch(err) { alert("မအောင်မြင်ပါ: "+err.message); }
+            } catch(err) { alert("မအောင်မြင်ပါ: " + err.message); }
         }
 
         async function handleDeleteItem() {
             const sku = sanitizeSku(document.getElementById('watchSku').value);
             if(!sku) return;
-            if(confirm(`Phyat Myi? ${sku}`)) {
-                await remove(ref(db, 'watches/' + sku));
+            if(confirm(`ဖျက်မည်? ${sku}`)) {
+                await supabaseClient.from('watches').delete().eq('sku', sku);
                 alert('ဖျက်ပြီး');
                 showView('userView');
             }
@@ -1349,15 +1164,81 @@
 
         async function handleDeleteAllItems() {
             if(!confirm("အားလုံးဖျက်မည်!! သေချာပါသလား?")) return;
-            const num1=Math.floor(Math.random()*8)+2, num2=Math.floor(Math.random()*8)+2;
+            const num1 = Math.floor(Math.random() * 8) + 2, num2 = Math.floor(Math.random() * 8) + 2;
             const ans = prompt(`${num1} x ${num2} = ?`);
-            if(parseInt(ans) === num1*num2) {
-                await remove(ref(db, 'watches'));
+            if(parseInt(ans) === num1 * num2) {
+                await supabaseClient.from('watches').delete().neq('sku', 'TRASH_PROTECT_HACK');
                 alert('အားလုံးဖျက်ပြီး');
                 showView('userView');
             } else alert('မှား');
         }
 
+        // Drop Zone Handler Core Logic For Mass XLSX Engine
+        const dropZone = document.getElementById('dropZone');
+        const excelInput = document.getElementById('excelFileInput');
+        const processBtn = document.getElementById('processExcelBtn');
+        let parsedExcelPayload = [];
+
+        dropZone.addEventListener('click', () => excelInput.click());
+        excelInput.addEventListener('change', (e) => handleExcelParse(e.target.files[0]));
+        
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = "#f5eedf"; });
+        dropZone.addEventListener('dragleave', () => { dropZone.style.background = "#fdfbf7"; });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.background = "#fdfbf7";
+            if(e.dataTransfer.files.length) handleExcelParse(e.dataTransfer.files[0]);
+        });
+
+        function handleExcelParse(file) {
+            if (!file) return;
+            document.getElementById('fileInfoDisplay').style.display = "block";
+            document.getElementById('fileInfoDisplay').innerText = `Selected: ${file.name}`;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    parsedExcelPayload = XLSX.utils.sheet_to_json(sheet);
+                    processBtn.disabled = parsedExcelPayload.length === 0;
+                    processBtn.innerText = `Excel ဖိုင်ကို ဖတ်ပြီး ဒေတာဘေ့စ်ထဲ သိမ်းမည် (${parsedExcelPayload.length} items loaded)`;
+                } catch(err) {
+                    alert("Excel Processing Error: " + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        processBtn.addEventListener('click', async () => {
+            processBtn.disabled = true; processBtn.innerText = "Writing batch items to PostgreSQL cluster...";
+            try {
+                for (let row of parsedExcelPayload) {
+                    if (!row.sku) continue;
+                    const formattedRow = {
+                        sku: sanitizeSku(row.sku),
+                        brand: String(row.brand || "Generic").trim(),
+                        category: String(row.category || "Standard").trim(),
+                        class: String(row.class || "Standard").trim(),
+                        sex: String(row.sex || "Unisex").trim(),
+                        price: parseFloat(row.price) || 0,
+                        stock: parseInt(row.stock, 10) || 0,
+                        desc: String(row.desc || "").trim(),
+                        imgs: String(row.imgs || "").trim()
+                    };
+                    await supabaseClient.from('watches').upsert(formattedRow);
+                }
+                alert("Batch operations parsed and synchronized successfully.");
+                showView('userView');
+            } catch(err) {
+                alert("Batch Upload fault: " + err.message);
+            } finally {
+                processBtn.disabled = false; processBtn.innerText = "Excel ဖိုင်ကို ဖတ်ပြီး ဒေတာဘေ့စ်ထဲ သိမ်းမည်";
+            }
+        });
+
+        // Interface Interactive Event Routing Elements
         document.getElementById('mainSearch').addEventListener('input', (e) => {
             if(e.target.value.trim().toLowerCase() === 'adminpanel') { showView('adminLoginView'); e.target.value=''; }
             else filterProducts();
@@ -1366,6 +1247,7 @@
             if(document.getElementById('adminPassword').value === 'STLK@2026') showView('adminUploadView');
             else alert('Password မှား');
         });
+        
         document.getElementById('watchSku').addEventListener('input', (e) => checkSkuRealtime(e.target.value));
         document.getElementById('uploadForm').addEventListener('submit', handleUploadOrEdit);
         document.getElementById('deleteBtn').addEventListener('click', handleDeleteItem);
@@ -1373,15 +1255,13 @@
         document.getElementById('saveSpreadsheetBtn').addEventListener('click', saveSpreadsheetData);
         document.getElementById('exportSpreadsheetBtn').addEventListener('click', exportSpreadsheetToExcel);
         document.getElementById('exportBrandInventoryBtn').addEventListener('click', exportBrandInventoryToExcel);
-        document.getElementById('searchBtn').addEventListener('click', filterProducts);
+        document.getElementById('searchBtn').addEventListener('click', fetchWatchData);
         document.getElementById('backToUserBtn').addEventListener('click', () => showView('userView'));
         document.getElementById('logoutBtn').addEventListener('click', () => showView('userView'));
         document.getElementById('filterSex').addEventListener('change', filterProducts);
         document.getElementById('filterBrand').addEventListener('change', filterProducts);
         document.getElementById('filterClass').addEventListener('change', filterProducts);
         document.getElementById('filterPrice').addEventListener('input', filterProducts);
-
-        listenToProductsFirebase();
     </script>
 </body>
 </html>
