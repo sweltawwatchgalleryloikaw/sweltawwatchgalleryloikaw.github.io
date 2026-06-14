@@ -354,6 +354,7 @@
                         mainImg.onload = () => { mainImg.style.opacity = 1; };
                     });
                 });
+                thumbsContainer.style.display = 'flex';
             } else {
                 thumbsContainer.style.display = 'none';
             }
@@ -524,8 +525,8 @@
                             <input type="number" id="editPrice" value="${product.price || 0}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
                         </div>
                         <div style="margin-bottom:12px;">
-                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Image Links (Comma ဖြင့်ခြားပါ)</label>
-                            <textarea id="editImgs" rows="3" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; font-family:sans-serif; resize:vertical;">${imgArray.join(', ')}</textarea>
+                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Image Links သို့မဟုတ် HTML Codes (ImgBB Link များကို တိုက်ရိုက် Paste လုပ်နိုင်ပါသည်)</label>
+                            <textarea id="editImgs" rows="4" placeholder="လင့်ခ်များကို ကော်မာခံ၍ဖြစ်စေ သို့မဟုတ် HTML Tag ကုဒ်စုလိုက်ဖြစ်စေ ထည့်သွင်းနိုင်ပါသည်။" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; font-family:sans-serif; resize:vertical;">${imgArray.join(', ')}</textarea>
                         </div>
                         <div style="margin-bottom:16px;">
                             <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">အကြောင်းအရာ ဖော်ပြချက် (Description)</label>
@@ -559,11 +560,32 @@
             document.getElementById('saveEditBtn').addEventListener('click', async () => {
                 const newPrice = parseInt(document.getElementById('editPrice').value, 10);
                 const newStock = parseInt(document.getElementById('editStock').value, 10);
-                const rawImgText = document.getElementById('editImgs').value;
-                const newImgsArray = rawImgText.split(',').map(l => l.trim()).filter(l => l.length > 0);
+                const rawImgText = document.getElementById('editImgs').value.trim();
+                
+                let newImgsArray = [];
+
+                // Advanced Image Source Extraction Logic (Supports Comma-separated or HTML anchor links)
+                if (rawImgText.includes('<img')) {
+                    // HTML Code ထဲက src="..." တွေကို RegEx သုံးပြီး ဆွဲထုတ်ခြင်း
+                    const srcRegex = /src=["']([^"']+)["']/g;
+                    let match;
+                    while ((match = srcRegex.exec(rawImgText)) !== null) {
+                        if (match[1] && !match[1].startsWith('data:')) {
+                            newImgsArray.push(match[1].trim());
+                        }
+                    }
+                } else {
+                    // သာမန် ကော်မာ ( , ) ခြားထားတဲ့ Link များဖြစ်ပါက
+                    newImgsArray = rawImgText.split(',').map(l => l.trim()).filter(l => l.length > 0);
+                }
 
                 if (isNaN(newPrice) || isNaN(newStock)) {
                     alert('စျေးနှုန်းနှင့် လက်ကျန်အရေအတွက်အား မှန်ကန်စွာ ဖြည့်စွက်ပါ။');
+                    return;
+                }
+
+                if (newImgsArray.length === 0) {
+                    alert('မှန်ကန်သော ပုံလင့်ခ် (သို့မဟုတ်) HTML ကုဒ်များ ထည့်သွင်းပေးရန် လိုအပ်ပါသည်။');
                     return;
                 }
 
