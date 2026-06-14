@@ -852,10 +852,10 @@
             if (networkTelemetryActive) window.addDebugResource(telemetryUrl, "FETCH", "pending");
             
             try {
-                const { data, error } = await supabaseClient
-                    .from('watches')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+               const { data, error } = await supabaseClient
+    .from('watches')
+    .select('*')
+    .order('brand', { ascending: true });
 
                 if (error) throw error;
                 products = data || [];
@@ -954,7 +954,9 @@
 
                 return isAvailable && matchesSearch && matchesSex && matchesBrand && matchesClass && matchesPrice;
             });
+filtered.sort((a, b) => (a.brand || '').localeCompare(b.brand || ''));
 
+displayProducts(filtered);
             displayProducts(filtered);
         }
 
