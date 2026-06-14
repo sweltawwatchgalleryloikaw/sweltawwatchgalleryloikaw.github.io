@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Swel Taw Watch Gallery (Loikaw)</title>
+    <title>Swel Taw Watch Gallery (Loikaw) - Debug Mode</title>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -92,7 +92,6 @@
             padding: 0 15px;
         }
 
-   
         .filter-container {
             background-color: white;
             padding: 10px;
@@ -100,7 +99,7 @@
             box-shadow: 0 3px 8px rgba(0,0,0,0.05);
             margin-bottom: 20px;
             display: flex;
-            gap: 8px; 
+            gap: 8px;
             position: sticky;
             top: 65px; 
             z-index: 999;
@@ -110,7 +109,7 @@
         }
 
         .filter-item {
-            flex: 1; 
+            flex: 1;
             min-width: 0;
         }
 
@@ -122,10 +121,11 @@
             width: 100%;
             box-sizing: border-box;
             background-color: #fff;
-            padding: 8px 5px; 
+            padding: 8px 5px;
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 12px;
+            text-overflow: ellipsis;
             white-space: nowrap;
             overflow: hidden;
         }
@@ -374,7 +374,6 @@
             gap: 10px;
         }
 
-        /* Mobile Screens Responsive */
         @media (max-width: 768px) {
             header {
                 flex-direction: column;
@@ -394,7 +393,7 @@
                 padding: 8px 15px;
             }
             .filter-container {
-                top: 105px; /* Sticky top matching mobile layout header */
+                top: 105px;
                 padding: 8px 5px;
                 gap: 5px;
             }
@@ -455,7 +454,7 @@
             </div>
 
             <div class="products-grid" id="productsContainer">
-                <p style="text-align: center; grid-column: 1/-1;">Getting data...<br>ခေတ္တစောင့်ပါ...<br>ပုံမပေါ်လျှင်VPNသုံးပေးပါ...</p>
+                <p style="text-align: center; grid-column: 1/-1;">Getting data...</p>
             </div>
         </div>
 
@@ -512,8 +511,8 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>နာရီပုံစံများ (Image Links - တစ်ကြောင်းလျှင် link တစ်ခုစီထည့်ပါ)</label>
-                                <textarea id="watchImgs" rows="4" placeholder="https://link1.com&#10;https://link2.com" required></textarea>
+                                <label>နာရီပုံစံများ (Image Links သို့မဟုတ် ImgBB HTML Code)</label>
+                                <textarea id="watchImgs" rows="4" placeholder="တစ်ကြောင်းလျှင် link တစ်ခုစီထည့်ပါ သို့မဟုတ် ImgBB HTML links အစုလိုက် ထည့်ပါ" required></textarea>
                             </div>
                             <div class="form-group">
                                 <label>Description (အကြောင်းအရာ)</label>
@@ -554,7 +553,7 @@
                 <div id="spreadsheetTab" class="tab-panel">
                     <div class="tab-action-bar">
                         <p style="font-size: 13px; color: #666; line-height: 1.5; margin: 0; max-width: 70%;">
-                            ဒေတာဘေ့စ်ရှိ ထုတ်ကုန်ပစ္စည်းများကို Excel Grid Layout အတိုင်း အကွက်များထဲတွင် တိုက်ရိုက် ပြင်ဆင်နိုင်သည်။ Image links များကို ကော်မာ ( , ) ခြားပြီး ရိုက်ထည့်ပါ။
+                            ဒေတာဘေ့စ်ရှိ ထုတ်ကုန်ပစ္စည်းများကို Excel Grid Layout အတိုင်း အကွက်များထဲတွင် တိုက်ရိုက် ပြင်ဆင်နိုင်သည်။ Image links များကို ကော်မာ ( , ) ခြားပြီး ရိုက်ထည့်ပါ သို့မဟုတ် ImgBB embed HTML tags များ တိုက်ရိုက်ထည့်ပါ။
                         </p>
                         <button type="button" id="exportSpreadsheetBtn" class="btn btn-info" style="font-size: 12px; padding: 8px 15px;">📥 Export Spreadsheet to Excel</button>
                     </div>
@@ -571,7 +570,7 @@
                                     <th style="width: 100px;">Price (MMK)</th>
                                     <th style="width: 80px;">Stock</th>
                                     <th style="width: 250px;">Description</th>
-                                    <th style="width: 250px;">Image Links (Comma Sep.)</th>
+                                    <th style="width: 250px;">Image Links / HTML Embeds</th>
                                 </tr>
                             </thead>
                             <tbody id="spreadsheetBody">
@@ -619,6 +618,337 @@
 
     </div>
 
+    <script>
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isDebugMode = urlParams.has('debug');
+            
+            if (!isDebugMode) return;
+            
+            // Resource tracking
+            const resources = [];
+            let resourceId = 0;
+            let firebaseConnected = false;
+            let lastFirebaseUpdate = null;
+            
+            function addResource(url, type, status = 'pending') {
+                if (!url) return null;
+                const existing = resources.find(r => r.url === url);
+                if (existing) return existing;
+                
+                const id = resourceId++;
+                const resource = {
+                    id, url, type, status,
+                    startTime: Date.now(),
+                    endTime: null,
+                    latency: null
+                };
+                resources.push(resource);
+                updateDebugDisplay();
+                return resource;
+            }
+            
+            function updateResourceStatus(url, status) {
+                const resource = resources.find(r => r.url === url);
+                if (resource && resource.status !== status) {
+                    resource.status = status;
+                    if (status === 'loaded' || status === 'failed') {
+                        resource.endTime = Date.now();
+                        resource.latency = resource.endTime - resource.startTime;
+                    }
+                    updateDebugDisplay();
+                }
+            }
+            
+            function getStats() {
+                const total = resources.length;
+                const loaded = resources.filter(r => r.status === 'loaded').length;
+                const failed = resources.filter(r => r.status === 'failed').length;
+                const pending = resources.filter(r => r.status === 'pending').length;
+                const percentComplete = total === 0 ? 0 : Math.round((loaded + failed) / total * 100);
+                return { total, loaded, failed, pending, percentComplete };
+            }
+            
+            // Create debug panel
+            const debugPanel = document.createElement('div');
+            debugPanel.id = 'debugPanel';
+            debugPanel.style.cssText = `
+                position: fixed;
+                bottom: 10px;
+                right: 10px;
+                width: 500px;
+                max-width: 95vw;
+                max-height: 70vh;
+                background: #0a0a0a;
+                color: #0f0;
+                font-family: 'Courier New', monospace;
+                font-size: 10px;
+                z-index: 10000;
+                border-radius: 10px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                border: 1px solid #0f0;
+            `;
+            
+            debugPanel.innerHTML = `
+                <div style="background: #1a1a1a; padding: 8px 12px; cursor: move; display: flex; justify-content: space-between; user-select: none; border-bottom: 1px solid #0f0;">
+                    <strong>🔍 DEBUG CONSOLE - Network Monitor</strong>
+                    <span id="debugClose" style="cursor: pointer; color: #0f0; font-size: 18px;">✕</span>
+                </div>
+                <div id="debugContent" style="padding: 10px; overflow-y: auto; flex: 1; max-height: calc(70vh - 40px);">
+                    <div id="debugStatus">Initializing...</div>
+                    <div id="debugStats"></div>
+                    <div id="debugProgressBar" style="margin: 10px 0;"></div>
+                    <div id="debugFirebaseStatus"></div>
+                    <div id="debugResourcesList"></div>
+                </div>
+            `;
+            document.body.appendChild(debugPanel);
+            
+            // Make draggable
+            let isDragging = false;
+            let dragOffsetX, dragOffsetY;
+            const header = debugPanel.querySelector('div:first-child');
+            header.addEventListener('mousedown', (e) => {
+                if (e.target.id === 'debugClose') return;
+                isDragging = true;
+                dragOffsetX = e.clientX - debugPanel.offsetLeft;
+                dragOffsetY = e.clientY - debugPanel.offsetTop;
+                debugPanel.style.position = 'fixed';
+                debugPanel.style.bottom = 'auto';
+                debugPanel.style.right = 'auto';
+                debugPanel.style.top = debugPanel.offsetTop + 'px';
+                debugPanel.style.left = debugPanel.offsetLeft + 'px';
+            });
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                debugPanel.style.left = (e.clientX - dragOffsetX) + 'px';
+                debugPanel.style.top = (e.clientY - dragOffsetY) + 'px';
+            });
+            document.addEventListener('mouseup', () => { isDragging = false; });
+            document.getElementById('debugClose').addEventListener('click', () => { debugPanel.style.display = 'none'; });
+            
+            function updateDebugDisplay() {
+                const stats = getStats();
+                const progressPercent = stats.percentComplete;
+                
+                // Update stats
+                const statsDiv = document.getElementById('debugStats');
+                if (statsDiv) {
+                    statsDiv.innerHTML = `
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 8px;">
+                            <span style="color: #0f0;">✅ Loaded: ${stats.loaded}</span>
+                            <span style="color: #f00;">❌ Failed: ${stats.failed}</span>
+                            <span style="color: #ff0;">⏳ Pending: ${stats.pending}</span>
+                            <span style="color: #0ff;">📦 Total: ${stats.total}</span>
+                            <span style="color: #f0f;">📊 ${progressPercent}% Complete</span>
+                        </div>
+                    `;
+                }
+                
+                // Progress bar
+                const progressDiv = document.getElementById('debugProgressBar');
+                if (progressDiv) {
+                    progressDiv.innerHTML = `
+                        <div style="background: #333; border-radius: 5px; overflow: hidden; height: 8px;">
+                            <div style="background: #0f0; width: ${progressPercent}%; height: 100%; transition: width 0.3s;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+                            <span>Loading Progress</span>
+                            <span>${progressPercent}%</span>
+                        </div>
+                    `;
+                }
+                
+                // Firebase status
+                const fbDiv = document.getElementById('debugFirebaseStatus');
+                if (fbDiv) {
+                    fbDiv.innerHTML = `
+                        <div style="margin: 8px 0; padding: 6px; background: #111; border-radius: 4px;">
+                            <div style="color: ${firebaseConnected ? '#0f0' : '#f00'}">
+                                🔥 Firebase: ${firebaseConnected ? 'CONNECTED ✓' : 'DISCONNECTED / CONNECTING...'}
+                            </div>
+                            ${lastFirebaseUpdate ? `<div style="font-size: 9px; color: #888;">Last data: ${lastFirebaseUpdate}</div>` : ''}
+                            <div style="font-size: 9px; color: #888;">DB URL: sweltaw-8fff9-default-rtdb.firebaseio.com</div>
+                        </div>
+                    `;
+                }
+                
+                // Resources list (show all pending and failed prominently)
+                const resourcesDiv = document.getElementById('debugResourcesList');
+                if (resourcesDiv) {
+                    const pendingList = resources.filter(r => r.status === 'pending');
+                    const failedList = resources.filter(r => r.status === 'failed');
+                    const recentLoaded = resources.filter(r => r.status === 'loaded').slice(-10);
+                    
+                    resourcesDiv.innerHTML = `
+                        <div style="margin-top: 10px;">
+                            <div style="color: #ff0; font-weight: bold;">⏳ PENDING / STUCK (${pendingList.length})</div>
+                            ${pendingList.length === 0 ? '<div style="color: #888; margin-left: 10px;">None - all resolved</div>' : 
+                              pendingList.map(r => `<div style="margin-left: 10px; margin-top: 5px; padding: 3px; background: #2a2a00; border-radius: 3px; word-break: break-all;">
+                                  ⏰ [${r.type}] ${r.url.substring(0, 80)}${r.url.length > 80 ? '...' : ''}
+                                  <span style="color: #888; font-size: 9px;"> (${Math.round((Date.now() - r.startTime)/1000)}s waiting)</span>
+                              </div>`).join('')}
+                        </div>
+                        
+                        <div style="margin-top: 10px;">
+                            <div style="color: #f00; font-weight: bold;">❌ FAILED (${failedList.length})</div>
+                            ${failedList.length === 0 ? '<div style="color: #888; margin-left: 10px;">None</div>' : 
+                              failedList.map(r => `<div style="margin-left: 10px; margin-top: 5px; padding: 3px; background: #2a0000; border-radius: 3px; word-break: break-all;">
+                                  💀 [${r.type}] ${r.url.substring(0, 80)}${r.url.length > 80 ? '...' : ''}
+                                  ${r.latency ? `<span style="color: #888;"> (failed after ${r.latency}ms)</span>` : ''}
+                              </div>`).join('')}
+                        </div>
+                        
+                        <div style="margin-top: 10px;">
+                            <div style="color: #0f0; font-weight: bold;">✓ RECENT LOADED (last 10)</div>
+                            ${recentLoaded.length === 0 ? '<div style="color: #888; margin-left: 10px;">None yet</div>' : 
+                              recentLoaded.map(r => `<div style="margin-left: 10px; font-size: 9px; color: #aaa; word-break: break-all;">
+                                  ✓ [${r.type}] ${r.url.substring(0, 70)}${r.url.length > 70 ? '...' : ''}
+                                  <span style="color: #888;"> (${r.latency}ms)</span>
+                              </div>`).join('')}
+                        </div>
+                        
+                        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #333;">
+                            <div style="color: #0ff;">ℹ️ PAGE INFO</div>
+                            <div>URL: ${window.location.href}</div>
+                            <div>Time: ${new Date().toLocaleTimeString()}</div>
+                            <div>Products in DB: ${window.products ? window.products.length : 'Waiting...'}</div>
+                            <div>UA: ${navigator.userAgent.substring(0, 50)}...</div>
+                        </div>
+                    `;
+                }
+                
+                const statusDiv = document.getElementById('debugStatus');
+                if (statusDiv && stats.total > 0) {
+                    if (stats.pending === 0 && stats.failed === 0 && stats.loaded > 0) {
+                        statusDiv.innerHTML = '✅ ALL RESOURCES LOADED SUCCESSFULLY';
+                        statusDiv.style.color = '#0f0';
+                    } else if (stats.failed > 0) {
+                        statusDiv.innerHTML = `⚠️ ${stats.failed} RESOURCES FAILED TO LOAD - Check below`;
+                        statusDiv.style.color = '#f80';
+                    } else if (stats.pending > 0) {
+                        statusDiv.innerHTML = `⏳ Loading... ${stats.pending} resources pending (${stats.percentComplete}% complete)`;
+                        statusDiv.style.color = '#ff0';
+                    }
+                }
+            }
+            
+            // Track existing resources
+            document.querySelectorAll('link[rel="stylesheet"], script[src], img').forEach(el => {
+                let url = el.src || el.href;
+                if (url && url.startsWith('http')) {
+                    const resource = addResource(url, el.tagName, 'pending');
+                    if (el.tagName === 'LINK' || el.tagName === 'SCRIPT') {
+                        el.addEventListener('load', () => updateResourceStatus(url, 'loaded'));
+                        el.addEventListener('error', () => updateResourceStatus(url, 'failed'));
+                    } else if (el.tagName === 'IMG') {
+                        if (el.complete) {
+                            updateResourceStatus(url, el.naturalWidth > 0 ? 'loaded' : 'failed');
+                        } else {
+                            el.addEventListener('load', () => updateResourceStatus(url, 'loaded'));
+                            el.addEventListener('error', () => updateResourceStatus(url, 'failed'));
+                        }
+                    }
+                }
+            });
+            
+            // Track Firebase connections via XHR/fetch
+            const originalFetch = window.fetch;
+            window.fetch = function(...args) {
+                const url = typeof args[0] === 'string' ? args[0] : (args[0].url || 'unknown');
+                if (url.includes('firebaseio.com') || url.includes('googleapis.com')) {
+                    addResource(url, 'FETCH', 'pending');
+                    return originalFetch.apply(this, args)
+                        .then(response => {
+                            updateResourceStatus(url, response.ok ? 'loaded' : 'failed');
+                            if (url.includes('firebaseio.com') && response.ok) {
+                                firebaseConnected = true;
+                                lastFirebaseUpdate = new Date().toLocaleTimeString();
+                                updateDebugDisplay();
+                            }
+                            return response;
+                        })
+                        .catch(err => {
+                            updateResourceStatus(url, 'failed');
+                            throw err;
+                        });
+                }
+                return originalFetch.apply(this, args);
+            };
+            
+            // Track XMLHttpRequest
+            const originalXHROpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+                this._debugUrl = url;
+                if (url && (url.includes('firebaseio.com') || url.includes('googleapis.com'))) {
+                    addResource(url, 'XHR', 'pending');
+                    this.addEventListener('load', () => {
+                        if (this.status >= 200 && this.status < 400) {
+                            updateResourceStatus(url, 'loaded');
+                            if (url.includes('firebaseio.com')) {
+                                firebaseConnected = true;
+                                lastFirebaseUpdate = new Date().toLocaleTimeString();
+                                updateDebugDisplay();
+                            }
+                        } else {
+                            updateResourceStatus(url, 'failed');
+                        }
+                    });
+                    this.addEventListener('error', () => updateResourceStatus(url, 'failed'));
+                }
+                return originalXHROpen.call(this, method, url, ...rest);
+            };
+            
+            // Monitor Firebase realtime connection via presence
+            setTimeout(() => {
+                const checkFirebase = setInterval(() => {
+                    if (window.db) {
+                        import("https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js").then(({ ref, onValue }) => {
+                            const connectedRef = ref(window.db, '.info/connected');
+                            onValue(connectedRef, (snap) => {
+                                firebaseConnected = snap.val() === true;
+                                if (firebaseConnected) lastFirebaseUpdate = new Date().toLocaleTimeString();
+                                updateDebugDisplay();
+                            });
+                        }).catch(() => {});
+                        clearInterval(checkFirebase);
+                    }
+                }, 500);
+            }, 100);
+            
+            // Also track any dynamically added images
+            const observer = new MutationObserver(() => {
+                document.querySelectorAll('img:not([data-debug-tracked])').forEach(img => {
+                    if (img.src && img.src.startsWith('http')) {
+                        img.setAttribute('data-debug-tracked', 'true');
+                        addResource(img.src, 'IMG', 'pending');
+                        if (img.complete) {
+                            updateResourceStatus(img.src, img.naturalWidth > 0 ? 'loaded' : 'failed');
+                        } else {
+                            img.addEventListener('load', () => updateResourceStatus(img.src, 'loaded'));
+                            img.addEventListener('error', () => updateResourceStatus(img.src, 'failed'));
+                        }
+                    }
+                });
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+            
+            // Track XLSX library load
+            if (window.XLSX) {
+                addResource('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js', 'SCRIPT', 'loaded');
+            }
+            
+            setInterval(() => updateDebugDisplay(), 500);
+            
+            console.log('%c🔍 ENHANCED DEBUG MODE ACTIVE', 'background: #0f0; color: #000; font-size: 14px; padding: 8px;');
+            console.log('Monitoring ALL network connections including Firebase');
+            console.log('Add ?debug to URL to see this panel');
+        })();
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get, child, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -636,6 +966,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app); 
+        window.db = db;
 
         let products = [];
         let isEditMode = false;
@@ -644,6 +975,27 @@
         function sanitizeSku(rawSku) {
             if(!rawSku) return "";
             return String(rawSku).trim().toUpperCase().replace(/[\.#\$\/\[\]]/g, '-');
+        }
+
+        // Helper function to extract direct image links from text mixed with ImgBB HTML code
+        function parseImageInput(inputText) {
+            if (!inputText) return [];
+            
+            // Regex match for src attribute in img tags
+            const imgTagRegex = /<img[^>]+src="([^">]+)"/gi;
+            let matches = [];
+            let match;
+            
+            while ((match = imgTagRegex.exec(inputText)) !== null) {
+                if (match[1]) matches.push(match[1].trim());
+            }
+            
+            // If HTML tags weren't detected, fall back to matching normal newline/comma separated lists
+            if (matches.length === 0) {
+                return inputText.split(/[\n,]+/).map(line => line.trim()).filter(line => line.length > 0);
+            }
+            
+            return matches;
         }
 
         window.switchAdminTab = function(tabId, element) {
@@ -686,7 +1038,14 @@
                     }
                 }
                 populateBrandDropdown();
-                filterProducts();
+                
+                // If url has ?adminpanel keyword, override layout directly into adminLoginView
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('adminpanel')) {
+                    showView('adminLoginView');
+                } else {
+                    filterProducts();
+                }
             }, (error) => {
                 console.error("Firebase Sync Error: ", error);
                 container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--danger-color); font-weight: bold;">ဒေတာချိတ်ဆက်မှု အဆင်မပြေပါ (Network / Permission Error)</p>`;
@@ -754,60 +1113,48 @@
             });
         }
 
-       function filterProducts() {
-    const searchText = document.getElementById('mainSearch').value.toLowerCase().trim();
-    const sexFilter = document.getElementById('filterSex').value;
-    const brandFilter = document.getElementById('filterBrand').value;
-    const classFilter = document.getElementById('filterClass').value;
-    const maxPrice = parseFloat(document.getElementById('filterPrice').value) || Infinity;
+        function filterProducts() {
+            const searchText = document.getElementById('mainSearch').value.toLowerCase().trim();
+            const sexFilter = document.getElementById('filterSex').value;
+            const brandFilter = document.getElementById('filterBrand').value;
+            const classFilter = document.getElementById('filterClass').value;
+            const maxPrice = parseFloat(document.getElementById('filterPrice').value) || Infinity;
 
-    const filtered = products.filter(product => {
-        // Safe parsing to protect against NaN or missing data fields
-        const stockQty = parseInt(product.stock, 10) || 0;
-        const productPrice = parseFloat(product.price) || 0;
+            const filtered = products.filter(product => {
+                const stockQty = parseInt(product.stock, 10) || 0;
+                const productPrice = parseFloat(product.price) || 0;
+                const isAvailable = stockQty > 0;
 
-        // 1. Check stock availability safely
-        const isAvailable = stockQty > 0;
+                const matchesSearch = !searchText || 
+                                      (product.desc || '').toLowerCase().includes(searchText) || 
+                                      (product.sku || '').toLowerCase().includes(searchText) || 
+                                      (product.brand || '').toLowerCase().includes(searchText) ||
+                                      (product.category || '').toLowerCase().includes(searchText) ||
+                                      (product.class || '').toLowerCase().includes(searchText);
+                
+                const matchesSex = (sexFilter === 'all') || (product.sex === sexFilter);
+                const matchesBrand = (brandFilter === 'all') || ((product.brand || '').trim() === brandFilter);
+                const matchesClass = (classFilter === 'all') || ((product.class || '').trim() === classFilter);
+                const matchesPrice = productPrice <= maxPrice;
 
-        // 2. Text Search matching with fallback strings to prevent undefined crashes
-        const matchesSearch = !searchText || 
-                              (product.desc || '').toLowerCase().includes(searchText) || 
-                              (product.sku || '').toLowerCase().includes(searchText) || 
-                              (product.brand || '').toLowerCase().includes(searchText) ||
-                              (product.category || '').toLowerCase().includes(searchText) ||
-                              (product.class || '').toLowerCase().includes(searchText);
-        
-        // 3. Dropdown filters
-        const matchesSex = (sexFilter === 'all') || (product.sex === sexFilter);
-        const matchesBrand = (brandFilter === 'all') || ((product.brand || '').trim() === brandFilter);
-        const matchesClass = (classFilter === 'all') || ((product.class || '').trim() === classFilter);
-        
-        // 4. Price condition
-        const matchesPrice = productPrice <= maxPrice;
+                return isAvailable && matchesSearch && matchesSex && matchesBrand && matchesClass && matchesPrice;
+            });
 
-        return isAvailable && matchesSearch && matchesSex && matchesBrand && matchesClass && matchesPrice;
-    });
+            displayProducts(filtered);
+        }
 
-    displayProducts(filtered);
-}
         function renderSpreadsheetGrid() {
             const tbody = document.getElementById('spreadsheetBody');
             tbody.innerHTML = '';
-
             if (products.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px; color:#999;">ဒေတာဘေ့စ်တွင် မည်သည့်ပစ္စည်းမှ ရှာမတွေ့ပါ။</td></tr>`;
                 return;
             }
-
             products.forEach((prod) => {
                 const tr = document.createElement('tr');
                 const imgString = (prod.imgs && Array.isArray(prod.imgs)) ? prod.imgs.join(', ') : (prod.img || '');
-
                 tr.innerHTML = `
-                    <td style="font-weight:bold; background:#fcfcfc;">
-                        <input type="hidden" class="row-sku-hidden" value="${prod.sku}">
-                        ${prod.sku}
-                    </td>
+                    <td style="font-weight:bold;"><input type="hidden" class="row-sku-hidden" value="${prod.sku}">${prod.sku}</td>
                     <td><input type="text" class="excel-input row-brand" value="${prod.brand || ''}"></td>
                     <td><input type="text" class="excel-input row-category" value="${prod.category || ''}"></td>
                     <td><input type="text" class="excel-input row-class" value="${prod.class || ''}"></td>
@@ -824,130 +1171,40 @@
         function renderBrandInventory() {
             const tbody = document.getElementById('brandInventoryBody');
             tbody.innerHTML = '';
-
             if (products.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:#999;">လက်ရှိဒေတာဘေ့စ်တွင် ပစ္စည်းမရှိသေးပါ။</td></tr>`;
                 return;
             }
-
-            const inventorySummary = calculateBrandMetrics();
-            const sortedBrands = Object.keys(inventorySummary).sort();
-
-            sortedBrands.forEach(key => {
-                const item = inventorySummary[key];
-                const tr = document.createElement('tr');
-
-                let statusBadge = `<span class="badge badge-success">Available</span>`;
-                if (item.totalQty === 0) {
-                    statusBadge = `<span class="badge badge-danger">Out of Stock</span>`;
-                } else if (item.totalQty < 5) {
-                    statusBadge = `<span class="badge badge-warning">Low Stock</span>`;
-                }
-
-                tr.innerHTML = `
-                    <td style="font-weight: bold; color: var(--primary-color);">${item.displayName}</td>
-                    <td>${item.uniqueModels} မျိုး</td>
-                    <td style="font-weight: bold; font-size: 14px;">${item.totalQty.toLocaleString()} လုံး</td>
-                    <td>${statusBadge}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function calculateBrandMetrics() {
             const inventorySummary = {};
             products.forEach(prod => {
                 let brandName = (prod.brand || 'Generic').trim();
-                let normalizedKey = brandName.toUpperCase();
-
-                if (!inventorySummary[normalizedKey]) {
-                    inventorySummary[normalizedKey] = {
-                        displayName: brandName,
-                        uniqueModels: 0,
-                        totalQty: 0
-                    };
+                let key = brandName.toUpperCase();
+                if (!inventorySummary[key]) {
+                    inventorySummary[key] = { displayName: brandName, uniqueModels: 0, totalQty: 0 };
                 }
-                inventorySummary[normalizedKey].uniqueModels += 1;
-                inventorySummary[normalizedKey].totalQty += (parseInt(prod.stock, 10) || 0);
+                inventorySummary[key].uniqueModels += 1;
+                inventorySummary[key].totalQty += (parseInt(prod.stock, 10) || 0);
             });
-            return inventorySummary;
-        }
-
-        function exportSpreadsheetToExcel() {
-            const tbody = document.getElementById('spreadsheetBody');
-            const rows = tbody.querySelectorAll('tr');
-            
-            if(rows.length === 0 || products.length === 0) {
-                alert("ထုတ်ယူရန် မည်သည့် ဒေတာမှမရှိပါ။");
-                return;
-            }
-
-            const excelRows = [];
-            rows.forEach(row => {
-                const skuEl = row.querySelector('.row-sku-hidden');
-                if(!skuEl) return;
-
-                excelRows.push({
-                    "sku": skuEl.value,
-                    "brand": row.querySelector('.row-brand').value.trim(),
-                    "category": row.querySelector('.row-category').value.trim(),
-                    "class": row.querySelector('.row-class').value.trim(),
-                    "sex": row.querySelector('.row-sex').value.trim(),
-                    "price": parseFloat(row.querySelector('.row-price').value) || 0,
-                    "stock": parseInt(row.querySelector('.row-stock').value, 10) || 0,
-                    "desc": row.querySelector('.row-desc').value.trim(),
-                    "imgs": row.querySelector('.row-imgs').value.trim()
-                });
+            Object.keys(inventorySummary).sort().forEach(key => {
+                const item = inventorySummary[key];
+                const tr = document.createElement('tr');
+                let statusBadge = item.totalQty === 0 ? '<span class="badge badge-danger">Out of Stock</span>' : 
+                                 (item.totalQty < 5 ? '<span class="badge badge-warning">Low Stock</span>' : '<span class="badge badge-success">Available</span>');
+                tr.innerHTML = `<td style="font-weight:bold;">${item.displayName}</td><td>${item.uniqueModels} မျိုး</td><td>${item.totalQty.toLocaleString()} လုံး</td><td>${statusBadge}</td>`;
+                tbody.appendChild(tr);
             });
-
-            const worksheet = XLSX.utils.json_to_sheet(excelRows);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Watches Spreadsheet");
-            XLSX.writeFile(workbook, `SwelTaw_Database_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
-        }
-
-        function exportBrandInventoryToExcel() {
-            if(products.length === 0) {
-                alert("ထုတ်ယူရန် မည်သည့် ဘရန်းဒေတာမှမရှိပါ။");
-                return;
-            }
-
-            const metrics = calculateBrandMetrics();
-            const sortedKeys = Object.keys(metrics).sort();
-            
-            const excelRows = sortedKeys.map(key => {
-                const item = metrics[key];
-                let status = "Available";
-                if(item.totalQty === 0) status = "Out of Stock";
-                else if(item.totalQty < 5) status = "Low Stock";
-
-                return {
-                    "Brand Name": item.displayName,
-                    "Unique Models Count": item.uniqueModels,
-                    "Total Quantity Stocked": item.totalQty,
-                    "Inventory Status": status
-                };
-            });
-
-            const worksheet = XLSX.utils.json_to_sheet(excelRows);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Brand Inventory Summary");
-            XLSX.writeFile(workbook, `SwelTaw_Brand_Inventory_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
         async function saveSpreadsheetData() {
             const saveBtn = document.getElementById('saveSpreadsheetBtn');
             saveBtn.disabled = true;
-            saveBtn.innerText = 'အချက်အလက်များကို သိမ်းဆည်းနေပါသည်...';
-
+            saveBtn.innerText = 'သိမ်းဆည်းနေပါသည်...';
             const tbody = document.getElementById('spreadsheetBody');
             const rows = tbody.querySelectorAll('tr');
             const updates = {};
-
             rows.forEach(row => {
                 const skuEl = row.querySelector('.row-sku-hidden');
                 if(!skuEl) return;
-
                 const sku = skuEl.value;
                 const brand = row.querySelector('.row-brand').value.trim();
                 const category = row.querySelector('.row-category').value.trim();
@@ -956,72 +1213,87 @@
                 const price = parseFloat(row.querySelector('.row-price').value) || 0;
                 const stock = parseInt(row.querySelector('.row-stock').value, 10) || 0;
                 const desc = row.querySelector('.row-desc').value.trim();
-                
                 const rawImgs = row.querySelector('.row-imgs').value;
-                const imgsArray = rawImgs.split(',')
-                                         .map(link => link.trim())
-                                         .filter(link => link.length > 0);
-
+                
+                // Enhanced handler with ibb parsing capacity
+                const imgsArray = parseImageInput(rawImgs);
+                
                 updates[`watches/${sku}`] = {
-                    sku: sku,
-                    brand: brand || "Generic",
-                    category: category || "Standard",
-                    class: classVal || "Standard",
-                    sex: sex || "Unisex",
-                    price: price,
-                    stock: stock,
-                    desc: desc || "No description provided.",
-                    imgs: imgsArray.length > 0 ? imgsArray : ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"],
+                    sku, brand: brand || "Generic", category: category || "Standard", class: classVal || "Standard",
+                    sex: sex || "Unisex", price, stock, desc: desc || "No description provided.",
+                    imgs: imgsArray.length ? imgsArray : ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"],
                     img: imgsArray[0] || "https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"
                 };
             });
-
             try {
                 await update(ref(db), updates);
-                alert('Spreadsheet တွင်ပြင်ဆင်ထားသော ဒေတာများအားလုံးကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။');
+                alert('Spreadsheet ဒေတာများ သိမ်းဆည်းပြီးပါပြီ။');
                 showView('userView');
-            } catch (err) {
-                alert('အချက်အလက်များကို သိမ်းဆည်းရာတွင် အမှားအယွင်းရှိခဲ့ပါသည်: ' + err.message);
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.innerText = 'အပြောင်းအလဲများကို သိမ်းဆည်းမည် (Save Spreadsheet Updates)';
-            }
+            } catch (err) { alert('အမှား: ' + err.message); } 
+            finally { saveBtn.disabled = false; saveBtn.innerText = 'Save Spreadsheet Updates'; }
+        }
+
+        function exportSpreadsheetToExcel() {
+            const rows = document.querySelectorAll('#spreadsheetBody tr');
+            if(rows.length === 0) { alert("ဒေတာမရှိပါ"); return; }
+            const excelRows = [];
+            rows.forEach(row => {
+                const skuEl = row.querySelector('.row-sku-hidden');
+                if(!skuEl) return;
+                excelRows.push({
+                    sku: skuEl.value, brand: row.querySelector('.row-brand').value.trim(),
+                    category: row.querySelector('.row-category').value.trim(), class: row.querySelector('.row-class').value.trim(),
+                    sex: row.querySelector('.row-sex').value.trim(), price: parseFloat(row.querySelector('.row-price').value) || 0,
+                    stock: parseInt(row.querySelector('.row-stock').value,10) || 0, desc: row.querySelector('.row-desc').value.trim(),
+                    imgs: row.querySelector('.row-imgs').value.trim()
+                });
+            });
+            const ws = XLSX.utils.json_to_sheet(excelRows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Watches");
+            XLSX.writeFile(wb, `SwelTaw_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        function exportBrandInventoryToExcel() {
+            if(products.length === 0) { alert("ဒေတာမရှိပါ"); return; }
+            const summary = {};
+            products.forEach(p => {
+                let bn = (p.brand || 'Generic').trim();
+                let key = bn.toUpperCase();
+                if(!summary[key]) summary[key] = { displayName: bn, uniqueModels: 0, totalQty: 0 };
+                summary[key].uniqueModels++;
+                summary[key].totalQty += (parseInt(p.stock,10) || 0);
+            });
+            const rows = Object.keys(summary).sort().map(k => {
+                const s = summary[k];
+                return { "Brand": s.displayName, "Models": s.uniqueModels, "Total Stock": s.totalQty, "Status": s.totalQty===0?"Out":(s.totalQty<5?"Low":"OK") };
+            });
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Inventory");
+            XLSX.writeFile(wb, `Brand_Inventory_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
         async function checkSkuRealtime(skuVal) {
             const msgDiv = document.getElementById('skuStatusMessage');
             const deleteBtn = document.getElementById('deleteBtn');
-            
             const cleanSku = sanitizeSku(skuVal);
-            if(!cleanSku) { 
-                msgDiv.style.display = 'none'; 
-                deleteBtn.style.display = 'none';
-                return; 
-            }
-
+            if(!cleanSku) { msgDiv.style.display='none'; deleteBtn.style.display='none'; return; }
             try {
                 const snapshot = await get(ref(db, 'watches/' + cleanSku));
-
                 msgDiv.style.display = 'block';
-                if (snapshot.exists()) {
+                if(snapshot.exists()) {
                     isEditMode = true;
                     deleteBtn.style.display = 'inline-block';
                     msgDiv.style.backgroundColor = '#fff3cd'; msgDiv.style.color = '#856404';
-                    msgDiv.innerText = `⚠️ SKU: "${cleanSku}" ရှိပြီးသားမို့ ပြင်ဆင်ခြင်း သို့မဟုတ် ဖျက်ခြင်း ပြုလုပ်နိုင်ပါသည်။`;
-                    document.getElementById('submitBtn').innerText = 'အချက်အလက်ပြင်ဆင်မည် (Save Edit)';
-                    
+                    msgDiv.innerText = `⚠️ SKU "${cleanSku}" ရှိပြီးသား - ပြင်ဆင်နိုင်ပါသည်။`;
+                    document.getElementById('submitBtn').innerText = 'ပြင်ဆင်မည်';
                     const prod = snapshot.val();
                     document.getElementById('watchBrand').value = prod.brand || '';
                     document.getElementById('watchCategory').value = prod.category || '';
                     document.getElementById('watchClass').value = prod.class || '';
                     document.getElementById('watchSex').value = prod.sex || 'Gent';
-                    
-                    if(prod.imgs && Array.isArray(prod.imgs)){
-                        document.getElementById('watchImgs').value = prod.imgs.join('\n');
-                    } else {
-                        document.getElementById('watchImgs').value = prod.img || '';
-                    }
-                    
+                    document.getElementById('watchImgs').value = (prod.imgs && Array.isArray(prod.imgs)) ? prod.imgs.join('\n') : (prod.img || '');
                     document.getElementById('watchDesc').value = prod.desc || '';
                     document.getElementById('watchPrice').value = prod.price || '';
                     document.getElementById('watchStock').value = prod.stock || '';
@@ -1029,271 +1301,81 @@
                     isEditMode = false;
                     deleteBtn.style.display = 'none';
                     msgDiv.style.backgroundColor = '#d4edda'; msgDiv.style.color = '#155724';
-                    msgDiv.innerText = `✨ SKU အသစ် ("${cleanSku}") ဖြစ်ပါသဖြင့် ဒေတာအသစ် Upload လုပ်နိုင်ပါသည်။`;
-                    document.getElementById('submitBtn').innerText = 'Upload တင်မည် (New Save)';
-                    clearFieldsExceptSku();
+                    msgDiv.innerText = `✨ SKU "${cleanSku}" အသစ် - Upload လုပ်နိုင်ပါသည်။`;
+                    document.getElementById('submitBtn').innerText = 'Upload တင်မည်';
+                    document.getElementById('watchBrand').value = '';
+                    document.getElementById('watchCategory').value = '';
+                    document.getElementById('watchClass').value = '';
+                    document.getElementById('watchImgs').value = '';
+                    document.getElementById('watchDesc').value = '';
+                    document.getElementById('watchPrice').value = '';
+                    document.getElementById('watchStock').value = '';
                 }
-            } catch (err) {
-                console.error("SKU Check Error:", err);
-            }
-        }
-
-        function clearFieldsExceptSku() {
-            document.getElementById('watchBrand').value = '';
-            document.getElementById('watchCategory').value = '';
-            document.getElementById('watchClass').value = '';
-            document.getElementById('watchImgs').value = '';
-            document.getElementById('watchDesc').value = '';
-            document.getElementById('watchPrice').value = '';
-            document.getElementById('watchStock').value = '';
+            } catch(err) { console.error(err); }
         }
 
         async function handleUploadOrEdit(e) {
             e.preventDefault();
             const sku = sanitizeSku(document.getElementById('watchSku').value);
-            if(!sku) return alert('SKU ကုဒ် ထည့်ပါ');
-
-            const imgLines = document.getElementById('watchImgs').value.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-
-            const productData = {
-                sku: sku,
-                brand: document.getElementById('watchBrand').value.trim(),
-                category: document.getElementById('watchCategory').value.trim(),
-                class: document.getElementById('watchClass').value.trim(),
-                sex: document.getElementById('watchSex').value,
-                imgs: imgLines.length > 0 ? imgLines : ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"],
+            if(!sku) return alert('SKU ထည့်ပါ');
+            
+            // Runs custom helper engine to extract data from raw HTML or generic strings
+            const imgLines = parseImageInput(document.getElementById('watchImgs').value);
+            
+            const data = {
+                sku, brand: document.getElementById('watchBrand').value.trim(), category: document.getElementById('watchCategory').value.trim(),
+                class: document.getElementById('watchClass').value.trim(), sex: document.getElementById('watchSex').value,
+                imgs: imgLines.length ? imgLines : ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"],
                 img: imgLines[0] || "https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif",
-                desc: document.getElementById('watchDesc').value.trim(),
-                price: parseFloat(document.getElementById('watchPrice').value) || 0,
+                desc: document.getElementById('watchDesc').value.trim(), price: parseFloat(document.getElementById('watchPrice').value) || 0,
                 stock: parseInt(document.getElementById('watchStock').value) || 0
             };
-
             try {
-                await set(ref(db, 'watches/' + sku), productData);
-                alert(isEditMode ? 'ပြင်ဆင်မှု အောင်မြင်ပါသည်!' : 'ဒေတာအသစ် တင်ပြီးပါပြီ!');
-                resetAdminForm();
+                await set(ref(db, 'watches/' + sku), data);
+                alert(isEditMode ? 'ပြင်ဆင်ပြီး' : 'တင်ပြီး');
                 showView('userView');
-            } catch (error) {
-                alert("Upload မအောင်မြင်ပါ- " + error.message);
-            }
+            } catch(err) { alert("မအောင်မြင်ပါ: "+err.message); }
         }
 
         async function handleDeleteItem() {
             const sku = sanitizeSku(document.getElementById('watchSku').value);
-            if (!sku) return;
-
-            const confirmDelete = confirm(`⚠️ SKU: ${sku} အား ဒေတာဘေ့စ်ထဲမှ အပြီးတိုင် ဖျက်ပစ်ရန် သေჩာပါသလား?`);
-            if (confirmDelete) {
-                try {
-                    await remove(ref(db, 'watches/' + sku));
-                    alert('ထုတ်ကုန်ကို အောင်မြင်စွာ ဖျက်ဆီးပြီးပါပြီ။');
-                    resetAdminForm();
-                    showView('userView');
-                } catch (error) {
-                    alert("ဖျက်ဆီးခြင်း မအောင်မြင်ပါ- " + error.message);
-                }
+            if(!sku) return;
+            if(confirm(`Phyat Myi? ${sku}`)) {
+                await remove(ref(db, 'watches/' + sku));
+                alert('ဖျက်ပြီး');
+                showView('userView');
             }
         }
 
         async function handleDeleteAllItems() {
-            const extremeWarning = confirm("⚠️ သတိပေးချက်!\nဤလုပ်ဆောင်ချက်သည် ဒေတာဘေ့စ်ရှိ ထုတ်ကုန်ပစ္စည်း (နာရီ) အားလုံးကို အပြီးတိုင် ဖျက်ဆီးပစ်မည် ဖြစ်သည်။\nဆက်လက်လုပ်ဆောင်ရန် သေချာပါသလား?");
-            if (!extremeWarning) return;
-
-            const num1 = Math.floor(Math.random() * 8) + 2;
-            const num2 = Math.floor(Math.random() * 8) + 2;
-            const correctAnswer = num1 * num2;
-
-            const userAnswer = prompt(`🤖 Security ReCAPTCHA Verification:\n\nမှားယွင်းဖျက်မိခြင်းမှ ကာကွယ်ရန် အောက်ပါသင်္ချာပုစ္ဆာကို တွက်ပေးပါ။\n\n${num1} x ${num2} = ? ဘယ်လောက်လဲ။`);
-            if (userAnswer === null) return; 
-
-            if (parseInt(userAnswer.trim()) === correctAnswer) {
-                try {
-                    document.getElementById('deleteAllBtn').disabled = true;
-                    document.getElementById('deleteAllBtn').innerText = 'ဒေတာများကို အကုန်ဖျက်နေပါသည်...';
-                    
-                    await remove(ref(db, 'watches'));
-                    
-                    alert('💥 ဒေတာဘေ့စ်ထဲမှ ပစ္စည်းအားလုံးကို အောင်မြင်စွာ အပြီးတိုင် ဖျက်ဆီးလိုက်ပါပြီ။');
-                    resetAdminForm();
-                    showView('userView');
-                } catch (error) {
-                    alert('ဖျက်ဆီးခြင်း မအောင်မြင်ပါ- ' + error.message);
-                } finally {
-                    document.getElementById('deleteAllBtn').disabled = false;
-                    document.getElementById('deleteAllBtn').innerText = 'ဒေတာအားလုံး တစ်ပြိုင်နက် ဖျက်ဆီးမည် (Delete All Items)';
-                }
-            } else {
-                alert('❌ သင်္ချာအဖြေ မှားယွင်းနေပါသည်။ ဒေတာဖျက်ခြင်း လုပ်ငန်းစဉ်ကို ရပ်ဆိုင်းလိုက်သည်။');
-            }
-        }
-
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('excelFileInput');
-        const fileInfoDisplay = document.getElementById('fileInfoDisplay');
-        const processExcelBtn = document.getElementById('processExcelBtn');
-
-        dropZone.addEventListener('click', () => fileInput.click());
-
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.backgroundColor = '#f5eedf'; });
-        dropZone.addEventListener('dragleave', () => { dropZone.style.backgroundColor = '#fdfbf7'; });
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.style.backgroundColor = '#fdfbf7';
-            if(e.dataTransfer.files.length > 0) {
-                handleFileSelection(e.dataTransfer.files[0]);
-            }
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            if(e.target.files.length > 0) {
-                handleFileSelection(e.target.files[0]);
-            }
-        });
-
-        function handleFileSelection(file) {
-            if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
-                alert('ကျေးဇူးပြု၍ .xlsx သို့မဟုတ် .xls ဖိုင်အမျိုးအစားကိုသာ ရွေးချယ်ပေးပါ။');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const rawRows = XLSX.utils.sheet_to_json(worksheet);
-                    
-                    if(rawRows.length === 0) {
-                        alert('Excel ဖိုင်ထဲတွင် မည်သည့်ဒေတာမှ မရှိပါ။');
-                        return;
-                    }
-
-                    selectedExcelData = rawRows;
-                    fileInfoDisplay.innerText = `📄 ဖတ်ပြီးသောဖိုင် - ${file.name} (တွေ့ရှိသော ထုတ်ကုန်အရေအတွက်: ${rawRows.length} ခု)`;
-                    fileInfoDisplay.style.display = 'block';
-                    processExcelBtn.disabled = false;
-
-                } catch (err) {
-                    alert('Excel ဖိုင် ဖတ်ရှုခြင်း မအောင်မြင်ပါ- ' + err.message);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        async function saveExcelDataToFirebase() {
-            if(!selectedExcelData || selectedExcelData.length === 0) return;
-
-            processExcelBtn.disabled = true;
-            processExcelBtn.innerText = 'ဒေတာများကို သိမ်းဆည်းနေပါသည်...';
-
-            const updates = {};
-            let addedCount = 0;
-            let updatedCount = 0;
-
-            try {
-                const dbRef = ref(db);
-                const snapshot = await get(child(dbRef, "watches"));
-                const currentData = snapshot.exists() ? snapshot.val() : {};
-
-                selectedExcelData.forEach((row) => {
-                    const cleanRow = {};
-                    for (let key in row) {
-                        cleanRow[key.toLowerCase().trim()] = row[key];
-                    }
-
-                    if (!cleanRow.sku) return;
-                    
-                    const sku = sanitizeSku(cleanRow.sku);
-                    const existingItem = currentData[sku];
-
-                    if (existingItem) {
-                        if (cleanRow.stock !== undefined) {
-                            updates[`watches/${sku}/stock`] = parseInt(cleanRow.stock) || 0;
-                        }
-                        if (cleanRow.price !== undefined) {
-                            updates[`watches/${sku}/price`] = parseFloat(cleanRow.price) || 0;
-                        }
-                        updatedCount++;
-                    } else {
-                        let parsedImgs = ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"];
-                        if (cleanRow.imgs) {
-                            parsedImgs = String(cleanRow.imgs).split(',').map(l => l.trim()).filter(l => l.length > 0);
-                        }
-
-                        updates[`watches/${sku}`] = {
-                            sku: sku,
-                            brand: cleanRow.brand ? String(cleanRow.brand).trim() : "Generic",
-                            category: cleanRow.category ? String(cleanRow.category).trim() : "Standard",
-                            class: cleanRow.class ? String(cleanRow.class).trim() : "Standard",
-                            sex: cleanRow.sex ? String(cleanRow.sex).trim() : "Unisex",
-                            imgs: parsedImgs,
-                            img: parsedImgs[0] || "https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif",
-                            desc: cleanRow.desc ? String(cleanRow.desc).trim() : "No description provided.",
-                            price: parseFloat(cleanRow.price) || 0,
-                            stock: parseInt(cleanRow.stock) || 0
-                        };
-                        addedCount++;
-                    }
-                });
-
-                await update(ref(db), updates);
-                alert(`Excel Import အောင်မြင်ပါသည်!\n✨ ပစ္စည်းအသစ်ထည့်သွင်းမှု: ${addedCount} ခု\n🔄 လက်ကျန်အရေအတွက်ပြင်ဆင်မှု: ${updatedCount} ခု`);
-                
-                selectedExcelData = null;
-                document.getElementById('excelFileInput').value = '';
-                fileInfoDisplay.style.display = 'none';
-                processExcelBtn.disabled = true;
-                processExcelBtn.innerText = 'Excel ဖိုင်ကို ဖတ်ပြီး ဒေတာဘေ့စ်ထဲ သိမ်းမည်';
+            if(!confirm("အားလုံးဖျက်မည်!! သေချာပါသလား?")) return;
+            const num1=Math.floor(Math.random()*8)+2, num2=Math.floor(Math.random()*8)+2;
+            const ans = prompt(`${num1} x ${num2} = ?`);
+            if(parseInt(ans) === num1*num2) {
+                await remove(ref(db, 'watches'));
+                alert('အားလုံးဖျက်ပြီး');
                 showView('userView');
-
-            } catch (error) {
-                alert("ဒေတာဘေ့စ်သိမ်းဆည်းမှု မအောင်မြင်ပါ- " + error.message);
-                processExcelBtn.disabled = false;
-                processExcelBtn.innerText = 'Excel ဖိုင်ကို ဖတ်ပြီး ဒေတာဘေ့စ်ထဲ သိမ်းမည်';
-            }
-        }
-
-        function resetAdminForm() {
-            document.getElementById('uploadForm').reset();
-            document.getElementById('watchSku').value = '';
-            document.getElementById('skuStatusMessage').style.display = 'none';
-            document.getElementById('deleteBtn').style.display = 'none';
+            } else alert('မှား');
         }
 
         document.getElementById('mainSearch').addEventListener('input', (e) => {
-            const query = e.target.value.trim().toLowerCase();
-            if (query === 'adminpanel' || query === 'adminstock') {
-                e.target.value = '';
-                showView('adminLoginView');
-            } else {
-                filterProducts();
-            }
+            if(e.target.value.trim().toLowerCase() === 'adminpanel') { showView('adminLoginView'); e.target.value=''; }
+            else filterProducts();
         });
-
         document.getElementById('loginBtn').addEventListener('click', () => {
-            if(document.getElementById('adminPassword').value === 'STLK@2026') {
-                document.getElementById('adminPassword').value = '';
-                showView('adminUploadView');
-            } else {
-                alert('Password မှားယွင်းနေပါသည်။');
-            }
+            if(document.getElementById('adminPassword').value === 'STLK@2026') showView('adminUploadView');
+            else alert('Password မှား');
         });
-
         document.getElementById('watchSku').addEventListener('input', (e) => checkSkuRealtime(e.target.value));
         document.getElementById('uploadForm').addEventListener('submit', handleUploadOrEdit);
         document.getElementById('deleteBtn').addEventListener('click', handleDeleteItem);
         document.getElementById('deleteAllBtn').addEventListener('click', handleDeleteAllItems);
-        document.getElementById('processExcelBtn').addEventListener('click', saveExcelDataToFirebase);
         document.getElementById('saveSpreadsheetBtn').addEventListener('click', saveSpreadsheetData);
         document.getElementById('exportSpreadsheetBtn').addEventListener('click', exportSpreadsheetToExcel);
         document.getElementById('exportBrandInventoryBtn').addEventListener('click', exportBrandInventoryToExcel);
         document.getElementById('searchBtn').addEventListener('click', filterProducts);
         document.getElementById('backToUserBtn').addEventListener('click', () => showView('userView'));
         document.getElementById('logoutBtn').addEventListener('click', () => showView('userView'));
-
         document.getElementById('filterSex').addEventListener('change', filterProducts);
         document.getElementById('filterBrand').addEventListener('change', filterProducts);
         document.getElementById('filterClass').addEventListener('change', filterProducts);
