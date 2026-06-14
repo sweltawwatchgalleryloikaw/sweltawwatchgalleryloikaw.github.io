@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Swel Taw Watch Gallery (Loikaw) - Debug Mode</title>
+    <title>Swel Taw Watch Gallery (Loikaw)</title>
+	<link rel="icon" type="image/png" href="https://i.ibb.co/xSPcz3mY/New-Project.png">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -106,6 +107,7 @@
             border: 1px solid #eee;
             box-sizing: border-box;
             width: 100%;
+            align-items: center;
         }
 
         .filter-item {
@@ -133,10 +135,22 @@
         .view-section { display: none; }
         .view-section.active { display: block; }
 
+        /* Default Layout Base */
         .products-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 20px;
+        }
+
+        /* Mobile Enforced Multi-Column Structures */
+        .products-grid.grid-cols-3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+        }
+
+        .products-grid.grid-cols-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
         }
 
         .product-card {
@@ -151,11 +165,14 @@
 
         .product-card:hover { transform: translateY(-5px); }
 
+        /* Perfect 1x1 Square Aspect Scaling Rule */
         .product-img {
-            width: 100%;
-            height: 250px;
+            width: 100% !important;
+            height: auto !important;
+            aspect-ratio: 1 / 1 !important;
             object-fit: cover;
             background-color: #eee;
+            display: block;
         }
 
         .product-info {
@@ -163,6 +180,28 @@
             display: flex;
             flex-direction: column;
             flex-grow: 1;
+        }
+
+        /* Responsive structural adjustments for dense mobile grid displays */
+        .products-grid.grid-cols-3 .product-info {
+            padding: 6px !important;
+        }
+        .products-grid.grid-cols-3 .product-brand {
+            font-size: 10px !important;
+        }
+        .products-grid.grid-cols-3 .product-sku,
+        .products-grid.grid-cols-3 .product-desc,
+        .products-grid.grid-cols-3 .product-stock,
+        .products-grid.grid-cols-3 .product-tags {
+            display: none !important; 
+        }
+        .products-grid.grid-cols-3 .product-price {
+            font-size: 11px !important;
+            margin-bottom: 4px !important;
+        }
+        .products-grid.grid-cols-3 .view-details-btn {
+            font-size: 10px !important;
+            padding: 4px 5px !important;
         }
 
         .product-brand {
@@ -300,9 +339,8 @@
             transition: background 0.2s;
             margin-bottom: 15px;
         }
-        .upload-drop-zone:hover {
-            background-color: #f5eedf;
-        }
+        .upload-drop-zone:hover { background-color: #f5eedf; }
+        
         .file-info-display {
             font-size: 14px;
             color: var(--success-color);
@@ -339,10 +377,7 @@
             text-align: left;
         }
 
-        .excel-table td {
-            border: 1px solid #ddd;
-            padding: 6px;
-        }
+        .excel-table td { border: 1px solid #ddd; padding: 6px; }
 
         .excel-input {
             width: 100%;
@@ -361,9 +396,7 @@
             outline: none;
         }
 
-        .excel-table tr:hover {
-            background-color: #f9f9f9;
-        }
+        .excel-table tr:hover { background-color: #f9f9f9; }
 
         .tab-action-bar {
             display: flex;
@@ -374,6 +407,33 @@
             gap: 10px;
         }
 
+        /* Hide image toggle wrapper container completely on Desktop or large screens */
+        .grid-control-item {
+            display: none; 
+            flex: 0 0 auto;
+        }
+
+        .grid-image-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+
+        .grid-image-btn:hover { transform: scale(1.05); }
+
+        .grid-image-btn img {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+            display: block;
+        }
+
         @media (max-width: 768px) {
             header {
                 flex-direction: column;
@@ -381,17 +441,10 @@
                 text-align: center;
                 padding: 10px;
             }
-            .search-container {
-                width: 100%;
-            }
-            .search-container input {
-                flex-grow: 1;
-                width: auto;
-                padding: 8px;
-            }
-            .btn {
-                padding: 8px 15px;
-            }
+            .search-container { width: 100%; }
+            .search-container input { flex-grow: 1; width: auto; padding: 8px; }
+            .btn { padding: 8px 15px; }
+            
             .filter-container {
                 top: 105px;
                 padding: 8px 5px;
@@ -400,6 +453,11 @@
             .filter-item select, .filter-item input {
                 font-size: 11px;
                 padding: 8px 3px;
+            }
+
+            /* Display layout structural controls strictly on small screens */
+            .grid-control-item {
+                display: block;
             }
         }
     </style>
@@ -450,6 +508,13 @@
                 <div class="filter-item">
                     <label>Max Price</label>
                     <input type="number" id="filterPrice" placeholder="Max Price">
+                </div>
+
+                <!-- Action Button Element Interface Container Layer (Mobile Only) -->
+                <div class="grid-control-item">
+                    <button id="gridToggleBtn" class="grid-image-btn" title="Toggle Grid Layout">
+                        <img src="https://i.ibb.co/n8LCSF7T/two-grids.png" alt="Switch Layout" id="toggleButtonIcon">
+                    </button>
                 </div>
             </div>
 
@@ -573,8 +638,7 @@
                                     <th style="width: 250px;">Image Links (Comma Sep.)</th>
                                 </tr>
                             </thead>
-                            <tbody id="spreadsheetBody">
-                            </tbody>
+                            <tbody id="spreadsheetBody"></tbody>
                         </table>
                     </div>
 
@@ -599,8 +663,7 @@
                                     <th>Status (အခြေအနေ)</th>
                                 </tr>
                             </thead>
-                            <tbody id="brandInventoryBody">
-                            </tbody>
+                            <tbody id="brandInventoryBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -618,6 +681,7 @@
 
     </div>
 
+    <!-- Telemetry Instrumentation Section -->
     <script>
         let dbModeStatus = "Supabase API Core Engine Layer";
         let networkTelemetryActive = false;
@@ -776,13 +840,15 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <script>
         let supabaseClient = null;
         let products = [];
         let isEditMode = false;
 
-        // Initialize Native Client Connector
+        // Adaptive layout constant configurations
+        const IMG_THREE_GRIDS = "https://i.ibb.co/svL9Q04W/three-grids.png";
+        const IMG_TWO_GRIDS = "https://i.ibb.co/n8LCSF7T/two-grids.png";
+
         document.addEventListener("DOMContentLoaded", () => {
             const SUPABASE_URL = "https://ifykqthpqvqvifbjcgsd.supabase.co"; 
             const SUPABASE_ANON_KEY = "sb_publishable_kdiHUUF7k6kRE6fOsQGELQ_Pc4Fqrqw";
@@ -794,6 +860,36 @@
 
             supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             listenToProductsSupabase();
+
+            // Mobile Layout Switcher Engine initialization
+            const gridToggleBtn = document.getElementById('gridToggleBtn');
+            const toggleButtonIcon = document.getElementById('toggleButtonIcon');
+            const productsContainer = document.getElementById('productsContainer');
+            
+            if (window.innerWidth <= 768) {
+                productsContainer.classList.add('grid-cols-3');
+            }
+
+            gridToggleBtn.addEventListener('click', () => {
+                if (productsContainer.classList.contains('grid-cols-3')) {
+                    productsContainer.classList.remove('grid-cols-3');
+                    productsContainer.classList.add('grid-cols-2');
+                    toggleButtonIcon.src = IMG_THREE_GRIDS;
+                } else {
+                    productsContainer.classList.remove('grid-cols-2');
+                    productsContainer.classList.add('grid-cols-3');
+                    toggleButtonIcon.src = IMG_TWO_GRIDS;
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) {
+                    productsContainer.classList.remove('grid-cols-2', 'grid-cols-3');
+                } else if (!productsContainer.classList.contains('grid-cols-2') && !productsContainer.classList.contains('grid-cols-3')) {
+                    productsContainer.classList.add('grid-cols-3');
+                    toggleButtonIcon.src = IMG_TWO_GRIDS;
+                }
+            });
         });
 
         function sanitizeSku(rawSku) {
@@ -828,14 +924,12 @@
             }
         }
 
-        // Live WebSockets Change Synchronization Engine
         async function listenToProductsSupabase() {
-            fetchWatchData(); // Initial payload load
+            fetchWatchData();
 
             supabaseClient
                 .channel('realtime-watches-gallery')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'watches' }, (payload) => {
-                    console.log("Background real-time change transaction verified:", payload);
                     if (networkTelemetryActive) {
                         window.addDebugResource("https://ifykqthpqvqvifbjcgsd.supabase.co/rest/v1/watches?realtime=true", "WS_SYNC", "pending");
                         setTimeout(() => window.updateDebugResourceStatus("https://ifykqthpqvqvifbjcgsd.supabase.co/rest/v1/watches?realtime=true", "loaded"), 400);
@@ -852,10 +946,12 @@
             if (networkTelemetryActive) window.addDebugResource(telemetryUrl, "FETCH", "pending");
             
             try {
-               const { data, error } = await supabaseClient
-    .from('watches')
-    .select('*')
-    .order('brand', { ascending: true });
+                // FIXED: Explicitly sort product records alphabetically by Brand Name column matching A-Z sequence rules.
+                const { data, error } = await supabaseClient
+                    .from('watches')
+                    .select('*')
+                    .order('brand', { ascending: true })
+                    .order('created_at', { ascending: false });
 
                 if (error) throw error;
                 products = data || [];
@@ -921,7 +1017,7 @@
                         <div class="product-desc">${product.desc || ''}</div>
                         <div class="product-price">${Number(product.price).toLocaleString()} MMK</div>
                         ${stockHTML}
-                        <a href="details.html?sku=${encodeURIComponent(product.sku)}" class="btn" style="width: 100%; box-sizing: border-box;">View Details</a>
+                        <a href="details.html?sku=${encodeURIComponent(product.sku)}" class="btn view-details-btn" style="width: 100%; box-sizing: border-box;">View Details</a>
                     </div>
                 `;
                 container.appendChild(card);
@@ -954,9 +1050,7 @@
 
                 return isAvailable && matchesSearch && matchesSex && matchesBrand && matchesClass && matchesPrice;
             });
-filtered.sort((a, b) => (a.brand || '').localeCompare(b.brand || ''));
 
-displayProducts(filtered);
             displayProducts(filtered);
         }
 
@@ -1157,7 +1251,7 @@ displayProducts(filtered);
         async function handleDeleteItem() {
             const sku = sanitizeSku(document.getElementById('watchSku').value);
             if(!sku) return;
-            if(confirm(`ဖျက်မည်? ${sku}`)) {
+            if(confirm(`Phyet Mye? ${sku}`)) {
                 await supabaseClient.from('watches').delete().eq('sku', sku);
                 alert('ဖျက်ပြီး');
                 showView('userView');
@@ -1175,7 +1269,6 @@ displayProducts(filtered);
             } else alert('မှား');
         }
 
-        // Drop Zone Handler Core Logic For Mass XLSX Engine
         const dropZone = document.getElementById('dropZone');
         const excelInput = document.getElementById('excelFileInput');
         const processBtn = document.getElementById('processExcelBtn');
@@ -1240,7 +1333,6 @@ displayProducts(filtered);
             }
         });
 
-        // Interface Interactive Event Routing Elements
         document.getElementById('mainSearch').addEventListener('input', (e) => {
             if(e.target.value.trim().toLowerCase() === 'adminpanel') { showView('adminLoginView'); e.target.value=''; }
             else filterProducts();
