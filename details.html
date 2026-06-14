@@ -272,25 +272,20 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAwLW-VOsrJ0jLYXxI7LKvQQSDkKsfsVj4",
-            authDomain: "sweltaw-8fff9.firebaseapp.com",
-            databaseURL: "https://sweltaw-8fff9-default-rtdb.firebaseio.com", 
-            projectId: "sweltaw-8fff9",
-            storageBucket: "sweltaw-8fff9.firebasestorage.app",
-            messagingSenderId: "290777829005",
-            appId: "1:290777829005:web:789afc0c1885fb15f35cc4",
-            measurementId: "G-HYL8QXWTY7"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        // Supabase Configurations
+        const SUPABASE_URL = "https://ifykqthpqvqvifbjcgsd.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_kdiHUUF7k6kRE6fOsQGELQ_Pc4Fqrqw";
 
         const urlParams = new URLSearchParams(window.location.search);
         const currentSku = urlParams.get('sku');
+
+        // Helper function for global fetch API requests headers
+        const getSupabaseHeaders = () => ({
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+            "Content-Type": "application/json",
+            "Prefer": "return=representation"
+        });
 
         async function loadProductDetails() {
             const loader = document.getElementById('screenLoader');
@@ -300,42 +295,61 @@
                 return;
             }
 
-            // Trim any potential white spaces and safely parse target ID code structure
-            const cleanSku = currentSku.trim().toUpperCase();
+            const cleanSku = currentSku.trim();
 
             try {
-                const snapshot = await get(ref(db, 'watches/' + cleanSku));
-                if (snapshot.exists()) {
-                    const product = snapshot.val();
+                // Supabase REST API Query (Filtering specific row via SKU value match pattern)
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/watches?sku=eq.${encodeURIComponent(cleanSku)}`, {
+                    method: "GET",
+                    headers: getSupabaseHeaders()
+                });
+
+                if (!response.ok) throw new Error("Network configuration parameters issue detected.");
+
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    const product = data[0];
                     renderProductData(product);
-                    // Hide loader overlay layer instantly on visual operational success
                     loader.style.display = 'none';
                 } else {
                     loader.textContent = `ပြသရန် SKU နာရီအချက်အလက်ကို ရှာမတွေ့ပါ။ (SKU: ${cleanSku})`;
                 }
             } catch (err) {
                 console.error(err);
-                loader.textContent = "Error fetching details. လိုင်းအခြေအနေ ပြန်လည်စစ်ဆေးပါ။";
+                loader.textContent = "Error fetching details. ဒေတာချိတ်ဆက်မှု လိုင်းအခြေအနေ ပြန်လည်စစ်ဆေးပါ။";
             }
         }
 
         function renderProductData(product) {
-            // Setup optimized collection structure values
             let imgArray = [];
-            if (product.imgs && Array.isArray(product.imgs)) {
-                imgArray = product.imgs.filter(l => l && l.trim().length > 0);
-            } else if (product.img) {
+            
+            // Supabase text field dynamic multi-link parsing architecture
+            if (product.imgs) {
+                if (typeof product.imgs === 'string') {
+                    // JSON formats checking strings vs CSV standard formats sorting layer
+                    if (product.imgs.startsWith('[') && product.imgs.endsWith(']')) {
+                        try { imgArray = JSON.parse(product.imgs); } catch(e) { imgArray = []; }
+                    } else {
+                        imgArray = product.imgs.split(',').map(l => l.trim());
+                    }
+                } else if (Array.isArray(product.imgs)) {
+                    imgArray = product.imgs;
+                }
+            }
+            
+            imgArray = imgArray.filter(l => l && l.trim().length > 0);
+
+            if (imgArray.length === 0 && product.img) {
                 imgArray = [product.img];
             }
             if (imgArray.length === 0) {
                 imgArray = ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"];
             }
 
-            // Main Display Content Insertion Layer Logic Targets
             const mainImg = document.getElementById('mainDisplayImg');
             mainImg.src = imgArray[0];
 
-            // Render Thumbnails Fast Structure Building Pipeline Fragment Loops
             const thumbsContainer = document.getElementById('thumbnailsContainer');
             if(imgArray.length > 1) {
                 let thumbsHTML = '';
@@ -344,7 +358,6 @@
                 });
                 thumbsContainer.innerHTML = thumbsHTML;
 
-                // Event handling on thumbnails click switches
                 thumbsContainer.querySelectorAll('.thumb-img').forEach(thumb => {
                     thumb.addEventListener('click', (e) => {
                         thumbsContainer.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
@@ -359,18 +372,15 @@
                 thumbsContainer.style.display = 'none';
             }
 
-            // Direct inner text mapping injection optimizations
             document.getElementById('wBrand').textContent = product.brand || 'NO BRAND';
             document.getElementById('wSku').textContent = product.sku || 'N/A';
             document.getElementById('wPrice').textContent = (parseInt(product.price, 10) || 0).toLocaleString() + " MMK";
             document.getElementById('wDesc').textContent = product.desc || 'အသေးစိတ်အချက်အလက် မရှိသေးပါ။';
 
-            // Badges Configuration Logic Rendering
             setupBadge('badgeSex', product.sex);
             setupBadge('badgeCat', product.category);
             setupBadge('badgeClass', product.class);
 
-            // Stock Availability Logic
             const parsedStock = parseInt(product.stock, 10) || 0;
             const stockElement = document.getElementById('wStock');
             const actionBtnWrapper = document.getElementById('actionButtonWrapper');
@@ -379,16 +389,13 @@
                 stockElement.className = "stock-status in-stock";
                 stockElement.textContent = `● In Stock: ${parsedStock} လုံး လက်ကျန်ရှိပါသည်`;
                 
-                // .btn-viber class ကို ထည့်သွင်းပေးထားပါသည်
                 actionBtnWrapper.innerHTML = `
                     <button id="buyViberBtn" class="btn btn-viber">Buy Now (Viber)</button>
                     <button id="buyTiktokBtn" class="btn btn-tiktok">Buy Now (TikTok)</button>
                 `;
                 
-                // Common Message Generator Function
                 const getDraftText = () => `မင်္ဂလာပါ ခင်ဗျာ။ Swel Taw Watch Gallery မှ SKU: ${product.sku || ''} နာရီကို ဝယ်ယူလိုပါသဖြင့် ဆက်သွယ်ရခြင်းဖြစ်ပါသည်။`;
 
-                // Viber Event Listener
                 document.getElementById('buyViberBtn').addEventListener('click', () => {
                     navigator.clipboard.writeText(getDraftText()).then(() => {
                         showToast("နာရီ၏ SKU အား Copy ကူးပြီးပါပြီ။ Viber တွင် Paste လုပ်ပါ။");
@@ -400,7 +407,6 @@
                     });
                 });
 
-                // TikTok Event Listener
                 document.getElementById('buyTiktokBtn').addEventListener('click', () => {
                     navigator.clipboard.writeText(getDraftText()).then(() => {
                         showToast("နာရီ၏ SKU အား Copy ကူးပြီးပါပြီ။ TikTok Chat တွင် Paste လုပ်ပါ။");
@@ -418,7 +424,6 @@
                 actionBtnWrapper.innerHTML = `<button class="btn" disabled>Out of Stock</button>`;
             }
 
-            // Track multi-click logic pattern on SKU fields
             let clickTimes = [];
             document.getElementById('skuClickArea').addEventListener('click', () => {
                 navigator.clipboard.writeText(product.sku || '');
@@ -445,7 +450,6 @@
             }
         }
 
-        // Global Modular Dynamic Floating Toast
         function showToast(text) {
             const existingToast = document.getElementById('appDynamicToast');
             if(existingToast) existingToast.remove();
@@ -469,7 +473,6 @@
             }, 2000);
         }
 
-        // Admin Multi-Mutation Dynamic Overlay Modals
         function showAdminLoginModal(product, imgArray) {
             if(document.getElementById('adminModalOverlay')) return;
 
@@ -564,9 +567,7 @@
                 
                 let newImgsArray = [];
 
-                // Advanced Image Source Extraction Logic (Supports Comma-separated or HTML anchor links)
                 if (rawImgText.includes('<img')) {
-                    // HTML Code ထဲက src="..." တွေကို RegEx သုံးပြီး ဆွဲထုတ်ခြင်း
                     const srcRegex = /src=["']([^"']+)["']/g;
                     let match;
                     while ((match = srcRegex.exec(rawImgText)) !== null) {
@@ -575,7 +576,6 @@
                         }
                     }
                 } else {
-                    // သာမန် ကော်မာ ( , ) ခြားထားတဲ့ Link များဖြစ်ပါက
                     newImgsArray = rawImgText.split(',').map(l => l.trim()).filter(l => l.length > 0);
                 }
 
@@ -590,18 +590,24 @@
                 }
 
                 try {
-                    const dbTargetRef = ref(db, 'watches/' + product.sku.toUpperCase());
-                    await update(dbTargetRef, {
-                        brand: document.getElementById('editBrand').value.trim(),
-                        category: document.getElementById('editCategory').value.trim(),
-                        class: document.getElementById('editClass').value.trim(),
-                        sex: document.getElementById('editSex').value.trim(),
-                        price: newPrice,
-                        stock: newStock,
-                        desc: document.getElementById('editDesc').value,
-                        imgs: newImgsArray,
-                        img: newImgsArray[0] || ""
+                    // Supabase PATCH API request pipeline optimization matching exact primary key column
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/watches?sku=eq.${encodeURIComponent(product.sku)}`, {
+                        method: "PATCH",
+                        headers: getSupabaseHeaders(),
+                        body: JSON.stringify({
+                            brand: document.getElementById('editBrand').value.trim(),
+                            category: document.getElementById('editCategory').value.trim(),
+                            class: document.getElementById('editClass').value.trim(),
+                            sex: document.getElementById('editSex').value.trim(),
+                            price: newPrice,
+                            stock: newStock,
+                            desc: document.getElementById('editDesc').value,
+                            imgs: JSON.stringify(newImgsArray), // Supabase array string parsing optimization
+                            img: newImgsArray[0] || ""
+                        })
                     });
+
+                    if (!response.ok) throw new Error("Update failure.");
 
                     showToast('ပြင်ဆင်မှုများအား သိမ်းဆည်းပြီးပါပြီ။');
                     overlay.remove();
@@ -613,7 +619,7 @@
             });
         }
 
-        // Initialize Call Action On Start Execution Pipeline
+        // Action Start
         loadProductDetails();
     </script>
 </body>
