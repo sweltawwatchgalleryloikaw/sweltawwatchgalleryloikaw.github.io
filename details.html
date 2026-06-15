@@ -266,17 +266,14 @@
     </div>
 
     <script type="module">
-        // Supabase Configurations
         const SUPABASE_URL = "https://ifykqthpqvqvifbjcgsd.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_kdiHUUF7k6kRE6fOsQGELQ_Pc4Fqrqw";
 
         const urlParams = new URLSearchParams(window.location.search);
         const currentSku = urlParams.get('sku');
 
-        // Global Variable to store currently loaded product data
         let globalProductData = null;
 
-        // Helper function for global fetch API requests headers
         const getSupabaseHeaders = () => ({
             "apikey": SUPABASE_ANON_KEY,
             "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
@@ -286,21 +283,18 @@
 
         async function loadProductDetails() {
             const loader = document.getElementById('screenLoader');
-            
             if (!currentSku) {
                 loader.textContent = "URL Parameter တွင် SKU ကုဒ် မှားယွင်းနေပါသည်။";
                 return;
             }
 
-            const cleanSku = currentSku.trim();
-
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/watches?sku=eq.${encodeURIComponent(cleanSku)}`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/watches?sku=eq.${encodeURIComponent(currentSku.trim())}`, {
                     method: "GET",
                     headers: getSupabaseHeaders()
                 });
 
-                if (!response.ok) throw new Error("Network configuration parameters issue detected.");
+                if (!response.ok) throw new Error("Network Error");
 
                 const data = await response.json();
 
@@ -309,32 +303,30 @@
                     renderProductData(globalProductData);
                     loader.style.display = 'none';
                 } else {
-                    loader.textContent = `ပြသရန် SKU နာရီအချက်အလက်ကို ရှာမတွေ့ပါ။ (SKU: ${cleanSku})`;
+                    loader.textContent = `ပြသရန် SKU နာရီအချက်အလက်ကို ရှာမတွေ့ပါ။`;
                 }
             } catch (err) {
                 console.error(err);
-                loader.textContent = "Error fetching details. ဒေတာချိတ်ဆက်မှု လိုင်းအခြေအနေ ပြန်လည်စစ်ဆေးပါ။";
+                loader.textContent = "Error fetching details.";
             }
         }
 
         function renderProductData(product) {
             let imgArray = [];
             
-            if (product.imgs) {
-                if (typeof product.imgs === 'string') {
-                    if (product.imgs.startsWith('[') && product.imgs.endsWith(']')) {
-                        try { imgArray = JSON.parse(product.imgs); } catch(e) { imgArray = []; }
-                    } else {
-                        imgArray = product.imgs.split(',').map(l => l.trim());
-                    }
-                } else if (Array.isArray(product.imgs)) {
-                    imgArray = product.imgs;
+            if (product.imgs && typeof product.imgs === 'string') {
+                let cleanStr = product.imgs.trim();
+                if (cleanStr.startsWith('[') && cleanStr.endsWith(']')) {
+                    try { imgArray = JSON.parse(cleanStr); } catch(e) { imgArray = []; }
+                } else {
+                    imgArray = cleanStr.split(',').map(l => l.trim());
                 }
+            } else if (Array.isArray(product.imgs)) {
+                imgArray = product.imgs;
             }
             
-            imgArray = imgArray.filter(l => l && l.trim().length > 0);
+            imgArray = imgArray.filter(l => l && l.length > 0);
 
-            // Default Image - img ကော်လံကို ဖြုတ်ထားပြီး ၎င်းအစား imgs ထဲကပဲ ပထမပုံကို ယူသုံးပါတယ်
             if (imgArray.length === 0) {
                 imgArray = ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"];
             }
@@ -391,23 +383,15 @@
                 document.getElementById('buyViberBtn').addEventListener('click', () => {
                     navigator.clipboard.writeText(getDraftText()).then(() => {
                         showToast("နာရီ၏ SKU အား Copy ကူးပြီးပါပြီ။ Viber တွင် Paste လုပ်ပါ။");
-                        setTimeout(() => {
-                            window.location.href = `viber://chat/?number=%2B959754735024`;
-                        }, 1200);
-                    }).catch(() => {
-                        window.location.href = `viber://chat/?number=%2B959754735024`;
-                    });
+                        setTimeout(() => { window.location.href = `viber://chat/?number=%2B959754735024`; }, 1200);
+                    }).catch(() => { window.location.href = `viber://chat/?number=%2B959754735024`; });
                 });
 
                 document.getElementById('buyTiktokBtn').addEventListener('click', () => {
                     navigator.clipboard.writeText(getDraftText()).then(() => {
                         showToast("နာရီ၏ SKU အား Copy ကူးပြီးပါပြီ။ TikTok Chat တွင် Paste လုပ်ပါ။");
-                        setTimeout(() => {
-                            window.open("https://www.tiktok.com/@swel.taw.watch.ga", "_blank");
-                        }, 1200);
-                    }).catch(() => {
-                        window.open("https://www.tiktok.com/@swel.taw.watch.ga", "_blank");
-                    });
+                        setTimeout(() => { window.open("https://www.tiktok.com/@swel.taw.watch.ga", "_blank"); }, 1200);
+                    }).catch(() => { window.open("https://www.tiktok.com/@swel.taw.watch.ga", "_blank"); });
                 });
 
             } else {
@@ -561,18 +545,18 @@
                 const newStock = parseInt(document.getElementById('editStock').value, 10);
                 const rawImgText = document.getElementById('editImgs').value.trim();
                 
-                let newImgsArray = [];
+                let extractedUrls = [];
 
-                if (rawImgText.includes('<img')) {
+                if (rawImgText.includes('<img') || rawImgText.includes('<a')) {
                     const srcRegex = /src=["']([^"']+)["']/g;
                     let match;
                     while ((match = srcRegex.exec(rawImgText)) !== null) {
                         if (match[1] && !match[1].startsWith('data:')) {
-                            newImgsArray.push(match[1].trim());
+                            extractedUrls.push(match[1].trim());
                         }
                     }
                 } else {
-                    newImgsArray = rawImgText.split(',').map(l => l.trim()).filter(l => l.length > 0);
+                    extractedUrls = rawImgText.split(',').map(l => l.trim()).filter(l => l.length > 0);
                 }
 
                 if (isNaN(newPrice) || isNaN(newStock)) {
@@ -580,15 +564,15 @@
                     return;
                 }
 
-                if (newImgsArray.length === 0) {
+                if (extractedUrls.length === 0) {
                     alert('မှန်ကန်သော ပုံလင့်ခ် (သို့မဟုတ်) HTML ကုဒ်များ ထည့်သွင်းပေးရန် လိုအပ်ပါသည်။');
                     return;
                 }
 
                 try {
-                    const finalImgsData = JSON.stringify(newImgsArray);
+               
+                    const finalStringData = extractedUrls.join(', ');
 
-                
                     const response = await fetch(`${SUPABASE_URL}/rest/v1/watches?sku=eq.${encodeURIComponent(globalProductData.sku)}`, {
                         method: "PATCH",
                         headers: getSupabaseHeaders(),
@@ -600,7 +584,7 @@
                             price: newPrice,
                             stock: newStock,
                             desc: document.getElementById('editDesc').value,
-                            imgs: finalImgsData
+                            imgs: finalStringData
                         })
                     });
 
@@ -613,7 +597,7 @@
                     overlay.remove();
                     loadProductDetails();
                 } catch(error) {
-                    console.error("Supabase Operation Failed Details:", error);
+                    console.error("Supabase Error:", error);
                     alert(`အချက်အလက် ပြင်ဆင်မှု မအောင်မြင်ပါ။\nအကြောင်းရင်း- ${error.message}`);
                 }
             });
