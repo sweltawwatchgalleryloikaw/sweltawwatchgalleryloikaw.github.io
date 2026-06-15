@@ -14,8 +14,8 @@
             --text-color: #333;
             --danger-color: #d32f2f;
             --success-color: #388e3c;
-            --viber-color: #4f34eb;  /* Viber အရောင်အသစ် */
-            --tiktok-color: #010101; /* TikTok အရောင် */
+            --viber-color: #4f34eb;  
+            --tiktok-color: #010101; 
         }
 
         body {
@@ -64,7 +64,6 @@
             .detail-wrapper { grid-template-columns: 1fr; gap: 20px; padding: 20px; }
         }
 
-        /* Gallery Components */
         .gallery-container {
             display: flex;
             flex-direction: column;
@@ -106,7 +105,6 @@
             transform: scale(0.96);
         }
 
-        /* Right Meta Text Info Components */
         .info-container {
             display: flex;
             flex-direction: column;
@@ -138,7 +136,7 @@
             padding: 5px 14px;
             border-radius: 20px;
             font-weight: bold;
-            display: none; /* Hide by default, show when text exists */
+            display: none;
         }
         .badge-cat { background: #e1f5fe; color: #0288d1; }
         .badge-class { background: #efebe9; color: #5d4037; }
@@ -167,7 +165,6 @@
         .in-stock { color: var(--success-color); }
         .out-of-stock { color: var(--danger-color); }
 
-        /* ခလုတ်နှစ်ခုယှဉ်ရန် Responsive Layout စနစ် */
         .btn-group {
             display: flex;
             gap: 12px;
@@ -175,7 +172,7 @@
         }
 
         .btn {
-            flex: 1; /* ခလုတ်အရွယ်အစား ညီတူညီမျှဖြစ်စေရန် */
+            flex: 1;
             color: white;
             border: none;
             padding: 16px 20px;
@@ -188,22 +185,19 @@
             text-decoration: none;
         }
         .btn:disabled { background-color: #cccccc !important; cursor: not-allowed; color: #666666; box-shadow: none; transform: none; }
-         
-        /* Viber Button Custom Color */
+          
         .btn-viber {
             background-color: var(--viber-color);
             box-shadow: 0 4px 10px rgba(79, 52, 235, 0.2);
         }
         .btn-viber:hover { background-color: #3b23c7; transform: translateY(-1px); }
 
-        /* TikTok Button Custom Color */
         .btn-tiktok {
             background-color: var(--tiktok-color);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
         .btn-tiktok:hover { background-color: #222222; transform: translateY(-1px); }
 
-        /* Screen အသေးစားများ (ဖုန်း) တွင် ခလုတ်များကို တစ်ခုချင်းစီ ဒေါင်လိုက်စီရန် */
         @media (max-width: 480px) {
             .btn-group {
                 flex-direction: column;
@@ -219,7 +213,6 @@
         }
         .back-link:hover { color: var(--primary-color); }
 
-        /* Full page instant screen level initial loader skeleton states */
         #screenLoader {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -242,7 +235,7 @@
 
     <div class="container">
         <a href="index.html" class="back-link">← Back To Home</a>
-         
+          
         <div class="detail-wrapper">
             <div id="screenLoader">ခဏစောင့်ပေးပါ... နာရီအချက်အလက်များကို ရယူနေပါသည်။</div>
 
@@ -264,7 +257,7 @@
                 <div class="watch-price" id="wPrice">0 MMK</div>
                 <div class="stock-status" id="wStock"></div>
                 <div class="watch-desc" id="wDesc"></div>
-                 
+                  
                 <div id="actionButtonWrapper" class="btn-group">
                     <button class="btn" id="mainActionBtn" disabled>Loading...</button>
                 </div>
@@ -279,6 +272,9 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const currentSku = urlParams.get('sku');
+
+        // Global Variable to store currently loaded product data
+        let globalProductData = null;
 
         // Helper function for global fetch API requests headers
         const getSupabaseHeaders = () => ({
@@ -299,7 +295,6 @@
             const cleanSku = currentSku.trim();
 
             try {
-                // Supabase REST API Query (Filtering specific row via SKU value match pattern)
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/watches?sku=eq.${encodeURIComponent(cleanSku)}`, {
                     method: "GET",
                     headers: getSupabaseHeaders()
@@ -310,8 +305,8 @@
                 const data = await response.json();
 
                 if (data && data.length > 0) {
-                    const product = data[0];
-                    renderProductData(product);
+                    globalProductData = data[0]; 
+                    renderProductData(globalProductData);
                     loader.style.display = 'none';
                 } else {
                     loader.textContent = `ပြသရန် SKU နာရီအချက်အလက်ကို ရှာမတွေ့ပါ။ (SKU: ${cleanSku})`;
@@ -325,10 +320,8 @@
         function renderProductData(product) {
             let imgArray = [];
             
-            // Supabase text field dynamic multi-link parsing architecture
             if (product.imgs) {
                 if (typeof product.imgs === 'string') {
-                    // JSON formats checking strings vs CSV standard formats sorting layer
                     if (product.imgs.startsWith('[') && product.imgs.endsWith(']')) {
                         try { imgArray = JSON.parse(product.imgs); } catch(e) { imgArray = []; }
                     } else {
@@ -341,9 +334,7 @@
             
             imgArray = imgArray.filter(l => l && l.trim().length > 0);
 
-            if (imgArray.length === 0 && product.img) {
-                imgArray = [product.img];
-            }
+            // Default Image - img ကော်လံကို ဖြုတ်ထားပြီး ၎င်းအစား imgs ထဲကပဲ ပထမပုံကို ယူသုံးပါတယ်
             if (imgArray.length === 0) {
                 imgArray = ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"];
             }
@@ -426,7 +417,6 @@
             }
 
             let clickTimes = [];
-            // အကြိမ်ကြိမ် ကလစ်နှိပ်တဲ့အခါ Event တွေထပ်နေတာမျိုးမဖြစ်စေဖို့ Element ကို Clone ပြီး အစားထိုးခြင်း
             const newSkuClickArea = document.getElementById('skuClickArea');
             const clonedSkuArea = newSkuClickArea.cloneNode(true);
             newSkuClickArea.parentNode.replaceChild(clonedSkuArea, newSkuClickArea);
@@ -596,10 +586,10 @@
                 }
 
                 try {
-                    // index.html နဲ့ ကိုက်ညီအောင် 'imgs' ကို JSON format အဖြစ်ပြောင်းလဲသိမ်းဆည်းခြင်း
                     const finalImgsData = JSON.stringify(newImgsArray);
 
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/watches?sku=eq.${encodeURIComponent(product.sku)}`, {
+                
+                    const response = await fetch(`${SUPABASE_URL}/rest/v1/watches?sku=eq.${encodeURIComponent(globalProductData.sku)}`, {
                         method: "PATCH",
                         headers: getSupabaseHeaders(),
                         body: JSON.stringify({
@@ -610,24 +600,25 @@
                             price: newPrice,
                             stock: newStock,
                             desc: document.getElementById('editDesc').value,
-                            imgs: finalImgsData, 
-                            img: newImgsArray[0] || ""
+                            imgs: finalImgsData
                         })
                     });
 
-                    if (!response.ok) throw new Error("Update failure.");
+                    if (!response.ok) {
+                        const errBody = await response.text();
+                        throw new Error(`Server Error: ${response.status} - ${errBody}`);
+                    }
 
                     showToast('ပြင်ဆင်မှုများအား သိမ်းဆည်းပြီးပါပြီ။');
                     overlay.remove();
                     loadProductDetails();
                 } catch(error) {
-                    console.error(error);
-                    alert("အချက်အလက် ပြင်ဆင်မှု မအောင်မြင်ပါ။ Supabase RLS Policy သို့မဟုတ် Network အား စစ်ဆေးပါ။");
+                    console.error("Supabase Operation Failed Details:", error);
+                    alert(`အချက်အလက် ပြင်ဆင်မှု မအောင်မြင်ပါ။\nအကြောင်းရင်း- ${error.message}`);
                 }
             });
         }
 
-        // Action Start
         loadProductDetails();
     </script>
 </body>
