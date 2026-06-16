@@ -674,7 +674,6 @@
 
     </div>
 
-    <!-- Telemetry Instrumentation Section -->
     <script>
         let dbModeStatus = "Supabase API Core Engine Layer";
         let networkTelemetryActive = false;
@@ -949,6 +948,19 @@
                 if (networkTelemetryActive) window.updateDebugResourceStatus(telemetryUrl, "loaded");
                 
                 populateBrandDropdown();
+
+         
+                const urlQuery = decodeURIComponent(window.location.search.substring(1)).trim().toLowerCase();
+                if (urlQuery && urlQuery !== 'debug' && urlQuery !== 'adminpanel') {
+                    const brandDropdown = document.getElementById('filterBrand');
+                    const matchingOption = Array.from(brandDropdown.options).find(
+                        opt => opt.value.toLowerCase() === urlQuery
+                    );
+                    if (matchingOption) {
+                        brandDropdown.value = matchingOption.value;
+                    }
+                }
+                
                 filterProducts();
             } catch (err) {
                 console.error("Supabase Database Retrieval fault:", err);
@@ -1118,7 +1130,6 @@
                         imgs: row.querySelector('.row-imgs').value.trim() || ""
                     };
 
-                    // FIXED: Added targeting options parameter to handle conflicts explicitly on columns inside database index
                     await supabaseClient.from('watches').upsert(itemData, { onConflict: 'sku' });
                 }
                 alert('Spreadsheet ဒေတာများ သိမ်းဆည်းပြီးပါပြီ။');
@@ -1232,7 +1243,6 @@
             };
 
             try {
-                // FIXED: Explicitly defined 'sku' key parameter inside conflict config block for single forms logic stream
                 const { error } = await supabaseClient.from('watches').upsert(data, { onConflict: 'sku' });
                 if (error) throw error;
                 alert(isEditMode ? 'ပြင်ဆင်ပြီးပါပြီ' : 'တင်ပြီးပါပြီ');
@@ -1314,7 +1324,6 @@
                         desc: String(row.desc || "").trim(),
                         imgs: String(row.imgs || "").trim()
                     };
-                    // FIXED: Standardized batch processing stream constraint target
                     await supabaseClient.from('watches').upsert(formattedRow, { onConflict: 'sku' });
                 }
                 alert("Batch operations parsed and synchronized successfully.");
