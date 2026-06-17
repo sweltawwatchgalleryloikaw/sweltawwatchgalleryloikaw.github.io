@@ -39,6 +39,26 @@
             top: 0;
             z-index: 1000;
         }
+		footer {
+    background-color: var(--primary-color);
+    color: #888;
+    text-align: center;
+    padding: 12px 20px;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    border-top: 1px solid #2a2a2a;
+    margin-top: 40px;
+}
+footer a {
+    color: var(--accent-color);
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+footer a:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
 
         .logo {
             font-size: 20px;
@@ -1360,4 +1380,7 @@
         document.getElementById('filterPrice').addEventListener('input', filterProducts);
     </script>
 </body>
+	<footer>
+    Built with Care by <a href="https://t.me/WzmoJinX" target="_blank">Khant Zaw Minn Oo</a> | Swel Taw Watch Gallery
+</footer>
 </html>
