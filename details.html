@@ -8,16 +8,15 @@
     <style>
         :root {
             --primary-color: #1a1a1a;
-            --accent-color: #bfa15f; 
+            --accent-color: #bfa15f;
             --bg-color: #f9f9f9;
             --card-bg: #ffffff;
             --text-color: #333;
             --danger-color: #d32f2f;
             --success-color: #388e3c;
-            --viber-color: #4f34eb;  
-            --tiktok-color: #010101; 
+            --viber-color: #4f34eb;
+            --tiktok-color: #010101;
         }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Pyidaungsu';
             margin: 0;
@@ -26,7 +25,6 @@
             color: var(--text-color);
             -webkit-font-smoothing: antialiased;
         }
-
         header {
             background-color: var(--primary-color);
             color: white;
@@ -35,20 +33,17 @@
             justify-content: space-between;
             align-items: center;
         }
-
         .logo {
             font-size: 22px;
             font-weight: bold;
             color: var(--accent-color);
             text-decoration: none;
         }
-
         .container {
             max-width: 1000px;
             margin: 30px auto;
             padding: 0 20px;
         }
-
         .detail-wrapper {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -59,17 +54,18 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.06);
             position: relative;
         }
-
         @media (max-width: 768px) {
-            .detail-wrapper { grid-template-columns: 1fr; gap: 20px; padding: 20px; }
+            .detail-wrapper {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
         }
-
         .gallery-container {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
-
         .main-img-view {
             width: 100%;
             height: auto;
@@ -80,14 +76,19 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             transition: opacity 0.2s ease-in-out;
         }
-
+        
+        /* UPDATED: Horizontally scrollable container */
         .thumbnails-grid {
             display: flex;
             gap: 10px;
             overflow-x: auto;
-            padding-bottom: 5px;
+            flex-wrap: nowrap; /* Prevents wrapping to the next line */
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; /* Momentum scrolling for iOS */
+            padding-bottom: 8px; /* Adds space so the scrollbar doesn't cover items */
         }
 
+        /* UPDATED: Thumbnails sizing preservation */
         .thumb-img {
             width: 70px;
             height: 70px;
@@ -97,20 +98,17 @@
             border: 2px solid transparent;
             transition: all 0.15s ease;
             background-color: #f0f0f0;
-            flex-shrink: 0;
+            flex-shrink: 0; /* Prevents thumbnails from squeezing / shrinking */
         }
-
         .thumb-img:hover, .thumb-img.active {
             border-color: var(--accent-color);
             transform: scale(0.96);
         }
-
         .info-container {
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
-
         .watch-brand {
             font-size: 14px;
             text-transform: uppercase;
@@ -118,19 +116,16 @@
             font-weight: bold;
             letter-spacing: 1.5px;
         }
-
         .watch-sku {
             color: #555;
             font-size: 15px;
             font-weight: 500;
         }
-
         .tags {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
-
         .badge {
             font-size: 12px;
             padding: 5px 14px;
@@ -138,17 +133,24 @@
             font-weight: bold;
             display: none;
         }
-        .badge-cat { background: #e1f5fe; color: #0288d1; }
-        .badge-class { background: #efebe9; color: #5d4037; }
-        .badge-sex { background: #f3e5f5; color: #8e24aa; }
-
+        .badge-cat {
+            background: #e1f5fe;
+            color: #0288d1;
+        }
+        .badge-class {
+            background: #efebe9;
+            color: #5d4037;
+        }
+        .badge-sex {
+            background: #f3e5f5;
+            color: #8e24aa;
+        }
         .watch-price {
             font-size: 30px;
             font-weight: 700;
             color: var(--primary-color);
             margin: 5px 0;
         }
-
         .watch-desc {
             font-size: 15px;
             line-height: 1.7;
@@ -157,20 +159,21 @@
             border-top: 1px solid #eee;
             padding-top: 15px;
         }
-
         .stock-status {
             font-size: 14px;
             font-weight: bold;
         }
-        .in-stock { color: var(--success-color); }
-        .out-of-stock { color: var(--danger-color); }
-
+        .in-stock {
+            color: var(--success-color);
+        }
+        .out-of-stock {
+            color: var(--danger-color);
+        }
         .btn-group {
             display: flex;
             gap: 12px;
             margin-top: 10px;
         }
-
         .btn {
             flex: 1;
             color: white;
@@ -184,26 +187,34 @@
             text-align: center;
             text-decoration: none;
         }
-        .btn:disabled { background-color: #cccccc !important; cursor: not-allowed; color: #666666; box-shadow: none; transform: none; }
-          
+        .btn:disabled {
+            background-color: #cccccc !important;
+            cursor: not-allowed;
+            color: #666666;
+            box-shadow: none;
+            transform: none;
+        }
         .btn-viber {
             background-color: var(--viber-color);
             box-shadow: 0 4px 10px rgba(79, 52, 235, 0.2);
         }
-        .btn-viber:hover { background-color: #3b23c7; transform: translateY(-1px); }
-
+        .btn-viber:hover {
+            background-color: #3b23c7;
+            transform: translateY(-1px);
+        }
         .btn-tiktok {
             background-color: var(--tiktok-color);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
-        .btn-tiktok:hover { background-color: #222222; transform: translateY(-1px); }
-
+        .btn-tiktok:hover {
+            background-color: #222222;
+            transform: translateY(-1px);
+        }
         @media (max-width: 480px) {
             .btn-group {
                 flex-direction: column;
             }
         }
-
         .back-link {
             display: inline-block;
             margin-bottom: 20px;
@@ -211,11 +222,15 @@
             text-decoration: none;
             font-weight: bold;
         }
-        .back-link:hover { color: var(--primary-color); }
-
+        .back-link:hover {
+            color: var(--primary-color);
+        }
         #screenLoader {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: #fff;
             display: flex;
             align-items: center;
@@ -228,22 +243,17 @@
     </style>
 </head>
 <body>
-
     <header>
         <a href="index.html" class="logo">Swel Taw Watch Gallery (Loikaw)</a>
     </header>
-
     <div class="container">
         <a href="index.html" class="back-link">← Back To Home</a>
-          
         <div class="detail-wrapper">
             <div id="screenLoader">ခဏစောင့်ပေးပါ... နာရီအချက်အလက်များကို ရယူနေပါသည်။</div>
-
             <div class="gallery-container">
                 <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100%' height='100%' fill='%23eee'/></svg>" id="mainDisplayImg" class="main-img-view" alt="Watch Main View">
                 <div class="thumbnails-grid" id="thumbnailsContainer"></div>
             </div>
-
             <div class="info-container">
                 <div class="watch-brand" id="wBrand">LOADING...</div>
                 <div class="watch-sku" id="skuClickArea" style="cursor: pointer; user-select: none;">
@@ -257,21 +267,17 @@
                 <div class="watch-price" id="wPrice">0 MMK</div>
                 <div class="stock-status" id="wStock"></div>
                 <div class="watch-desc" id="wDesc"></div>
-                  
                 <div id="actionButtonWrapper" class="btn-group">
                     <button class="btn" id="mainActionBtn" disabled>Loading...</button>
                 </div>
             </div>
         </div>
     </div>
-
     <script type="module">
         const SUPABASE_URL = "https://ifykqthpqvqvifbjcgsd.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_kdiHUUF7k6kRE6fOsQGELQ_Pc4Fqrqw";
-
         const urlParams = new URLSearchParams(window.location.search);
         const currentSku = urlParams.get('sku');
-
         let globalProductData = null;
 
         const getSupabaseHeaders = () => ({
@@ -287,19 +293,15 @@
                 loader.textContent = "URL Parameter တွင် SKU ကုဒ် မှားယွင်းနေပါသည်။";
                 return;
             }
-
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/watches?sku=eq.${encodeURIComponent(currentSku.trim())}`, {
                     method: "GET",
                     headers: getSupabaseHeaders()
                 });
-
                 if (!response.ok) throw new Error("Network Error");
-
                 const data = await response.json();
-
                 if (data && data.length > 0) {
-                    globalProductData = data[0]; 
+                    globalProductData = data[0];
                     renderProductData(globalProductData);
                     loader.style.display = 'none';
                 } else {
@@ -313,7 +315,6 @@
 
         function renderProductData(product) {
             let imgArray = [];
-            
             if (product.imgs && typeof product.imgs === 'string') {
                 let cleanStr = product.imgs.trim();
                 if (cleanStr.startsWith('[') && cleanStr.endsWith(']')) {
@@ -324,16 +325,12 @@
             } else if (Array.isArray(product.imgs)) {
                 imgArray = product.imgs;
             }
-            
             imgArray = imgArray.filter(l => l && l.length > 0);
-
             if (imgArray.length === 0) {
                 imgArray = ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"];
             }
-
             const mainImg = document.getElementById('mainDisplayImg');
             mainImg.src = imgArray[0];
-
             const thumbsContainer = document.getElementById('thumbnailsContainer');
             if(imgArray.length > 1) {
                 let thumbsHTML = '';
@@ -341,7 +338,6 @@
                     thumbsHTML += `<img src="${imgUrl}" class="thumb-img ${idx === 0 ? 'active' : ''}" data-index="${idx}" alt="Thumb">`;
                 });
                 thumbsContainer.innerHTML = thumbsHTML;
-
                 thumbsContainer.querySelectorAll('.thumb-img').forEach(thumb => {
                     thumb.addEventListener('click', (e) => {
                         thumbsContainer.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
@@ -355,64 +351,48 @@
             } else {
                 thumbsContainer.style.display = 'none';
             }
-
             document.getElementById('wBrand').textContent = product.brand || 'NO BRAND';
             document.getElementById('wSku').textContent = product.sku || 'N/A';
             document.getElementById('wPrice').textContent = (parseInt(product.price, 10) || 0).toLocaleString() + " MMK";
             document.getElementById('wDesc').textContent = product.desc || 'အသေးစိတ်အချက်အလက် မရှိသေးပါ။';
-
             setupBadge('badgeSex', product.sex);
             setupBadge('badgeCat', product.category);
             setupBadge('badgeClass', product.class);
-
             const parsedStock = parseInt(product.stock, 10) || 0;
             const stockElement = document.getElementById('wStock');
             const actionBtnWrapper = document.getElementById('actionButtonWrapper');
-
             if(parsedStock > 0) {
                 stockElement.className = "stock-status in-stock";
                 stockElement.textContent = `● In Stock: ${parsedStock} လုံး လက်ကျန်ရှိပါသည်`;
-                
-                actionBtnWrapper.innerHTML = `
-                    <button id="buyViberBtn" class="btn btn-viber">Buy Now (Viber)</button>
-                    <button id="buyTiktokBtn" class="btn btn-tiktok">Buy Now (TikTok)</button>
-                `;
-                
+                actionBtnWrapper.innerHTML = ` <button id="buyViberBtn" class="btn btn-viber">Buy Now (Viber)</button> <button id="buyTiktokBtn" class="btn btn-tiktok">Buy Now (TikTok)</button> `;
                 const getDraftText = () => `မင်္ဂလာပါ ခင်ဗျာ။ Swel Taw Watch Gallery မှ SKU: ${product.sku || ''} နာရီကို ဝယ်ယူလိုပါသဖြင့် ဆက်သွယ်ရခြင်းဖြစ်ပါသည်။`;
-
                 document.getElementById('buyViberBtn').addEventListener('click', () => {
                     navigator.clipboard.writeText(getDraftText()).then(() => {
                         showToast("နာရီ၏ SKU အား Copy ကူးပြီးပါပြီ။ Viber တွင် Paste လုပ်ပါ။");
                         setTimeout(() => { window.location.href = `viber://chat/?number=%2B959754735024`; }, 1200);
                     }).catch(() => { window.location.href = `viber://chat/?number=%2B959754735024`; });
                 });
-
                 document.getElementById('buyTiktokBtn').addEventListener('click', () => {
                     navigator.clipboard.writeText(getDraftText()).then(() => {
                         showToast("နာရီ၏ SKU အား Copy ကူးပြီးပါပြီ။ TikTok Chat တွင် Paste လုပ်ပါ။");
                         setTimeout(() => { window.open("https://www.tiktok.com/@swel.taw.watch.ga", "_blank"); }, 1200);
                     }).catch(() => { window.open("https://www.tiktok.com/@swel.taw.watch.ga", "_blank"); });
                 });
-
             } else {
                 stockElement.className = "stock-status out-of-stock";
                 stockElement.textContent = `✕ Out of Stock (ပစ္စည်းပြတ်နေပါသည်)`;
                 actionBtnWrapper.innerHTML = `<button class="btn" disabled>Out of Stock</button>`;
             }
-
             let clickTimes = [];
             const newSkuClickArea = document.getElementById('skuClickArea');
             const clonedSkuArea = newSkuClickArea.cloneNode(true);
             newSkuClickArea.parentNode.replaceChild(clonedSkuArea, newSkuClickArea);
-
             clonedSkuArea.addEventListener('click', () => {
                 navigator.clipboard.writeText(product.sku || '');
                 showToast(`SKU: ${product.sku} ကို Copy ကူးယူပြီးပါပြီ။`);
-
                 const currentTime = Date.now();
                 clickTimes.push(currentTime);
                 clickTimes = clickTimes.filter(t => currentTime - t <= 1000);
-
                 if (clickTimes.length >= 4) {
                     clickTimes = [];
                     showAdminLoginModal(product, imgArray);
@@ -433,19 +413,15 @@
         function showToast(text) {
             const existingToast = document.getElementById('appDynamicToast');
             if(existingToast) existingToast.remove();
-
             const toast = document.createElement('div');
             toast.id = 'appDynamicToast';
             toast.textContent = text;
-            
             Object.assign(toast.style, {
-                position: 'fixed', bottom: '20px', left: '50%',
-                transform: 'translateX(-50%)', backgroundColor: '#333',
-                color: '#fff', padding: '12px 24px', borderRadius: '8px',
-                zIndex: '10000', fontFamily: 'sans-serif', fontSize: '14px',
-                boxShadow: '0px 4px 10px rgba(0,0,0,0.3)', transition: 'opacity 0.2s ease'
+                position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
+                backgroundColor: '#333', color: '#fff', padding: '12px 24px', borderRadius: '8px',
+                zIndex: '10000', fontFamily: 'sans-serif', fontSize: '14px', boxShadow: '0px 4px 10px rgba(0,0,0,0.3)',
+                transition: 'opacity 0.2s ease'
             });
-            
             document.body.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';
@@ -455,82 +431,74 @@
 
         function showAdminLoginModal(product, imgArray) {
             if(document.getElementById('adminModalOverlay')) return;
-
             const overlay = document.createElement('div');
             overlay.id = 'adminModalOverlay';
             Object.assign(overlay.style, {
                 position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
                 backgroundColor: 'rgba(0,0,0,0.6)', zIndex: '20000', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif',
-                overflowY: 'auto'
+                alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif', overflowY: 'auto'
             });
-
             overlay.innerHTML = `
-                <div style="background: #fff; padding: 25px; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 40px auto; max-height: 85vh; overflow-y: auto;">
-                    <div id="loginGate">
-                        <h3 style="margin-top:0; color:var(--primary-color);">Admin Access Required</h3>
-                        <p style="font-size:13px; color:#666;">စနစ်အတွင်းသို့ဝင်ရောက်ရန် Admin စကားဝှက်ကို ရိုက်ထည့်ပေးပါ။</p>
-                        <input type="password" id="adminPassField" placeholder="Password" style="width:100%; padding:10px; margin:15px 0; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                        <div style="display:flex; justify-content:flex-end; gap:10px;">
-                            <button id="closeAuthBtn" style="padding:8px 16px; background:#ccc; border:none; border-radius:4px; cursor:pointer;">Cancel</button>
-                            <button id="loginAuthBtn" style="padding:8px 16px; background:var(--accent-color); color:white; border:none; border-radius:4px; cursor:pointer;">Confirm</button>
-                        </div>
-                    </div>
-
-                    <div id="editPane" style="display:none;">
-                        <h3 style="margin-top:0; color:var(--primary-color);">Update SKU: ${product.sku}</h3>
-                        <div style="margin-bottom:12px;">
-                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Brand Name</label>
-                            <input type="text" id="editBrand" value="${product.brand || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                        </div>
-                        <div style="margin-bottom:12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div>
-                                <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Category</label>
-                                <input type="text" id="editCategory" value="${product.category || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                            </div>
-                            <div>
-                                <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Class</label>
-                                <input type="text" id="editClass" value="${product.class || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                            </div>
-                        </div>
-                        <div style="margin-bottom:12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <div>
-                                <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Sex</label>
-                                <input type="text" id="editSex" value="${product.sex || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                            </div>
-                            <div>
-                                <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">လက်ကျန်အရေအတွက် (Stock)</label>
-                                <input type="number" id="editStock" value="${product.stock || 0}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                            </div>
-                        </div>
-                        <div style="margin-bottom:12px;">
-                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">စျေးနှုန်း (MMK)</label>
-                            <input type="number" id="editPrice" value="${product.price || 0}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                        </div>
-                        <div style="margin-bottom:12px;">
-                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Image Links သို့မဟုတ် HTML Codes</label>
-                            <textarea id="editImgs" rows="4" placeholder="လင့်ခ်များကို ကော်မာခံ၍ဖြစ်စေ ထည့်သွင်းနိုင်ပါသည်။" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; font-family:sans-serif; resize:vertical;">${imgArray.join(', ')}</textarea>
-                        </div>
-                        <div style="margin-bottom:16px;">
-                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">အကြောင်းအရာ ဖော်ပြချက် (Description)</label>
-                            <textarea id="editDesc" rows="4" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; resize:vertical; font-family:sans-serif;">${product.desc || ''}</textarea>
-                        </div>
-                        <div style="display:flex; justify-content:flex-end; gap:10px;">
-                            <button id="closeEditBtn" style="padding:8px 16px; background:#ccc; border:none; border-radius:4px; cursor:pointer;">Close</button>
-                            <button id="saveEditBtn" style="padding:8px 16px; background:var(--success-color); color:white; border:none; border-radius:4px; cursor:pointer;">Save Updates</button>
-                        </div>
+            <div style="background: #fff; padding: 25px; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 40px auto; max-height: 85vh; overflow-y: auto;">
+                <div id="loginGate">
+                    <h3 style="margin-top:0; color:var(--primary-color);">Admin Access Required</h3>
+                    <p style="font-size:13px; color:#666;">စနစ်အတွင်းသို့ဝင်ရောက်ရန် Admin စကားဝှက်ကို ရိုက်ထည့်ပေးပါ။</p>
+                    <input type="password" id="adminPassField" placeholder="Password" style="width:100%; padding:10px; margin:15px 0; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                    <div style="display:flex; justify-content:flex-end; gap:10px;">
+                        <button id="closeAuthBtn" style="padding:8px 16px; background:#ccc; border:none; border-radius:4px; cursor:pointer;">Cancel</button>
+                        <button id="loginAuthBtn" style="padding:8px 16px; background:var(--accent-color); color:white; border:none; border-radius:4px; cursor:pointer;">Confirm</button>
                     </div>
                 </div>
+                <div id="editPane" style="display:none;">
+                    <h3 style="margin-top:0; color:var(--primary-color);">Update SKU: ${product.sku}</h3>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Brand Name</label>
+                        <input type="text" id="editBrand" value="${product.brand || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                    </div>
+                    <div style="margin-bottom:12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Category</label>
+                            <input type="text" id="editCategory" value="${product.category || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Class</label>
+                            <input type="text" id="editClass" value="${product.class || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                        </div>
+                    </div>
+                    <div style="margin-bottom:12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Sex</label>
+                            <input type="text" id="editSex" value="${product.sex || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">လက်ကျန်အရေအတွက် (Stock)</label>
+                            <input type="number" id="editStock" value="${product.stock || 0}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                        </div>
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">စျေးနှုန်း (MMK)</label>
+                        <input type="number" id="editPrice" value="${product.price || 0}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Image Links သို့မဟုတ် HTML Codes</label>
+                        <textarea id="editImgs" rows="4" placeholder="လင့်ခ်များကို ကော်မာခံ၍ဖြစ်စေ ထည့်သွင်းနိုင်ပါသည်။" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; font-family:sans-serif; resize:vertical;">${imgArray.join(', ')}</textarea>
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">အကြောင်းအရာ ဖော်ပြချက် (Description)</label>
+                        <textarea id="editDesc" rows="4" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; resize:vertical; font-family:sans-serif;">${product.desc || ''}</textarea>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px;">
+                        <button id="closeEditBtn" style="padding:8px 16px; background:#ccc; border:none; border-radius:4px; cursor:pointer;">Close</button>
+                        <button id="saveEditBtn" style="padding:8px 16px; background:var(--success-color); color:white; border:none; border-radius:4px; cursor:pointer;">Save Updates</button>
+                    </div>
+                </div>
+            </div>
             `;
-
             document.body.appendChild(overlay);
-
             const loginGate = document.getElementById('loginGate');
             const editPane = document.getElementById('editPane');
-
             document.getElementById('closeAuthBtn').addEventListener('click', () => overlay.remove());
             document.getElementById('closeEditBtn').addEventListener('click', () => overlay.remove());
-
             document.getElementById('loginAuthBtn').addEventListener('click', () => {
                 if(document.getElementById('adminPassField').value === 'STLK@2026') {
                     loginGate.style.display = 'none';
@@ -539,14 +507,11 @@
                     alert('စကားဝှက် မှားယွင်းနေပါသည်။ ပြန်လည် ကြိုးစားကြည့်ပါ။');
                 }
             });
-
             document.getElementById('saveEditBtn').addEventListener('click', async () => {
                 const newPrice = parseInt(document.getElementById('editPrice').value, 10);
                 const newStock = parseInt(document.getElementById('editStock').value, 10);
                 const rawImgText = document.getElementById('editImgs').value.trim();
-                
                 let extractedUrls = [];
-
                 if (rawImgText.includes('<img') || rawImgText.includes('<a')) {
                     const srcRegex = /src=["']([^"']+)["']/g;
                     let match;
@@ -558,21 +523,16 @@
                 } else {
                     extractedUrls = rawImgText.split(',').map(l => l.trim()).filter(l => l.length > 0);
                 }
-
                 if (isNaN(newPrice) || isNaN(newStock)) {
                     alert('စျေးနှုန်းနှင့် လက်ကျန်အရေအတွက်အား မှန်ကန်စွာ ဖြည့်စွက်ပါ။');
                     return;
                 }
-
                 if (extractedUrls.length === 0) {
                     alert('မှန်ကန်သော ပုံလင့်ခ် (သို့မဟုတ်) HTML ကုဒ်များ ထည့်သွင်းပေးရန် လိုအပ်ပါသည်။');
                     return;
                 }
-
                 try {
-               
                     const finalStringData = extractedUrls.join(', ');
-
                     const response = await fetch(`${SUPABASE_URL}/rest/v1/watches?sku=eq.${encodeURIComponent(globalProductData.sku)}`, {
                         method: "PATCH",
                         headers: getSupabaseHeaders(),
@@ -587,12 +547,10 @@
                             imgs: finalStringData
                         })
                     });
-
                     if (!response.ok) {
                         const errBody = await response.text();
                         throw new Error(`Server Error: ${response.status} - ${errBody}`);
                     }
-
                     showToast('ပြင်ဆင်မှုများအား သိမ်းဆည်းပြီးပါပြီ။');
                     overlay.remove();
                     loadProductDetails();
@@ -602,7 +560,6 @@
                 }
             });
         }
-
         loadProductDetails();
     </script>
 </body>
