@@ -260,7 +260,7 @@
         <a href="index.html" class="logo">Swel Taw Watch Gallery (Loikaw)</a>
     </header>
     <div class="container">
-        <a href="index.html" class="back-link">← Back To Home</a>
+     <a href="index.html" onclick="if(document.referrer && document.referrer.includes(window.location.host)) { history.back(); return false; }" class="back-link">← Back</a>
         <div class="detail-wrapper">
             <div id="screenLoader">ခဏစောင့်ပေးပါ... နာရီအချက်အလက်များကို ရယူနေပါသည်။</div>
             <div class="gallery-container">
