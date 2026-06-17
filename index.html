@@ -21,7 +21,10 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
+          	display: flex;
+   			flex-direction: column;
+  			min-height: 100vh;
+  			margin: 0;
             padding: 0;
             background-color: var(--bg-color);
             color: var(--text-color);
@@ -47,19 +50,20 @@
     font-size: 11px;
     letter-spacing: 0.5px;
     border-top: 1px solid #2a2a2a;
-    margin-top: 40px;
+    margin-top: auto; /* Crucial: Pushes the footer to the bottom of the flex container */
 }
+
 footer a {
     color: var(--accent-color);
     font-weight: 600;
     text-decoration: none;
     transition: opacity 0.2s;
 }
+
 footer a:hover {
     opacity: 0.8;
     text-decoration: underline;
 }
-
         .logo {
             font-size: 20px;
             font-weight: bold;
@@ -108,6 +112,7 @@ footer a:hover {
         .btn-success:hover { background-color: #2e7d32; }
 
         .container {
+			flex: 1;
             max-width: 1200px;
             margin: 15px auto;
             padding: 0 15px;
