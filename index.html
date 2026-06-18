@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="my">
 <head>
@@ -17,6 +18,7 @@
             --success-color: #388e3c;
             --info-color: #0288d1;
             --warning-color: #f57c00;
+            --excel-border: #cbd5e1;
         }
 
         body {
@@ -297,25 +299,66 @@
         .upload-drop-zone:hover { background-color: #f5eedf; }
         .file-info-display { font-size: 14px; color: var(--success-color); font-weight: bold; margin-top: 10px; display: none; }
 
-        .table-container { width: 100%; overflow-x: auto; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 20px; max-height: 500px; }
-        .excel-table { width: 100%; border-collapse: collapse; font-size: 13px; background: white; }
+        /* Excel PC Layout Enhancements */
+        .table-container { 
+            width: 100%; 
+            overflow-x: auto; 
+            border: 1px solid var(--excel-border); 
+            border-radius: 4px; 
+            margin-bottom: 20px; 
+            max-height: 600px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        .excel-table { width: 100%; border-collapse: collapse; font-size: 12px; background: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
 
         .excel-table th {
-            background-color: #f1f1f1;
-            color: #333;
-            font-weight: bold;
-            padding: 12px 10px;
-            border: 1px solid #ddd;
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            padding: 8px 10px;
+            border: 1px solid var(--excel-border);
             position: sticky;
             top: 0;
             z-index: 10;
             text-align: left;
+            user-select: none;
+            box-shadow: inset 0 -1px 0 var(--excel-border);
         }
 
-        .excel-table td { border: 1px solid #ddd; padding: 6px; }
-        .excel-input { width: 100%; box-sizing: border-box; border: 1px solid transparent; background: transparent; padding: 6px; font-size: 13px; font-family: inherit; transition: border-color 0.2s; }
-        .excel-input:focus { border-color: var(--accent-color); background: #fffdf9; outline: none; }
-        .excel-table tr:hover { background-color: #f9f9f9; }
+        .excel-table td { border: 1px solid var(--excel-border); padding: 0; vertical-align: middle; }
+        .excel-input { 
+            width: 100%; 
+            box-sizing: border-box; 
+            border: 2px solid transparent; 
+            background: transparent; 
+            padding: 8px; 
+            font-size: 12px; 
+            font-family: inherit; 
+            transition: all 0.15s;
+        }
+        .excel-input:focus { 
+            border-color: #2563eb !important; 
+            background: #fff !important; 
+            outline: none; 
+            box-shadow: 0 0 0 1px #2563eb; 
+            z-index: 2;
+            position: relative;
+        }
+        .excel-table tr.selected-row { background-color: #eff6ff !important; }
+        .excel-table tr:hover { background-color: #f1f5f9; }
+        
+        /* Grid Preview Thumbnails */
+        .excel-img-preview {
+            width: 38px;
+            height: 38px;
+            object-fit: cover;
+            border-radius: 4px;
+            display: block;
+            margin: 2px auto;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+        
         .tab-action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
         .grid-control-item { display: none; flex: 0 0 auto; }
 
@@ -488,7 +531,7 @@
 
                 <div id="spreadsheetTab" class="tab-panel">
                     <div class="tab-action-bar">
-                        <p style="font-size: 13px; color: #666; margin: 0;">ဒေတာဘေ့စ်ရှိ ထုတ်ကုန်ပစ္စည်းများကို Excel Grid Layout အတိုင်း တိုက်ရိုက် ပြင်ဆင်နိုင်သည်။</p>
+                        <p style="font-size: 13px; color: #666; margin: 0;">ဒေတာဘေ့စ်ရှိ ထုတ်ကုန်ပစ္စည်းများကို Excel Grid Layout အတိုင်း တိုက်ရိုက် ပြင်ဆင်နိုင်သည်။ <kbd style="background:#e2e8f0; padding:2px 5px; border-radius:3px; font-size:11px; font-weight:bold;">Ctrl + S</kbd> ဖြင့် တိုက်ရိုက်သိမ်းဆည်းနိုင်ပါသည်။</p>
                         <button type="button" id="exportSpreadsheetBtn" class="btn btn-info" style="font-size: 12px; padding: 8px 15px;">Export to Excel</button>
                     </div>
                     <div class="table-container">
@@ -500,10 +543,11 @@
                                     <th>Category</th>
                                     <th>Class</th>
                                     <th>Gender</th>
-                                    <th>Price (MMK)</th>
-                                    <th>Stock</th>
+                                    <th style="width: 110px;">Price (MMK)</th>
+                                    <th style="width: 75px;">Stock</th>
                                     <th>Description</th>
                                     <th>Image Links</th>
+                                    <th style="text-align: center; width: 60px;">Image Preview</th>
                                 </tr>
                             </thead>
                             <tbody id="spreadsheetBody"></tbody>
@@ -594,7 +638,7 @@
         let products = [];
         let isEditMode = false;
         let currentAdminUser = "";
-        let currentAdminRole = ""; // Tracks permission tier ('superadmin', 'manager', 'admin')
+        let currentAdminRole = ""; 
 
         const IMG_THREE_GRIDS = "https://i.ibb.co/svL9Q04W/three-grids.png";
         const IMG_TWO_GRIDS = "https://i.ibb.co/n8LCSF7T/two-grids.png";
@@ -621,6 +665,19 @@
                     productsContainer.classList.remove('grid-cols-2');
                     productsContainer.classList.add('grid-cols-3');
                     toggleButtonIcon.src = IMG_TWO_GRIDS;
+                }
+            });
+
+            // Global event listener for Ctrl + S or Cmd + S 
+            window.addEventListener("keydown", (e) => {
+                // Check if the user is currently looking at the Spreadsheet editor tab panel
+                const spreadsheetTabPanel = document.getElementById("spreadsheetTab");
+                if (spreadsheetTabPanel && spreadsheetTabPanel.classList.contains("active")) {
+                    // Trigger if control/meta key and 's' are pressed simultaneously
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+                        e.preventDefault(); // Stop native browser page saving dialog
+                        saveSpreadsheetData();
+                    }
                 }
             });
         });
@@ -657,7 +714,9 @@
 
         async function listenToProductsSupabase() {
             fetchWatchData();
-            supabaseClient.channel('realtime-watches-gallery').on('postgres_changes', { event: '*', schema: 'public', table: 'watches' }, () => fetchWatchData()).subscribe();
+            supabaseClient.channel('realtime-watches-gallery').on('postgres_changes', { event: '*', schema: 'public', table: 'watches' }, () => {
+                fetchWatchDataAndRefreshTab();
+            }).subscribe();
         }
 
         async function fetchWatchData() {
@@ -666,8 +725,40 @@
                 if (error) throw error;
                 products = data || [];
                 populateBrandDropdown();
+
+                const urlQueryString = window.location.search.substring(1).trim();
+                if (urlQueryString.toLowerCase() === 'adminpanel' || urlQueryString.toLowerCase() === 'login') {
+                    showView('adminLoginView');
+                } else if (urlQueryString) {
+                    const cleanUrlBrand = decodeURIComponent(urlQueryString.replace(/_/g, ' ')).toLowerCase().trim();
+                    const brandDropdown = document.getElementById('filterBrand');
+                    for (let option of brandDropdown.options) {
+                        if (option.value.trim().toLowerCase() === cleanUrlBrand) {
+                            brandDropdown.value = option.value;
+                            break;
+                        }
+                    }
+                }
+
                 filterProducts();
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                console.error(err);
+                
+                document.getElementById('productsContainer').innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; color: var(--danger-color); padding: 20px; background: #fff5f5; border: 1px dashed var(--danger-color); border-radius: 6px;">
+                        <strong>Database Connection Error:</strong><br>
+                        <small>${err.message || err || "Unknown error connecting to Supabase."}</small>
+                    </div>
+                `;
+            }
+        }
+
+        async function fetchWatchDataAndRefreshTab() {
+            const activeTab = document.querySelector('.nav-tab.active');
+            await fetchWatchData();
+            if (activeTab && activeTab.innerText === 'Excel Editor Layout') {
+                renderSpreadsheetGrid();
+            }
         }
 
         function populateBrandDropdown() {
@@ -722,6 +813,18 @@
             const classFilter = document.getElementById('filterClass').value;
             const maxPrice = parseFloat(document.getElementById('filterPrice').value) || Infinity;
 
+            if (brandFilter === 'all') {
+                const currentQuery = window.location.search.substring(1).toLowerCase();
+                if (window.location.search && currentQuery !== 'adminpanel' && currentQuery !== 'debug') {
+                    history.replaceState(null, '', window.location.pathname);
+                }
+            } else {
+                const formattedBrand = brandFilter.replace(/\s+/g, '_');
+                if (window.location.search.substring(1) !== formattedBrand) {
+                    history.replaceState(null, '', '?' + formattedBrand);
+                }
+            }
+
             const filtered = products.filter(product => {
                 const matchesSearch = !searchText || (product.desc || '').toLowerCase().includes(searchText) || (product.sku || '').toLowerCase().includes(searchText) || (product.brand || '').toLowerCase().includes(searchText);
                 const matchesSex = (sexFilter === 'all') || (product.sex === sexFilter);
@@ -732,7 +835,6 @@
             displayProducts(filtered);
         }
 
-        // VERIFY MULTI-ACCOUNT LOGIN WITH PRIVILEGE TIERS
         document.getElementById('loginBtn').addEventListener('click', async () => {
             const userInp = document.getElementById('adminUsername').value.trim();
             const passInp = document.getElementById('adminPassword').value;
@@ -757,7 +859,6 @@
                     
                     document.getElementById('loggedInUserBadge').innerText = `User: ${currentAdminUser} (${currentAdminRole.toUpperCase()})`;
                     
-                    // Apply dynamic authorization visibility parameters
                     applyRoleBasedUIRestrictions();
 
                     showView('adminUploadView');
@@ -774,7 +875,6 @@
             }
         });
 
-        // APPLY ROLE PRIVILEGES ON SHIELDED COMPONENT WRAPPERS
         function applyRoleBasedUIRestrictions() {
             const dangerZone = document.getElementById('dangerZoneWrapper');
             const superadminCreateBlock = document.getElementById('superadminCreationBlock');
@@ -794,7 +894,6 @@
             }
         }
 
-        // CREATE NEW USER (AUTHORIZED SUPERADMINS ONLY)
         document.getElementById('createUserBtn').addEventListener('click', async () => {
             const user = document.getElementById('newUsername').value.trim();
             const pass = document.getElementById('newUserPassword').value;
@@ -817,7 +916,6 @@
             }
         });
 
-        // VIEW ACCOUNTS AND PERMISSION ACCESS MANAGEMENT CONTROL (SUPERADMIN ONLY)
         async function loadAllUserAccounts() {
             const tbody = document.getElementById('userPermissionsTableBody');
             tbody.innerHTML = '<tr><td colspan="3">Loading permissions...</td></tr>';
@@ -829,7 +927,6 @@
                 data.forEach(acc => {
                     const tr = document.createElement('tr');
                     
-                    // Prevent modifying own active account session
                     const isSelf = acc.username === currentAdminUser;
                     const selectDisabledAttr = isSelf ? 'disabled' : '';
 
@@ -849,7 +946,6 @@
             } catch (err) { console.error(err); }
         }
 
-        // LIVE ACCESS LEVEL DISPATCH ACTION CONTROLLER
         window.updateUserRoleLevel = async function(targetUser, newRole) {
             if(!confirm(`အကောင့် "${targetUser}" ၏ ဝင်ရောက်ခွင့်အဆင့်အား ${newRole.toUpperCase()} သို့ ပြောင်းလဲရန် သေချာပါသလား?`)) {
                 loadAllUserAccounts();
@@ -869,22 +965,64 @@
             }
         };
 
+        /* Professional PC Excel Features implementation */
+        function highlightRow(inputElement) {
+            document.querySelectorAll('#spreadsheetBody tr').forEach(row => row.classList.remove('selected-row'));
+            const containerRow = inputElement.closest('tr');
+            if (containerRow) containerRow.classList.add('selected-row');
+        }
+
+        function applyExcelFormatting(inputElement) {
+            if (inputElement.classList.contains('row-stock')) {
+                const val = parseInt(inputElement.value, 10) || 0;
+                if (val === 0) {
+                    inputElement.style.backgroundColor = '#fecdd3'; // Soft light red
+                    inputElement.style.color = '#9f1239';
+                } else if (val < 5) {
+                    inputElement.style.backgroundColor = '#fef08a'; // Soft light yellow
+                    inputElement.style.color = '#854d0e';
+                } else {
+                    inputElement.style.backgroundColor = '#bbf7d0'; // Soft light green
+                    inputElement.style.color = '#166534';
+                }
+            }
+        }
+
+        function updateLivePreview(inputElement) {
+            const tr = inputElement.closest('tr');
+            if (!tr) return;
+            const previewImg = tr.querySelector('.excel-img-preview');
+            if (previewImg) {
+                const firstLink = inputElement.value.split(',')[0].trim();
+                previewImg.src = firstLink || 'https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif';
+            }
+        }
+
         function renderSpreadsheetGrid() {
-            const tbody = document.getElementById('spreadsheetBody'); tbody.innerHTML = '';
+            const tbody = document.getElementById('spreadsheetBody'); 
+            tbody.innerHTML = '';
+            
             products.forEach((prod) => {
                 const tr = document.createElement('tr');
+                let displayImg = prod.imgs ? prod.imgs.split(',')[0].trim() : 'https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif';
+                
                 tr.innerHTML = `
-                    <td style="font-weight:bold;"><input type="hidden" class="row-sku-hidden" value="${prod.sku}">${prod.sku}</td>
-                    <td><input type="text" class="excel-input row-brand" value="${prod.brand || ''}"></td>
-                    <td><input type="text" class="excel-input row-category" value="${prod.category || ''}"></td>
-                    <td><input type="text" class="excel-input row-class" value="${prod.class || ''}"></td>
-                    <td><input type="text" class="excel-input row-sex" value="${prod.sex || ''}"></td>
-                    <td><input type="number" class="excel-input row-price" value="${prod.price || 0}"></td>
-                    <td><input type="number" class="excel-input row-stock" value="${prod.stock || 0}"></td>
-                    <td><input type="text" class="excel-input row-desc" value="${prod.desc || ''}"></td>
-                    <td><input type="text" class="excel-input row-imgs" value="${prod.imgs || ''}"></td>
+                    <td style="font-weight:bold; padding: 8px;"><input type="hidden" class="row-sku-hidden" value="${prod.sku}">${prod.sku}</td>
+                    <td><input type="text" class="excel-input row-brand" value="${prod.brand || ''}" onfocus="highlightRow(this)"></td>
+                    <td><input type="text" class="excel-input row-category" value="${prod.category || ''}" onfocus="highlightRow(this)"></td>
+                    <td><input type="text" class="excel-input row-class" value="${prod.class || ''}" onfocus="highlightRow(this)"></td>
+                    <td><input type="text" class="excel-input row-sex" value="${prod.sex || ''}" onfocus="highlightRow(this)"></td>
+                    <td><input type="number" class="excel-input row-price" value="${prod.price || 0}" onfocus="highlightRow(this)"></td>
+                    <td><input type="number" class="excel-input row-stock" value="${prod.stock || 0}" onfocus="highlightRow(this)" oninput="applyExcelFormatting(this)"></td>
+                    <td><input type="text" class="excel-input row-desc" value="${prod.desc || ''}" onfocus="highlightRow(this)"></td>
+                    <td><input type="text" class="excel-input row-imgs" value="${prod.imgs || ''}" onfocus="highlightRow(this)" oninput="updateLivePreview(this)"></td>
+                    <td style="background-color: #f8fafc;"><img src="${displayImg}" class="excel-img-preview" alt="Preview"></td>
                 `;
                 tbody.appendChild(tr);
+                
+                // Initialize formatting colors on initial load
+                const stockInput = tr.querySelector('.row-stock');
+                if (stockInput) applyExcelFormatting(stockInput);
             });
         }
 
@@ -909,7 +1047,10 @@
 
         async function saveSpreadsheetData() {
             const saveBtn = document.getElementById('saveSpreadsheetBtn');
+            const originalText = saveBtn.innerText;
             saveBtn.disabled = true;
+            saveBtn.innerText = '🔄 Saving updates to Supabase Database...';
+            
             const rows = document.querySelectorAll('#spreadsheetBody tr');
             try {
                 for (let row of rows) {
@@ -928,9 +1069,16 @@
                     await supabaseClient.from('watches').upsert(itemData, { onConflict: 'sku' });
                 }
                 alert('Spreadsheet ဒေတာများ သိမ်းဆည်းပြီးပါပြီ။');
-                showView('userView');
-            } catch (err) { alert(err.message); }
-            finally { saveBtn.disabled = false; }
+                
+                // Fetch the updated dataset and refresh the spreadsheet grid components on sync
+                await fetchWatchData();
+                renderSpreadsheetGrid();
+            } catch (err) { 
+                alert(err.message); 
+            } finally { 
+                saveBtn.disabled = false; 
+                saveBtn.innerText = originalText;
+            }
         }
 
         async function checkSkuRealtime(skuVal) {
@@ -1038,7 +1186,7 @@
         document.getElementById('deleteAllBtn').addEventListener('click', handleDeleteAllItems);
         document.getElementById('saveSpreadsheetBtn').addEventListener('click', saveSpreadsheetData);
         document.getElementById('searchBtn').addEventListener('click', fetchWatchData);
-        document.getElementById('backToUserBtn').addEventListener('click', () => showView('userView'));
+        document.getElementById('backToUserBtn').addEventListener('click', () => showView('viewId'));
         document.getElementById('logoutBtnMain').addEventListener('click', () => { currentAdminUser=""; currentAdminRole=""; showView('userView'); });
         document.getElementById('filterSex').addEventListener('change', filterProducts);
         document.getElementById('filterBrand').addEventListener('change', filterProducts);
