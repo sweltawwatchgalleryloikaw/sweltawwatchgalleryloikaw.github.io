@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Swel Taw Watch Gallery (Loikaw)</title>
+    <title>Swel Taw Watch Gallery (Loikaw) - Edit Grids</title>
 	<link rel="icon" type="image/png" href="https://i.ibb.co/xSPcz3mY/New-Project.png">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
@@ -82,6 +82,7 @@
         .search-container {
             display: flex;
             gap: 10px;
+            align-items: center;
         }
 
         .search-container input, .form-group input, .form-group textarea, .form-group select, .modal-grid input, .modal-grid select, .modal-grid textarea {
@@ -265,111 +266,17 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
-        .form-card.wide-layout { max-width: 100%; }
         .form-card h2 { margin-top: 0; color: var(--primary-color); }
         .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px; }
-        .sku-status { font-size: 13px; font-weight: bold; padding: 5px; border-radius: 4px; display: none; }
         .back-btn { background: #666; margin-top: 10px; }
-        .action-buttons-group { display: flex; gap: 10px; margin-top: 10px; }
-        .admin-nav-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         
-        .nav-tab {
-            padding: 8px 16px;
-            cursor: pointer;
-            font-weight: bold;
-            color: #666;
-            border-radius: 4px;
-            background: #f1f1f1;
-            font-size: 13px;
-            transition: 0.2s;
-        }
-
-        .nav-tab.active { background-color: var(--primary-color); color: white; }
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
-
-        .upload-drop-zone {
-            border: 2px dashed var(--accent-color);
-            background-color: #fdfbf7;
-            border-radius: 6px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin-bottom: 15px;
-        }
-        .upload-drop-zone:hover { background-color: #f5eedf; }
-        .file-info-display { font-size: 14px; color: var(--success-color); font-weight: bold; margin-top: 10px; display: none; }
-
-        /* Excel PC Layout Enhancements */
-        .table-container { 
-            width: 100%; 
-            overflow-x: auto; 
-            border: 1px solid var(--excel-border); 
-            border-radius: 4px; 
-            margin-bottom: 20px; 
-            max-height: 600px; 
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        }
-        .excel-table { width: 100%; border-collapse: collapse; font-size: 12px; background: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-
-        .excel-table th {
-            background-color: #f8fafc;
-            color: #475569;
-            font-weight: 600;
-            padding: 8px 10px;
-            border: 1px solid var(--excel-border);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            text-align: left;
-            user-select: none;
-            box-shadow: inset 0 -1px 0 var(--excel-border);
-        }
-
-        .excel-table td { border: 1px solid var(--excel-border); padding: 0; vertical-align: middle; }
-        .excel-input { 
-            width: 100%; 
-            box-sizing: border-box; 
-            border: 2px solid transparent; 
-            background: transparent; 
-            padding: 8px; 
-            font-size: 12px; 
-            font-family: inherit; 
-            transition: all 0.15s;
-        }
-        .excel-input:focus { 
-            border-color: #2563eb !important; 
-            background: #fff !important; 
-            outline: none; 
-            box-shadow: 0 0 0 1px #2563eb; 
-            z-index: 2;
-            position: relative;
-        }
-        .excel-table tr.selected-row { background-color: #eff6ff !important; }
-        .excel-table tr:hover { background-color: #f1f5f9; }
-        
-        /* Grid Preview Thumbnails */
-        .excel-img-preview {
-            width: 38px;
-            height: 38px;
-            object-fit: cover;
-            border-radius: 4px;
-            display: block;
-            margin: 2px auto;
-            border: 1px solid #e2e8f0;
-            background: #f8fafc;
-        }
-        
-        .tab-action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
         .grid-control-item { display: none; flex: 0 0 auto; }
 
         .grid-image-btn { background: none; border: none; padding: 0; margin: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s ease; }
         .grid-image-btn:hover { transform: scale(1.05); }
         .grid-image-btn img { width: 36px; height: 36px; object-fit: contain; display: block; }
 
-        /* Dialog Box Modal Overlay Style */
-        .modal-overlay {
+		.modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5);
@@ -397,7 +304,9 @@
             from { transform: translateY(20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-        .modal-header { padding: 15px 20px; border-bottom: 1px solid #eee; font-size: 18px; font-weight: bold; }
+        .modal-header { padding: 15px 20px; border-bottom: 1px solid #eee; font-size: 18px; font-weight: bold; cursor: pointer; transition: background 0.2s; position: relative; }
+        .modal-header:hover { background: #f1f5f9; }
+        .modal-header::after { content: "📋 Click to copy SKU"; position: absolute; right: 20px; font-size: 11px; color: #666; font-weight: normal; top: 50%; transform: translateY(-50%); }
         .modal-body { padding: 20px; overflow-y: auto; max-height: 75vh; }
         .modal-footer { padding: 12px 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; background: #f9f9f9; }
         
@@ -405,6 +314,55 @@
         .modal-grid .full-width { grid-column: 1 / -1; }
         .modal-grid label { font-size: 13px; font-weight: 600; margin-bottom: 4px; display: block; color: #444; }
         .modal-grid input, .modal-grid select, .modal-grid textarea { width: 100%; box-sizing: border-box; }
+
+        .preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            background: #f8fafc;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            min-height: 50px;
+        }
+        .preview-item {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .preview-item .remove-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(211, 47, 47, 0.85);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        #logoutBtnMain {
+            font-size: 12px;
+            padding: 6px 12px;
+            background-color: var(--danger-color);
+        }
 
         @media (max-width: 768px) {
             header { flex-direction: column; gap: 10px; text-align: center; padding: 10px; }
@@ -415,20 +373,24 @@
             .filter-item select, .filter-item input { font-size: 11px; padding: 8px 3px; }
             .grid-control-item { display: block; }
             .modal-grid { grid-template-columns: 1fr; gap: 10px; }
+            .modal-header::after { display: none; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <a href="index.html" class="logo">Swel Taw Watch Gallery (Loikaw)</a>
+        <a href="edit_grids.html" class="logo">Swel Taw Watch Gallery (Loikaw) - Editor</a>
         <div class="search-container">
+            <span id="adminBadge" style="display:none; color: var(--accent-color); font-weight: bold; font-size: 13px;"></span>
+            <button class="btn" id="logoutBtnMain" style="display:none;">Logout</button>
             <input type="text" id="mainSearch" placeholder="looking for something?">
             <button class="btn" id="searchBtn">Refresh</button>
         </div>
     </header>
 
     <div class="container">
+
 
         <div id="userView" class="view-section active">
             <div class="filter-container">
@@ -473,6 +435,7 @@
             </div>
         </div>
 
+
         <div id="adminLoginView" class="view-section">
             <div class="form-card">
                 <h2>Admin Login (စီမံခန့်ခွဲသူ ဝင်ရန်)</h2>
@@ -489,190 +452,7 @@
             </div>
         </div>
 
-        <div id="adminUploadView" class="view-section">
-            <div class="form-card" id="adminWrapperCard">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 10px;">
-                    <h2 style="margin:0;">Admin Control Center</h2>
-                    <span id="loggedInUserBadge" style="background:#eee; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:12px; color:var(--accent-color);">User: -</span>
-                </div>
-                
-                <div class="admin-nav-tabs">
-                    <div class="nav-tab active" onclick="switchAdminTab('singleTab', this)">Single Product</div>
-                    <div class="nav-tab" onclick="switchAdminTab('batchTab', this)">Excel (XLSX) Upload</div>
-                    <div class="nav-tab" onclick="switchAdminTab('spreadsheetTab', this)">Excel Editor Layout</div>
-                    <div class="nav-tab" onclick="switchAdminTab('brandInventoryTab', this)">Brand Stock Inventory</div>
-                    <div class="nav-tab" onclick="switchAdminTab('accountPermissionsTab', this)" style="color: var(--info-color);">🔒 Accounts & Permissions</div>
-                </div>
-
-                <div id="singleTab" class="tab-panel active">
-                    <div class="form-group" style="background: #f0f0f0; padding: 15px; border-radius: 6px;">
-                        <label style="font-weight: bold; color: var(--primary-color);">၁။ SKU ကုဒ်ကို အရင်ရိုက်ထည့်ပါ</label>
-                        <input type="text" id="watchSku" placeholder="ဥပမာ - MW-1002">
-                        <div id="skuStatusMessage" class="sku-status"></div>
-                    </div>
-
-                    <form id="uploadForm">
-                        <div id="formFields" style="margin-top: 15px;">
-                            <div class="form-group">
-                                <label>Brand Name (ဘရန်းအမည်)</label>
-                                <input type="text" id="watchBrand" placeholder="ဥပမာ - Casio, Rolex" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Category (အုပ်စုခွဲ)</label>
-                                <input type="text" id="watchCategory" placeholder="ဥပမာ - Chronograph, Digital" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Class (အဆင့်အတန်း)</label>
-                                <input type="text" id="watchClass" placeholder="ဥပမာ - Premium, Luxury, Standard" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Gender (အမျိုးအစား)</label>
-                                <select id="watchSex">
-                                    <option value="Gent">Gent</option>
-                                    <option value="Lady">Lady</option>
-                                    <option value="Unisex">Unisex</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>နာရီပုံစံများ (Image Links - တစ်ကြောင်းလျှင် link တစ်ခုစီထည့်ပါ)</label>
-                                <textarea id="watchImgs" rows="4" placeholder="https://link1.com&#10;https://link2.com" required></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Description (အကြောင်းအရာ)</label>
-                                <textarea id="watchDesc" rows="3" placeholder="နာရီအကြောင်းအရာ ရေးရန်" required></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Price (ဈေးနှုန်း - ကျပ်)</label>
-                                <input type="number" id="watchPrice" placeholder="ဥပမာ - 150000" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Stock Quantity (လက်ကျန်အရေအတွက်)</label>
-                                <input type="number" id="watchStock" placeholder="ဥပမာ - 5" min="0" required>
-                            </div>
-                            
-                            <div class="action-buttons-group">
-                                <button type="submit" id="submitBtn" class="btn" style="flex: 2;">Upload တင်မည်</button>
-                                <button type="button" id="deleteBtn" class="btn btn-danger" style="flex: 1; display: none;">ဖျက်မည်</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-                <div id="batchTab" class="tab-panel">
-                    <p style="font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 15px;">
-                        နာရီအသစ်များထည့်ရန် သို့မဟုတ် ရှိပြီးသားနာရီများ၏ အရေအတွက်/ဈေးနှုန်းများကို Excel ဖိုင်ဖြင့် ပြင်ဆင်ရန်။
-                    </p>
-                    <div class="upload-drop-zone" id="dropZone">
-                        <p style="margin: 0; font-weight: bold; color: #555;">ဤနေရာတွင် Excel (.xlsx) ဖိုင်ကို ဆွဲထည့်ပါ သို့မဟုတ် နှိပ်၍ ရွေးချယ်ပါ</p>
-                        <input type="file" id="excelFileInput" accept=".xlsx, .xls" style="display: none;">
-                        <div id="fileInfoDisplay" class="file-info-display"></div>
-                    </div>
-                    <button type="button" id="processExcelBtn" class="btn btn-info" style="width: 100%;" disabled>Excel ဖိုင်ကို ဖတ်ပြီး ဒေတာဘေ့စ်ထဲ သိမ်းမည်</button>
-                </div>
-
-                <div id="spreadsheetTab" class="tab-panel">
-                    <div class="tab-action-bar">
-                        <p style="font-size: 13px; color: #666; margin: 0;">ဒေတာဘေ့စ်ရှိ ထုတ်ကုန်ပစ္စည်းများကို Excel Grid Layout အတိုင်း တိုက်ရိုက် ပြင်ဆင်နိုင်သည်။ <kbd style="background:#e2e8f0; padding:2px 5px; border-radius:3px; font-size:11px; font-weight:bold;">Ctrl + S</kbd> ဖြင့် တိုက်ရိုက်သိမ်းဆည်းနိုင်ပါသည်။</p>
-                        <button type="button" id="exportSpreadsheetBtn" class="btn btn-info" style="font-size: 12px; padding: 8px 15px;">Export to Excel</button>
-                    </div>
-                    <div class="table-container">
-                        <table class="excel-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 100px;">SKU</th>
-                                    <th>Brand</th>
-                                    <th>Category</th>
-                                    <th>Class</th>
-                                    <th>Gender</th>
-                                    <th style="width: 110px;">Price (MMK)</th>
-                                    <th style="width: 75px;">Stock</th>
-                                    <th>Description</th>
-                                    <th>Image Links</th>
-                                    <th style="text-align: center; width: 60px;">Image Preview</th>
-                                </tr>
-                            </thead>
-                            <tbody id="spreadsheetBody"></tbody>
-                        </table>
-                    </div>
-                    <button type="button" id="saveSpreadsheetBtn" class="btn btn-success" style="width: 100%;">အပြောင်းအလဲများကို သိမ်းဆည်းမည် (Save Spreadsheet Updates)</button>
-                </div>
-
-                <div id="brandInventoryTab" class="tab-panel">
-                    <div class="tab-action-bar">
-                        <p style="font-size: 13px; color: #666; margin: 0;">လက်ရှိဒေတာဘေ့စ်တွင် ရှိနေသော နာရီ Brand တစ်ခုချင်းစီအလိုက် ပစ္စည်းစုစုပေါင်းအရေအတွက်။</p>
-                        <button type="button" id="exportBrandInventoryBtn" class="btn btn-info" style="font-size: 12px; padding: 8px 15px;">Export Summary</button>
-                    </div>
-                    <div class="table-container">
-                        <table class="excel-table">
-                            <thead>
-                                <tr>
-                                    <th>Brand Name (ဘရန်းအမည်)</th>
-                                    <th>Unique Models</th>
-                                    <th>Total Quantity Stocked</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="brandInventoryBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="accountPermissionsTab" class="tab-panel">
-                    <div id="superadminCreationBlock" style="background: #fafafa; border: 1px solid #ddd; padding: 15px; border-radius: 6px; margin-bottom: 20px; display:none;">
-                        <h3 style="margin-top:0; color:var(--primary-color);">👤 Create New User Account (အကောင့်အသစ်ဖွင့်ခြင်း)</h3>
-                        <div class="form-group">
-                            <label>Username</label>
-                            <input type="text" id="newUsername" placeholder="အသုံးပြုသူအမည်သစ်">
-                        </div>
-                        <div class="form-group">
-                            <label>Password</label>
-                            <input type="password" id="newUserPassword" placeholder="လျှို့ဝှက်နံပါတ်">
-                        </div>
-                        <div class="form-group">
-                            <label>Role Privilege Access (အကောင့်အဆင့်သတ်မှတ်ချက်)</label>
-                            <select id="newUserRole">
-                                <option value="admin">Admin (ထုတ်ကုန်တင်/ပြင်ခွင့်ရှိသူ)</option>
-                                <option value="manager">Manager (ထုတ်ကုန်ထိန်းသိမ်းခွင့်ရှိသူ)</option>
-                                <option value="superadmin">Superadmin (အမြင့်ဆုံးထိန်းချုပ်ခွင့်ရှိသူ)</option>
-                            </select>
-                        </div>
-                        <button type="button" id="createUserBtn" class="btn btn-success" style="width:100%;">အကောင့်အသစ်သိမ်းဆည်းမည်</button>
-                    </div>
-
-                    <div id="superadminPermissionsBlock" style="background: #fafafa; border: 1px solid #ddd; padding: 15px; border-radius: 6px; margin-bottom: 20px; display:none;">
-                        <h3 style="margin-top:0; color:var(--primary-color);">⚙️ Modify User Permission Tiers (လုပ်ပိုင်ခွင့်အဆင့် ပြောင်းလဲခြင်း)</h3>
-                        <div class="table-container">
-                            <table class="excel-table">
-                                <thead>
-                                    <tr>
-                                        <th>Username</th>
-                                        <th>Current Role Status</th>
-                                        <th>Change Permission Level</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="userPermissionsTableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div id="nonSuperadminBlock" style="background: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 15px; border-radius: 6px;">
-                        <strong>🔒 Notice:</strong> အကောင့်အသစ်များဖန်တီးခြင်း၊ Permission အဆင့်ပြောင်းလဲခြင်းနှင့် ဒေတာအားလုံးဖျက်သိမ်းခြင်း လုပ်ငန်းစဉ်များကို <strong>superadmin</strong> သာ ဆောင်ရွက်ခွင့်ရှိပါသည်။
-                    </div>
-                </div>
-
-                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                
-                <div id="dangerZoneWrapper" style="background-color: #fff5f5; border: 1px dashed var(--danger-color); padding: 15px; border-radius: 6px; margin-bottom: 15px; display: none;">
-                    <p style="margin: 0 0 10px 0; font-size: 13px; color: var(--danger-color); font-weight: bold;">⚠️ Danger Zone (အန္တရာယ်ရှိဇုန် - Superadmin သာ ဆောင်ရွက်နိုင်ပါသည်)</p>
-                    <button type="button" class="btn btn-danger" style="width: 100%;" id="deleteAllBtn">ဒေတာအားလုံး တစ်ပြိုင်နက် ဖျက်ဆီးမည် (Delete All Items)</button>
-                </div>
-
-                <button type="button" class="btn back-btn" style="width:100%; margin-top: 0;" id="logoutBtnMain">Logout (ထွက်ရန်)</button>
-            </div>
-        </div>
-
     </div>
-
     <div class="modal-overlay" id="editModalOverlay">
         <div class="modal-box">
             <div class="modal-header" id="modalSkuTitle">Update SKU: -</div>
@@ -709,8 +489,18 @@
                             <input type="number" id="modalWatchPrice" required>
                         </div>
                         <div class="full-width">
-                            <label>Image Links သို့မဟုတ် HTML Codes</label>
-                            <textarea id="modalWatchImgs" rows="3" required></textarea>
+                            <label>Image Upload / Attachments (ဖိုင်ရွေးချယ်ပါ သို့မဟုတ် Ctrl+V ဖြင့် Paste လုပ်ပါ)</label>
+                            <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center; flex-wrap: wrap;">
+                                <input type="file" id="modalImgBBFile" accept="image/*" multiple style="display: none;">
+                                <button type="button" class="btn btn-info" style="font-size: 12px; padding: 6px 12px;" onclick="document.getElementById('modalImgBBFile').click()">Choose Files</button>
+                                <input type="text" id="modalImgBBUrl" placeholder="ပုံရဲ့ Web URL ထည့်ပြီး Attach လုပ်ရန်" style="flex: 1; min-width: 150px; padding: 6px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px;">
+                                <button type="button" class="btn btn-success" style="font-size: 12px; padding: 6px 12px;" id="modalImgBBUrlBtn">Attach URL</button>
+                            </div>
+                            
+                            <div class="preview-container" id="attachedPreviewContainer"></div>
+
+                            <textarea id="modalWatchImgs" rows="3" placeholder="ဒေတာဘေ့စ်ထဲရှိပြီးသား Image Links များ (ကော်မာခြားလျက်)" required></textarea>
+                            <div id="modalImgBBLoading" style="font-size: 12px; font-weight: bold; margin-top: 4px; display: none;"></div>
                         </div>
                         <div class="full-width">
                             <label>အကြောင်းအရာ ဖော်ပြချက် (Description)</label>
@@ -730,9 +520,11 @@
     <script>
         let supabaseClient = null;
         let products = [];
-        let isEditMode = false;
         let currentAdminUser = "";
-        let currentAdminRole = ""; 
+        let currentAdminRole = "";
+   
+        const IMGBB_API_KEY = "a9a86f03400ae16ca6af8ba7b122b3e3"; 
+        let attachedImages = []; 
 
         const IMG_THREE_GRIDS = "https://i.ibb.co/svL9Q04W/three-grids.png";
         const IMG_TWO_GRIDS = "https://i.ibb.co/n8LCSF7T/two-grids.png";
@@ -762,56 +554,194 @@
                 }
             });
 
-            // Global event listener for Ctrl + S or Cmd + S 
-            window.addEventListener("keydown", (e) => {
-                // Check if the user is currently looking at the Spreadsheet editor tab panel
-                const spreadsheetTabPanel = document.getElementById("spreadsheetTab");
-                if (spreadsheetTabPanel && spreadsheetTabPanel.classList.contains("active")) {
-                    // Trigger if control/meta key and 's' are pressed simultaneously
-                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
-                        e.preventDefault(); // Stop native browser page saving dialog
-                        saveSpreadsheetData();
+            document.getElementById('modalSaveUpdatesBtn').addEventListener('click', handleModalSaveWithUploads);
+
+            document.getElementById('modalImgBBFile').addEventListener('change', (e) => {
+                const files = e.target.files;
+                if (files.length === 0) return;
+                for (let i = 0; i < files.length; i++) {
+                    attachImageItem(files[i], 'file');
+                }
+                e.target.value = ''; 
+            });
+
+            document.getElementById('modalImgBBUrlBtn').addEventListener('click', () => {
+                const urlInput = document.getElementById('modalImgBBUrl');
+                const urlValue = urlInput.value.trim();
+                if (!urlValue) return alert('ကျေးဇူးပြု၍ Image URL တစ်ခု ထည့်သွင်းပေးပါ။');
+                attachImageItem(urlValue, 'url');
+                urlInput.value = ''; 
+            });
+
+            window.addEventListener('paste', (e) => {
+                const modalOverlay = document.getElementById('editModalOverlay');
+                if (!modalOverlay.classList.contains('open')) return; 
+
+                const items = e.clipboardData.items;
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        e.preventDefault(); 
+                        const blob = items[i].getAsFile();
+                        attachImageItem(blob, 'file');
+                        break;
                     }
                 }
             });
 
-            document.getElementById('modalSaveUpdatesBtn').addEventListener('click', saveModalProductChanges);
+            
+            document.getElementById('modalSkuTitle').addEventListener('click', () => {
+                const skuValue = document.getElementById('modalWatchSku').value;
+                if (!skuValue) return;
+
+                navigator.clipboard.writeText(skuValue).then(() => {
+                    const originalTitle = `Update SKU: ${skuValue}`;
+                    const titleElement = document.getElementById('modalSkuTitle');
+                    titleElement.innerText = `📋 Copied: ${skuValue}!`;
+                    setTimeout(() => {
+                        titleElement.innerText = originalTitle;
+                    }, 1500);
+                }).catch(err => {
+                    console.error('Copy လုပ်၍မရပါ- ', err);
+                });
+            });
         });
 
-        function sanitizeSku(rawSku) {
-            return rawSku ? String(rawSku).trim().toUpperCase() : "";
+        function attachImageItem(source, type) {
+            if (type === 'file') {
+                const objectUrl = URL.createObjectURL(source);
+                attachedImages.push({ type: 'file', data: source, preview: objectUrl });
+            } else if (type === 'url') {
+                attachedImages.push({ type: 'url', data: source, preview: source });
+            }
+            renderAttachedPreviews();
         }
 
-        window.switchAdminTab = function(tabId, element) {
-            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
-            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+        function renderAttachedPreviews() {
+            const container = document.getElementById('attachedPreviewContainer');
+            container.innerHTML = '';
             
-            document.getElementById(tabId).classList.add('active');
-            element.classList.add('active');
+            attachedImages.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'preview-item';
+                
+                const img = document.createElement('img');
+                img.src = item.preview;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.type = 'button';
+                removeBtn.onclick = () => {
+                    if (item.type === 'file') URL.revokeObjectURL(item.preview);
+                    attachedImages.splice(index, 1);
+                    renderAttachedPreviews();
+                };
+                
+                div.appendChild(img);
+                div.appendChild(removeBtn);
+                container.appendChild(div);
+            });
+        }
 
-            const adminWrapper = document.getElementById('adminWrapperCard');
-            if(['spreadsheetTab', 'brandInventoryTab'].includes(tabId)) {
-                adminWrapper.classList.add('wide-layout');
-                if(tabId === 'spreadsheetTab') renderSpreadsheetGrid();
-                if(tabId === 'brandInventoryTab') renderBrandInventory();
-            } else {
-                adminWrapper.classList.remove('wide-layout');
+        async function handleModalSaveWithUploads() {
+            const saveBtn = document.getElementById('modalSaveUpdatesBtn');
+            const loadingDiv = document.getElementById('modalImgBBLoading');
+            
+            saveBtn.disabled = true;
+            let uploadedUrls = [];
+            
+            if (attachedImages.length > 0) {
+                loadingDiv.style.display = 'block';
+                loadingDiv.style.color = 'var(--info-color)';
+                
+                for (let i = 0; i < attachedImages.length; i++) {
+                    const item = attachedImages[i];
+                    
+                    if (item.type === 'file') {
+                        try {
+
+                            const directUrl = await uploadFileToImgBBWithProgress(item.data, (percent) => {
+                                loadingDiv.innerText = `🔄 ပုံတင်နေသည် (${i + 1}/${attachedImages.length}) - ${percent}% ပြီးစီး...`;
+                            });
+                            if (directUrl) uploadedUrls.push(directUrl);
+                        } catch (err) {
+                            alert(`ပုံတင်ခြင်း မအောင်မြင်ပါ: ${err.message}`);
+                            saveBtn.disabled = false;
+                            loadingDiv.style.display = 'none';
+                            return;
+                        }
+                    } else if (item.type === 'url') {
+                        uploadedUrls.push(item.data);
+                    }
+                }
+                loadingDiv.innerText = '✅ ImgBB သို့ ပုံအားလုံး တင်ပြီးပါပြီ။';
+                loadingDiv.style.color = 'var(--success-color)';
             }
-            if(tabId === 'accountPermissionsTab' && currentAdminRole === 'superadmin') {
-                loadAllUserAccounts();
+
+            const textarea = document.getElementById('modalWatchImgs');
+            let currentLinks = textarea.value.trim();
+            if (uploadedUrls.length > 0) {
+                const newLinksString = uploadedUrls.join(', ');
+                currentLinks = currentLinks ? (currentLinks + ', ' + newLinksString) : newLinksString;
+                textarea.value = currentLinks;
             }
-        };
+
+            await saveModalProductChanges();
+            
+            attachedImages.forEach(item => {
+                if (item.type === 'file') URL.revokeObjectURL(item.preview);
+            });
+            attachedImages = [];
+            loadingDiv.style.display = 'none';
+        }
+
+    
+        function uploadFileToImgBBWithProgress(fileBlob, onProgress) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                const formData = new FormData();
+                formData.append('key', IMGBB_API_KEY);
+                formData.append('image', fileBlob);
+
+                xhr.upload.addEventListener('progress', (e) => {
+                    if (e.lengthComputable) {
+                        const percentComplete = Math.round((e.loaded / e.total) * 100);
+                        onProgress(percentComplete);
+                    }
+                });
+
+                xhr.addEventListener('load', () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const result = JSON.parse(xhr.responseText);
+                            if (result.success && result.data && result.data.url) {
+                                resolve(result.data.url);
+                            } else {
+                                reject(new Error(result.error ? result.error.message : 'Upload Failed'));
+                            }
+                        } catch (e) {
+                            reject(new Error('Invalid JSON response'));
+                        }
+                    } else {
+                        reject(new Error(`Server error: ${xhr.status}`));
+                    }
+                });
+
+                xhr.addEventListener('error', () => reject(new Error('Network error occurred.')));
+                xhr.open('POST', 'https://api.imgbb.com/1/upload');
+                xhr.send(formData);
+            });
+        }
 
         function showView(viewId) {
             document.querySelectorAll('.view-section').forEach(section => section.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
-            if (viewId !== 'adminUploadView') document.getElementById('adminWrapperCard').classList.remove('wide-layout');
         }
 
         async function listenToProductsSupabase() {
             fetchWatchData();
-            supabaseClient.channel('realtime-watches-gallery').on('postgres_changes', { event: '*', schema: 'public', table: 'watches' }, () => {
-                fetchWatchDataAndRefreshTab();
+            supabaseClient.channel('realtime-watches-gallery-grids').on('postgres_changes', { event: '*', schema: 'public', table: 'watches' }, () => {
+                fetchWatchData();
             }).subscribe();
         }
 
@@ -839,21 +769,12 @@
                 filterProducts();
             } catch (err) { 
                 console.error(err);
-                
                 document.getElementById('productsContainer').innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; color: var(--danger-color); padding: 20px; background: #fff5f5; border: 1px dashed var(--danger-color); border-radius: 6px;">
                         <strong>Database Connection Error:</strong><br>
                         <small>${err.message || err || "Unknown error connecting to Supabase."}</small>
                     </div>
                 `;
-            }
-        }
-
-        async function fetchWatchDataAndRefreshTab() {
-            const activeTab = document.querySelector('.nav-tab.active');
-            await fetchWatchData();
-            if (activeTab && activeTab.innerText === 'Excel Editor Layout') {
-                renderSpreadsheetGrid();
             }
         }
 
@@ -882,7 +803,6 @@
                 card.className = 'product-card';
                 let displayImg = product.imgs ? product.imgs.split(',')[0].trim() : 'https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif';
 
-                // Check login state to set context-appropriate button label
                 const actionButtonText = currentAdminUser ? "Edit Product" : "Login to Edit";
 
                 card.innerHTML = `
@@ -905,7 +825,6 @@
             });
         }
 
-        // Action routing based on authorization state
         function handleProductActionClick(encodedSku) {
             const targetSku = decodeURIComponent(encodedSku);
             if (!currentAdminUser) {
@@ -917,7 +836,6 @@
             }
         }
 
-        // Modal Dialog Utilities
         function openEditModal(sku) {
             const product = products.find(p => p.sku === sku);
             if (!product) return;
@@ -933,18 +851,22 @@
             document.getElementById('modalWatchImgs').value = product.imgs || '';
             document.getElementById('modalWatchDesc').value = product.desc || '';
 
+            attachedImages = [];
+            document.getElementById('attachedPreviewContainer').innerHTML = '';
+            document.getElementById('modalImgBBLoading').style.display = 'none';
+
             document.getElementById('editModalOverlay').classList.add('open');
         }
 
         function closeEditModal() {
             document.getElementById('editModalOverlay').classList.remove('open');
+            attachedImages.forEach(item => {
+                if (item.type === 'file') URL.revokeObjectURL(item.preview);
+            });
+            attachedImages = [];
         }
 
         async function saveModalProductChanges() {
-            const saveBtn = document.getElementById('modalSaveUpdatesBtn');
-            saveBtn.disabled = true;
-            saveBtn.innerText = "Saving...";
-
             const sku = document.getElementById('modalWatchSku').value;
             const updatedPayload = {
                 sku: sku,
@@ -958,6 +880,10 @@
                 desc: document.getElementById('modalWatchDesc').value.trim()
             };
 
+            if(updatedPayload.imgs) {
+                updatedPayload.imgs = updatedPayload.imgs.split(',').map(s => s.trim()).filter(s => s.length).join(', ');
+            }
+
             try {
                 const { error } = await supabaseClient
                     .from('watches')
@@ -966,12 +892,12 @@
                 if (error) throw error;
 
                 closeEditModal();
-                await fetchWatchData(); // Sync grid structures with database state refresh
+                await fetchWatchData(); 
             } catch (err) {
                 alert("ပြောင်းလဲမှုများကို သိမ်းဆည်းရာတွင် အမှားအယွင်းရှိခဲ့ပါသည်: " + err.message);
             } finally {
+                const saveBtn = document.getElementById('modalSaveUpdatesBtn');
                 saveBtn.disabled = false;
-                saveBtn.innerText = "Save Updates";
             }
         }
 
@@ -984,7 +910,7 @@
 
             if (brandFilter === 'all') {
                 const currentQuery = window.location.search.substring(1).toLowerCase();
-                if (window.location.search && currentQuery !== 'adminpanel' && currentQuery !== 'debug') {
+                if (window.location.search && currentQuery !== 'adminpanel' && currentQuery !== 'login') {
                     history.replaceState(null, '', window.location.pathname);
                 }
             } else {
@@ -1026,12 +952,15 @@
                     currentAdminUser = data.username;
                     currentAdminRole = data.role || "admin";
                     
-                    document.getElementById('loggedInUserBadge').innerText = `User: ${currentAdminUser} (${currentAdminRole.toUpperCase()})`;
-                    
-                    applyRoleBasedUIRestrictions();
-                    fetchWatchData(); // Re-render product cards to turn action buttons to "Edit Product"
+                
+                    const badge = document.getElementById('adminBadge');
+                    badge.style.display = 'inline';
+                    badge.innerText = `User: ${currentAdminUser} (${currentAdminRole.toUpperCase()})`;
+                    document.getElementById('logoutBtnMain').style.display = 'inline';
 
-                    showView('userView'); // Return to main screen to see the grids immediately
+                    await fetchWatchData(); 
+                    showView('userView'); 
+
                     document.getElementById('adminUsername').value = '';
                     document.getElementById('adminPassword').value = '';
                 } else {
@@ -1039,325 +968,33 @@
                 }
             } catch (err) {
                 console.error(err);
-                alert('Database Table error! Setup up configuration properly.');
+                alert('Database Error! အချက်အလက်များ မှန်ကန်စွာ ချိတ်ဆက်ထားခြင်း ရှိမရှိ စစ်ဆေးပါ။');
             } finally {
                 loginBtn.disabled = false; loginBtn.innerText = 'Login ဝင်ရန်';
             }
         });
 
-        function applyRoleBasedUIRestrictions() {
-            const dangerZone = document.getElementById('dangerZoneWrapper');
-            const superadminCreateBlock = document.getElementById('superadminCreationBlock');
-            const superadminPermsBlock = document.getElementById('superadminPermissionsBlock');
-            const nonSuperadminNotice = document.getElementById('nonSuperadminBlock');
-
-            if (currentAdminRole === 'superadmin') {
-                dangerZone.style.display = 'block';
-                superadminCreateBlock.style.display = 'block';
-                superadminPermsBlock.style.display = 'block';
-                nonSuperadminNotice.style.display = 'none';
-            } else {
-                dangerZone.style.display = 'none';
-                superadminCreateBlock.style.display = 'none';
-                superadminPermsBlock.style.display = 'none';
-                nonSuperadminNotice.style.display = 'block';
-            }
-        }
-
-        document.getElementById('createUserBtn').addEventListener('click', async () => {
-            const user = document.getElementById('newUsername').value.trim();
-            const pass = document.getElementById('newUserPassword').value;
-            const role = document.getElementById('newUserRole').value;
-
-            if(!user || !pass) return alert("အချက်အလက်အပြည့်အစုံ ဖြည့်စွက်ပါ။");
-
-            try {
-                const { error } = await supabaseClient
-                    .from('admin_accounts')
-                    .insert([{ username: user, password: pass, role: role }]);
-
-                if (error) throw error;
-                alert(`အကောင့်သစ် "${user}" အား (${role.toUpperCase()}) အဖြစ် ဖန်တီးပြီးပါပြီ။`);
-                document.getElementById('newUsername').value = '';
-                document.getElementById('newUserPassword').value = '';
-                loadAllUserAccounts();
-            } catch(err) {
-                alert("အကောင့်ပြုလုပ်ခြင်း မအောင်မြင်ပါ (ရှိပြီးသားအကောင့် ဖြစ်နိုင်သည်)။");
-            }
-        });
-
-        async function loadAllUserAccounts() {
-            const tbody = document.getElementById('userPermissionsTableBody');
-            tbody.innerHTML = '<tr><td colspan="3">Loading permissions...</td></tr>';
-            try {
-                const { data, error } = await supabaseClient.from('admin_accounts').select('*').order('username', {ascending:true});
-                if (error) throw error;
-
-                tbody.innerHTML = '';
-                data.forEach(acc => {
-                    const tr = document.createElement('tr');
-                    
-                    const isSelf = acc.username === currentAdminUser;
-                    const selectDisabledAttr = isSelf ? 'disabled' : '';
-
-                    tr.innerHTML = `
-                        <td style="font-weight:bold;">${acc.username} ${isSelf ? ' (You)' : ''}</td>
-                        <td><span class="badge badge-class">${acc.role.toUpperCase()}</span></td>
-                        <td>
-                            <select class="excel-input" onchange="updateUserRoleLevel('${acc.username}', this.value)" ${selectDisabledAttr}>
-                                <option value="admin" ${acc.role === 'admin' ? 'selected' : ''}>Admin</option>
-                                <option value="manager" ${acc.role === 'manager' ? 'selected' : ''}>Manager</option>
-                                <option value="superadmin" ${acc.role === 'superadmin' ? 'selected' : ''}>Superadmin</option>
-                            </select>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) { console.error(err); }
-        }
-
-        window.updateUserRoleLevel = async function(targetUser, newRole) {
-            if(!confirm(`အကောင့် "${targetUser}" ၏ ဝင်ရောက်ခွင့်အဆင့်အား ${newRole.toUpperCase()} သို့ ပြောင်းလဲရန် သေချာပါသလား?`)) {
-                loadAllUserAccounts();
-                return;
-            }
-            try {
-                const { error } = await supabaseClient
-                    .from('admin_accounts')
-                    .update({ role: newRole })
-                    .eq('username', targetUser);
-
-                if (error) throw error;
-                alert('လုပ်ပိုင်ခွင့်အဆင့် ပြောင်းလဲမှု အောင်မြင်ပါသည်။');
-                loadAllUserAccounts();
-            } catch (err) {
-                alert('အမှားပြဿနာ ဖြစ်ပွားခဲ့သည်: ' + err.message);
-            }
-        };
-
-        /* Professional PC Excel Features implementation */
-        function highlightRow(inputElement) {
-            document.querySelectorAll('#spreadsheetBody tr').forEach(row => row.classList.remove('selected-row'));
-            const containerRow = inputElement.closest('tr');
-            if (containerRow) containerRow.classList.add('selected-row');
-        }
-
-        function applyExcelFormatting(inputElement) {
-            if (inputElement.classList.contains('row-stock')) {
-                const val = parseInt(inputElement.value, 10) || 0;
-                if (val === 0) {
-                    inputElement.style.backgroundColor = '#fecdd3'; // Soft light red
-                    inputElement.style.color = '#9f1239';
-                } else if (val < 5) {
-                    inputElement.style.backgroundColor = '#fef08a'; // Soft light yellow
-                    inputElement.style.color = '#854d0e';
-                } else {
-                    inputElement.style.backgroundColor = '#bbf7d0'; // Soft light green
-                    inputElement.style.color = '#166534';
-                }
-            }
-        }
-
-        function updateLivePreview(inputElement) {
-            const tr = inputElement.closest('tr');
-            if (!tr) return;
-            const previewImg = tr.querySelector('.excel-img-preview');
-            if (previewImg) {
-                const firstLink = inputElement.value.split(',')[0].trim();
-                previewImg.src = firstLink || 'https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif';
-            }
-        }
-
-        function renderSpreadsheetGrid() {
-            const tbody = document.getElementById('spreadsheetBody'); 
-            tbody.innerHTML = '';
-            
-            products.forEach((prod) => {
-                const tr = document.createElement('tr');
-                let displayImg = prod.imgs ? prod.imgs.split(',')[0].trim() : 'https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif';
-                
-                tr.innerHTML = `
-                    <td style="font-weight:bold; padding: 8px;"><input type="hidden" class="row-sku-hidden" value="${prod.sku}">${prod.sku}</td>
-                    <td><input type="text" class="excel-input row-brand" value="${prod.brand || ''}" onfocus="highlightRow(this)"></td>
-                    <td><input type="text" class="excel-input row-category" value="${prod.category || ''}" onfocus="highlightRow(this)"></td>
-                    <td><input type="text" class="excel-input row-class" value="${prod.class || ''}" onfocus="highlightRow(this)"></td>
-                    <td><input type="text" class="excel-input row-sex" value="${prod.sex || ''}" onfocus="highlightRow(this)"></td>
-                    <td><input type="number" class="excel-input row-price" value="${prod.price || 0}" onfocus="highlightRow(this)"></td>
-                    <td><input type="number" class="excel-input row-stock" value="${prod.stock || 0}" onfocus="highlightRow(this)" oninput="applyExcelFormatting(this)"></td>
-                    <td><input type="text" class="excel-input row-desc" value="${prod.desc || ''}" onfocus="highlightRow(this)"></td>
-                    <td><input type="text" class="excel-input row-imgs" value="${prod.imgs || ''}" onfocus="highlightRow(this)" oninput="updateLivePreview(this)"></td>
-                    <td style="background-color: #f8fafc;"><img src="${displayImg}" class="excel-img-preview" alt="Preview"></td>
-                `;
-                tbody.appendChild(tr);
-                
-                // Initialize formatting colors on initial load
-                const stockInput = tr.querySelector('.row-stock');
-                if (stockInput) applyExcelFormatting(stockInput);
-            });
-        }
-
-        function renderBrandInventory() {
-            const tbody = document.getElementById('brandInventoryBody'); tbody.innerHTML = '';
-            const summary = {};
-            products.forEach(prod => {
-                let bn = (prod.brand || 'Generic').trim();
-                let key = bn.toUpperCase();
-                if (!summary[key]) summary[key] = { displayName: bn, uniqueModels: 0, totalQty: 0 };
-                summary[key].uniqueModels += 1;
-                summary[key].totalQty += (parseInt(prod.stock, 10) || 0);
-            });
-            Object.keys(summary).sort().forEach(k => {
-                const item = summary[k];
-                const tr = document.createElement('tr');
-                let badge = item.totalQty === 0 ? '<span class="badge badge-danger">Out</span>' : (item.totalQty < 5 ? '<span class="badge badge-warning">Low</span>' : '<span class="badge badge-success">OK</span>');
-                tr.innerHTML = `<td>${item.displayName}</td><td>${item.uniqueModels} မျိုး</td><td>${item.totalQty} လုံး</td><td>${badge}</td>`;
-                tbody.appendChild(tr);
-            });
-        }
-
-        async function saveSpreadsheetData() {
-            const saveBtn = document.getElementById('saveSpreadsheetBtn');
-            const originalText = saveBtn.innerText;
-            saveBtn.disabled = true;
-            saveBtn.innerText = '🔄 Saving updates to Supabase Database...';
-            
-            const rows = document.querySelectorAll('#spreadsheetBody tr');
-            try {
-                for (let row of rows) {
-                    const sku = row.querySelector('.row-sku-hidden').value;
-                    const itemData = {
-                        sku,
-                        brand: row.querySelector('.row-brand').value.trim() || "Generic",
-                        category: row.querySelector('.row-category').value.trim() || "Standard",
-                        class: row.querySelector('.row-class').value.trim() || "Standard",
-                        sex: row.querySelector('.row-sex').value.trim() || "Unisex",
-                        price: parseFloat(row.querySelector('.row-price').value) || 0,
-                        stock: parseInt(row.querySelector('.row-stock').value, 10) || 0,
-                        desc: row.querySelector('.row-desc').value.trim() || "",
-                        imgs: row.querySelector('.row-imgs').value.trim() || ""
-                    };
-                    await supabaseClient.from('watches').upsert(itemData, { onConflict: 'sku' });
-                }
-                alert('Spreadsheet ဒေတာများ သိမ်းဆည်းပြီးပါပြီ။');
-                
-                // Fetch the updated dataset and refresh the spreadsheet grid components on sync
-                await fetchWatchData();
-                renderSpreadsheetGrid();
-            } catch (err) { 
-                alert(err.message); 
-            } finally { 
-                saveBtn.disabled = false; 
-                saveBtn.innerText = originalText;
-            }
-        }
-
-        async function checkSkuRealtime(skuVal) {
-            const msgDiv = document.getElementById('skuStatusMessage');
-            const deleteBtn = document.getElementById('deleteBtn');
-            const cleanSku = sanitizeSku(skuVal);
-            if(!cleanSku) { msgDiv.style.display='none'; deleteBtn.style.display='none'; return; }
-            
-            const { data } = await supabaseClient.from('watches').select('*').eq('sku', cleanSku).maybeSingle();
-            msgDiv.style.display = 'block';
-            
-            if(data) {
-                isEditMode = true; deleteBtn.style.display = 'inline-block';
-                msgDiv.style.backgroundColor = '#fff3cd'; msgDiv.style.color = '#856404';
-                msgDiv.innerText = `⚠️ SKU "${cleanSku}" ရှိပြီးသား - ပြင်ဆင်နိုင်ပါသည်။`;
-                
-                document.getElementById('watchBrand').value = data.brand || '';
-                document.getElementById('watchCategory').value = data.category || '';
-                document.getElementById('watchClass').value = data.class || '';
-                document.getElementById('watchSex').value = data.sex || 'Gent';
-                document.getElementById('watchImgs').value = data.imgs ? data.imgs.replace(/,/g, '\n') : '';
-                document.getElementById('watchDesc').value = data.desc || '';
-                document.getElementById('watchPrice').value = data.price || '';
-                document.getElementById('watchStock').value = data.stock || '';
-            } else {
-                isEditMode = false; deleteBtn.style.display = 'none';
-                msgDiv.style.backgroundColor = '#d4edda'; msgDiv.style.color = '#155724';
-                msgDiv.innerText = `✨ SKU "${cleanSku}" အသစ် - Upload လုပ်နိုင်ပါသည်။`;
-            }
-        }
-
-        async function handleUploadOrEdit(e) {
-            e.preventDefault();
-            const sku = sanitizeSku(document.getElementById('watchSku').value);
-            const rawImgs = document.getElementById('watchImgs').value.split('\n').map(l=>l.trim()).filter(l=>l.length).join(', ');
-            const data = {
-                sku, brand: document.getElementById('watchBrand').value.trim() || "Generic",
-                category: document.getElementById('watchCategory').value.trim() || "Standard",
-                class: document.getElementById('watchClass').value.trim() || "Standard",
-                sex: document.getElementById('watchSex').value,
-                imgs: rawImgs || "https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif",
-                desc: document.getElementById('watchDesc').value.trim(),
-                price: parseFloat(document.getElementById('watchPrice').value) || 0,
-                stock: parseInt(document.getElementById('watchStock').value, 10) || 0
-            };
-            await supabaseClient.from('watches').upsert(data, { onConflict: 'sku' });
-            showView('userView');
-        }
-
-        async function handleDeleteItem() {
-            const sku = sanitizeSku(document.getElementById('watchSku').value);
-            if(confirm(`Delete ${sku}?`)) {
-                await supabaseClient.from('watches').delete().eq('sku', sku);
-                showView('userView');
-            }
-        }
-
-        async function handleDeleteAllItems() {
-            if (currentAdminRole !== 'superadmin') return alert("Permission Denied!");
-            if(!confirm("အားလုံးဖျက်မည်!!")) return;
-            await supabaseClient.from('watches').delete().neq('sku', 'TRASH');
-            showView('userView');
-        }
-
-        const dropZone = document.getElementById('dropZone');
-        const excelInput = document.getElementById('excelFileInput');
-        const processBtn = document.getElementById('processExcelBtn');
-        let parsedExcelPayload = [];
-
-        dropZone.addEventListener('click', () => excelInput.click());
-        excelInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            document.getElementById('fileInfoDisplay').style.display = "block";
-            document.getElementById('fileInfoDisplay').innerText = `Selected: ${file.name}`;
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                const work = XLSX.read(new Uint8Array(evt.target.result), { type: 'array' });
-                parsedExcelPayload = XLSX.utils.sheet_to_json(work.Sheets[work.SheetNames[0]]);
-                processBtn.disabled = false;
-            };
-            reader.readAsArrayBuffer(file);
-        });
-
-        processBtn.addEventListener('click', async () => {
-            for (let row of parsedExcelPayload) {
-                if (!row.sku) continue;
-                await supabaseClient.from('watches').upsert({
-                    sku: sanitizeSku(row.sku), brand: String(row.brand || "Generic"), category: String(row.category || "Standard"),
-                    class: String(row.class || "Standard"), sex: String(row.sex || "Unisex"), price: parseFloat(row.price) || 0,
-                    stock: parseInt(row.stock, 10) || 0, desc: String(row.desc || ""), imgs: String(row.imgs || "")
-                }, { onConflict: 'sku' });
-            }
-            alert('Excel Upload Completed');
-            showView('userView');
-        });
-
         document.getElementById('mainSearch').addEventListener('input', (e) => {
-            if(e.target.value.trim().toLowerCase() === 'adminpanel') { showView('adminLoginView'); e.target.value=''; }
-            else filterProducts();
+            if(e.target.value.trim().toLowerCase() === 'adminpanel') { 
+                showView('adminLoginView'); 
+                e.target.value=''; 
+            } else {
+                filterProducts();
+            }
         });
 
-        document.getElementById('watchSku').addEventListener('input', (e) => checkSkuRealtime(e.target.value));
-        document.getElementById('uploadForm').addEventListener('submit', handleUploadOrEdit);
-        document.getElementById('deleteBtn').addEventListener('click', handleDeleteItem);
-        document.getElementById('deleteAllBtn').addEventListener('click', handleDeleteAllItems);
-        document.getElementById('saveSpreadsheetBtn').addEventListener('click', saveSpreadsheetData);
         document.getElementById('searchBtn').addEventListener('click', fetchWatchData);
         document.getElementById('backToUserBtn').addEventListener('click', () => showView('userView'));
-        document.getElementById('logoutBtnMain').addEventListener('click', () => { currentAdminUser=""; currentAdminRole=""; fetchWatchData(); showView('userView'); });
+        
+        document.getElementById('logoutBtnMain').addEventListener('click', () => { 
+            currentAdminUser = ""; 
+            currentAdminRole = ""; 
+            document.getElementById('adminBadge').style.display = 'none';
+            document.getElementById('logoutBtnMain').style.display = 'none';
+            fetchWatchData(); 
+            showView('userView'); 
+        });
+
         document.getElementById('filterSex').addEventListener('change', filterProducts);
         document.getElementById('filterBrand').addEventListener('change', filterProducts);
         document.getElementById('filterClass').addEventListener('change', filterProducts);
