@@ -456,11 +456,50 @@
         const IMG_THREE_GRIDS = "https://i.ibb.co/svL9Q04W/three-grids.png";
         const IMG_TWO_GRIDS = "https://i.ibb.co/n8LCSF7T/two-grids.png";
 
+        // Session management using localStorage
+        function saveSession(user, role) {
+            if (user && role) {
+                localStorage.setItem('adminUser', user);
+                localStorage.setItem('adminRole', role);
+            } else {
+                localStorage.removeItem('adminUser');
+                localStorage.removeItem('adminRole');
+            }
+        }
+
+        function loadSession() {
+            const user = localStorage.getItem('adminUser');
+            const role = localStorage.getItem('adminRole');
+            if (user && role) {
+                currentAdminUser = user;
+                currentAdminRole = role;
+                return true;
+            }
+            return false;
+        }
+
+        function clearSession() {
+            localStorage.removeItem('adminUser');
+            localStorage.removeItem('adminRole');
+            currentAdminUser = "";
+            currentAdminRole = "";
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             const SUPABASE_URL = "https://ifykqthpqvqvifbjcgsd.supabase.co";
             const SUPABASE_ANON_KEY = "sb_publishable_kdiHUUF7k6kRE6fOsQGELQ_Pc4Fqrqw";
             supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             listenToProductsSupabase();
+
+            // Check for existing session
+            if (loadSession()) {
+                document.getElementById('loggedInUserBadge').innerText = `User: ${currentAdminUser} (${currentAdminRole.toUpperCase()})`;
+                applyRoleBasedUIRestrictions();
+                showView('adminUploadView');
+            } else {
+                showView('userView');
+            }
+
             const gridToggleBtn = document.getElementById('gridToggleBtn');
             const toggleButtonIcon = document.getElementById('toggleButtonIcon');
             const productsContainer = document.getElementById('productsContainer');
@@ -525,8 +564,14 @@
                 products = data || [];
                 populateBrandDropdown();
                 const urlQuery = window.location.search.substring(1).trim();
-                if (urlQuery.toLowerCase() === 'adminpanel' || urlQuery.toLowerCase() === 'login') showView('adminLoginView');
-                else if (urlQuery) {
+                // Only redirect to login if no session and explicitly asked
+                if (urlQuery.toLowerCase() === 'adminpanel' || urlQuery.toLowerCase() === 'login') {
+                    if (!loadSession()) {
+                        showView('adminLoginView');
+                    } else {
+                        showView('adminUploadView');
+                    }
+                } else if (urlQuery) {
                     const clean = decodeURIComponent(urlQuery.replace(/_/g, ' ')).toLowerCase().trim();
                     const brandDropdown = document.getElementById('filterBrand');
                     for (let opt of brandDropdown.options) { if (opt.value.trim().toLowerCase() === clean) { brandDropdown.value = opt.value; break; } }
@@ -595,7 +640,6 @@
             displayProducts(filtered);
         }
 
-        // Login with Enter key support
         document.getElementById('adminPassword').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') document.getElementById('loginBtn').click();
         });
@@ -613,7 +657,10 @@
                 const { data, error } = await supabaseClient.from('admin_accounts').select('username, password, role').eq('username', userInp).maybeSingle();
                 if (error) throw error;
                 if (data && data.password === passInp) {
-                    currentAdminUser = data.username; currentAdminRole = data.role || "admin";
+                    currentAdminUser = data.username;
+                    currentAdminRole = data.role || "admin";
+                    // Save session
+                    saveSession(currentAdminUser, currentAdminRole);
                     document.getElementById('loggedInUserBadge').innerText = `User: ${currentAdminUser} (${currentAdminRole.toUpperCase()})`;
                     applyRoleBasedUIRestrictions();
                     showView('adminUploadView');
@@ -980,9 +1027,21 @@
         });
 
         document.getElementById('mainSearch').addEventListener('input', (e) => {
-            if (e.target.value.trim().toLowerCase() === 'adminpanel') { showView('adminLoginView'); e.target.value = ''; }
-            else filterProducts();
+            if (e.target.value.trim().toLowerCase() === 'adminpanel') {
+                // If session exists, go directly to admin panel
+                if (loadSession()) {
+                    document.getElementById('loggedInUserBadge').innerText = `User: ${currentAdminUser} (${currentAdminRole.toUpperCase()})`;
+                    applyRoleBasedUIRestrictions();
+                    showView('adminUploadView');
+                } else {
+                    showView('adminLoginView');
+                }
+                e.target.value = '';
+            } else {
+                filterProducts();
+            }
         });
+
         document.getElementById('watchSku').addEventListener('input', (e) => checkSkuRealtime(e.target.value));
         document.getElementById('uploadForm').addEventListener('submit', handleUploadOrEdit);
         document.getElementById('deleteBtn').addEventListener('click', handleDeleteItem);
@@ -990,7 +1049,15 @@
         document.getElementById('saveSpreadsheetBtn').addEventListener('click', saveSpreadsheetData);
         document.getElementById('searchBtn').addEventListener('click', fetchWatchData);
         document.getElementById('backToUserBtn').addEventListener('click', () => showView('userView'));
-        document.getElementById('logoutBtnMain').addEventListener('click', () => { currentAdminUser = ""; currentAdminRole = ""; showView('userView'); });
+
+        // Logout handler - clear session and go to user view
+        document.getElementById('logoutBtnMain').addEventListener('click', () => {
+            clearSession();
+            currentAdminUser = "";
+            currentAdminRole = "";
+            showView('userView');
+        });
+
         document.getElementById('filterSex').addEventListener('change', filterProducts);
         document.getElementById('filterBrand').addEventListener('change', filterProducts);
         document.getElementById('filterClass').addEventListener('change', filterProducts);
