@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swel Taw Watch</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: transparent;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    .watch {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #f5f9ff, #d0d8e6);
+      box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.5),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 2px 4px rgba(255, 255, 255, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dial {
+      position: relative;
+      width: 92%;
+      height: 92%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #fcfcfc, #e6ecf5);
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .hand {
+      position: absolute;
+      bottom: 50%;
+      left: 50%;
+      transform-origin: bottom center;
+      border-radius: 999px;
+      background: #1f2a36;
+      transform: translateX(-50%) rotate(0deg);
+      will-change: transform;
+    }
+
+    .hour-hand {
+      width: 3px;
+      height: 28%;
+      background: #1a232e;
+      border-radius: 6px;
+      box-shadow: 0 0 2px rgba(0,0,0,0.3);
+      z-index: 3;
+    }
+
+    .minute-hand {
+      width: 2px;
+      height: 35%;
+      background: #1f2a36;
+      border-radius: 6px;
+      box-shadow: 0 0 2px rgba(0,0,0,0.3);
+      z-index: 4;
+    }
+
+    .second-hand {
+      width: 1.5px;
+      height: 40%;
+      background: #c0392b;
+      border-radius: 4px;
+      box-shadow: 0 0 4px rgba(192, 57, 43, 0.5);
+      z-index: 5;
+    }
+
+    .center-cap {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      background: radial-gradient(circle at 35% 35%, #f0f4fc, #a0aaba);
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+      z-index: 10;
+      border: 1px solid #bcc6d4;
+    }
+
+    .center-cap::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 4px;
+      height: 4px;
+      background: #1a232e;
+      border-radius: 50%;
+      box-shadow: inset 0 0 2px rgba(0,0,0,0.6);
+    }
+
+    .markers {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .marker {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 0;
+      height: 50%;
+      transform-origin: bottom center;
+    }
+
+    .marker::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 8px;
+      background: #1f2a36;
+      border-radius: 2px;
+      box-shadow: 0 0 1px rgba(0,0,0,0.2);
+    }
+
+    .marker-12::before {
+      height: 12px;
+      width: 3px;
+      background: #1a232e;
+      border-radius: 3px;
+    }
+
+    .marker-3::before, .marker-6::before, .marker-9::before {
+      height: 10px;
+      width: 2.5px;
+    }
+
+
+    .brand-top {
+      position: absolute;
+      top: 14%;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-weight: 700;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: #1f2a36;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+      z-index: 2;
+    }
+
+    .brand-top small {
+      font-weight: 400;
+      font-size: 7px;
+      letter-spacing: 1px;
+      color: #2c3e50;
+      margin-left: 1px;
+    }
+
+    .day-date {
+      position: absolute;
+      bottom: 20%;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-weight: 500;
+      font-size: 7px;
+      letter-spacing: 1px;
+      color: #1f2a36;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(2px);
+      padding: 2px 0;
+      width: 65%;
+      left: 17.5%;
+      border-radius: 20px;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+      z-index: 2;
+      border: 1px solid rgba(255,255,255,0.4);
+      text-transform: uppercase;
+    }
+
+    .day-date span {
+      font-weight: 300;
+      background: #1f2a36;
+      color: white;
+      padding: 0 4px;
+      border-radius: 12px;
+      margin: 0 2px;
+      font-size: 6px;
+    }
+
+    .water-resist {
+      position: absolute;
+      bottom: 10%;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-weight: 600;
+      font-size: 5.5px;
+      letter-spacing: 1.5px;
+      color: #2c3e50;
+      opacity: 0.8;
+      z-index: 2;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="watch">
+    <div class="dial">
+      <div class="brand-top">Swel Taw <small>⏱️</small></div>
+      <div class="day-date">
+        <span>THU</span> 28
+      </div>
+      <div class="water-resist">STWATCHLKW</div>
+      <div class="markers" id="markersContainer"></div>
+      <div class="hand hour-hand" id="hourHand"></div>
+      <div class="hand minute-hand" id="minuteHand"></div>
+      <div class="hand second-hand" id="secondHand"></div>
+      <div class="center-cap"></div>
+    </div>
+  </div>
+  <script>
+    (function() {
+      const container = document.getElementById('markersContainer');
+      if (container) {
+        for (let i = 1; i <= 12; i++) {
+          const marker = document.createElement('div');
+          marker.className = 'marker';
+          if (i === 12) {
+            marker.classList.add('marker-12');
+          } else if (i === 3 || i === 6 || i === 9) {
+            marker.classList.add('marker-3');
+          }
+          const angle = i * 30;
+          marker.style.transform = 'rotate(' + angle + 'deg)';
+          container.appendChild(marker);
+        }
+      }
+
+      const hourHand = document.getElementById('hourHand');
+      const minuteHand = document.getElementById('minuteHand');
+      const secondHand = document.getElementById('secondHand');
+
+      function updateClock() {
+        const now = new Date();
+        const hours = now.getHours() % 12;
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+        const millis = now.getMilliseconds();
+
+        const secondDeg = ((seconds + millis / 1000) / 60) * 360;
+        const minuteDeg = ((minutes + seconds / 60) / 60) * 360;
+        const hourDeg = ((hours + minutes / 60 + seconds / 3600) / 12) * 360;
+
+        if (secondHand) {
+          secondHand.style.transform = 'translateX(-50%) rotate(' + secondDeg + 'deg)';
+        }
+        if (minuteHand) {
+          minuteHand.style.transform = 'translateX(-50%) rotate(' + minuteDeg + 'deg)';
+        }
+        if (hourHand) {
+          hourHand.style.transform = 'translateX(-50%) rotate(' + hourDeg + 'deg)';
+        }
+      }
+
+      updateClock();
+      setInterval(updateClock, 50);
+
+      function updateDayDate() {
+        const dayDateElem = document.querySelector('.day-date');
+        if (!dayDateElem) return;
+        const now = new Date();
+        const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+        const dayName = days[now.getDay()];
+        const dateNum = now.getDate();
+        dayDateElem.innerHTML = '<span>' + dayName + '</span> ' + dateNum;
+      }
+      updateDayDate();
+      setInterval(updateDayDate, 60000);
+    })();
+  </script>
+</body>
+</html>
