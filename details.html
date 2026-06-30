@@ -254,7 +254,7 @@
 </head>
 <body>
     <header>
-        <a href="index.html" class="logo">Swel Taw Watch Gallery (Loikaw)</a>
+        <a href="index.html" onclick="if(document.referrer && document.referrer.includes(window.location.host)) { history.back(); return false; }" class="logo">Swel Taw Watch Gallery (Loikaw)</a>
     </header>
     <div class="container">
      <a href="index.html" onclick="if(document.referrer && document.referrer.includes(window.location.host)) { history.back(); return false; }" class="back-link">← Back</a>
