@@ -1233,6 +1233,10 @@
                 card.className = 'product-card';
                 let displayImg = product.imgs ? product.imgs.split(',')[0].trim() :
                     'https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif';
+                const stock = parseInt(product.stock, 10) || 0;
+                const stockHtml = stock === 0
+                    ? `<div class="product-stock" style="color: var(--danger-color); font-weight: bold;">● Sold Out</div>`
+                    : `<div class="product-stock in-stock">● Stock: ${stock} လုံးကျန်</div>`;
                 card.innerHTML = `
                     <img src="${displayImg}" alt="Watch" class="product-img" loading="lazy">
                     <div class="product-info">
@@ -1241,7 +1245,7 @@
                         <div class="product-sku">SKU: ${product.sku}</div>
                         <div class="product-desc">${product.desc || ''}</div>
                         <div class="product-price">${Number(product.price).toLocaleString()} MMK</div>
-                        <div class="product-stock in-stock">● Stock: ${product.stock} လုံးကျန်</div>
+                        ${stockHtml}
                         <a href="details.html?sku=${encodeURIComponent(product.sku)}" class="btn view-details-btn" style="width:100%; box-sizing:border-box;">View Details</a>
                     </div>
                 `;
@@ -1275,8 +1279,7 @@
                 const matchesSex = (sexFilter === 'all') || (p.sex === sexFilter);
                 const matchesBrand = (brandFilter === 'all') || ((p.brand || '').trim() === brandFilter);
                 const matchesClass = (classFilter === 'all') || ((p.class || '').trim() === classFilter);
-                return (parseInt(p.stock, 10) > 0) && matchesSearch && matchesSex && matchesBrand && matchesClass && (
-                    parseFloat(p.price || 0) <= maxPrice);
+                return matchesSearch && matchesSex && matchesBrand && matchesClass && (parseFloat(p.price || 0) <= maxPrice);
             });
             displayProducts(filtered);
         }
@@ -1362,12 +1365,35 @@
                 showView('userView'); }
         }
 
-        async function handleDeleteAllItems() {
-            if (currentAdminRole !== 'superadmin') return alert("Permission Denied!");
-            if (!confirm("Delete ALL items?")) return;
-            await supabaseClient.from('watches').delete().neq('sku', 'TRASH');
-            showView('userView');
+       async function handleDeleteAllItems() {
+    if (currentAdminRole !== 'superadmin') return alert("Permission Denied!");
+    if (!confirm("⚠️ သတိပြုရန် - နာရီအကုန်လုံးရဲ့ အရေအတွက်ကို သုည (0) ဖြစ်အောင် ပြောင်းလဲမှာဖြစ်ပါတယ်။ ဆက်လုပ်မှာလား?")) return;
+    
+    try {
+        const { error } = await supabaseClient
+            .from('watches')
+            .update({ stock: 0 })
+            .neq('sku', 'TRASH'); 
+        
+        if (error) throw error;
+        alert('✅ နာရီအကုန်လုံးရဲ့ အရေအတွက်ကို 0 သို့ ပြောင်းလဲပြီးပါပြီ။');
+        await fetchWatchData();
+        filterProducts();
+     
+        const spreadsheetTab = document.getElementById('spreadsheetTab');
+        if (spreadsheetTab && spreadsheetTab.classList.contains('active')) {
+            renderSpreadsheetGrid();
         }
+    
+        const inventoryTab = document.getElementById('brandInventoryTab');
+        if (inventoryTab && inventoryTab.classList.contains('active')) {
+            renderBrandInventory();
+        }
+        showView('userView');
+    } catch (err) {
+        alert('❌ Error: ' + err.message);
+    }
+}
 
         function renderSpreadsheetGrid() {
             const tbody = document.getElementById('spreadsheetBody');
