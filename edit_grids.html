@@ -226,6 +226,7 @@
             transition: transform 0.3s;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
         .product-card:hover {
@@ -256,7 +257,6 @@
         }
         .products-grid.grid-cols-3 .product-sku,
         .products-grid.grid-cols-3 .product-desc,
-        .products-grid.grid-cols-3 .product-stock,
         .products-grid.grid-cols-3 .product-tags {
             display: none !important;
         }
@@ -267,6 +267,10 @@
         .products-grid.grid-cols-3 .view-details-btn {
             font-size: 10px !important;
             padding: 4px 5px !important;
+        }
+        .products-grid.grid-cols-3 .product-stock {
+            font-size: 10px !important;
+            margin-bottom: 4px !important;
         }
 
         .product-brand {
@@ -315,6 +319,11 @@
             background: #e8f5e9;
             color: var(--success-color);
         }
+        .badge-soldout {
+            background: #ffebee;
+            color: var(--danger-color);
+            font-weight: bold;
+        }
 
         .product-sku {
             color: #888;
@@ -346,6 +355,24 @@
         }
         .in-stock {
             color: var(--success-color);
+        }
+        .out-of-stock {
+            color: var(--danger-color);
+        }
+
+        .sold-out-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--danger-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 10;
         }
 
         .form-card {
@@ -1071,12 +1098,24 @@
                 let displayImg = product.imgs ? product.imgs.split(',')[0].trim() :
                     'https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif';
 
+                const stock = parseInt(product.stock, 10) || 0;
+                const isSoldOut = stock <= 0;
+
                 // Check if user is logged in via session
                 const isLoggedIn = currentAdminUser && currentAdminRole;
                 const actionButtonText = isLoggedIn ? "Edit Product" : "Login to Edit";
 
+                // Build stock display
+                let stockHtml = '';
+                if (isSoldOut) {
+                    stockHtml = `<div class="product-stock out-of-stock">● Sold Out</div>`;
+                } else {
+                    stockHtml = `<div class="product-stock in-stock">● Stock: ${stock} လုံးကျန်</div>`;
+                }
+
                 card.innerHTML = `
                         <img src="${displayImg}" alt="Watch" class="product-img" loading="lazy">
+                        ${isSoldOut ? '<div class="sold-out-overlay">SOLD OUT</div>' : ''}
                         <div class="product-info">
                             <div class="product-brand">${product.brand}</div>
                             <div class="product-tags">
@@ -1087,7 +1126,7 @@
                             <div class="product-sku">SKU: ${product.sku}</div>
                             <div class="product-desc">${product.desc || ''}</div>
                             <div class="product-price">${Number(product.price).toLocaleString()} MMK</div>
-                            <div class="product-stock in-stock">● Stock: ${product.stock} လုံးကျန်</div>
+                            ${stockHtml}
                             <button onclick="handleProductActionClick('${encodeURIComponent(product.sku)}')" class="btn view-details-btn" style="width: 100%; box-sizing: border-box;">${actionButtonText}</button>
                         </div>
                     `;
@@ -1193,14 +1232,16 @@
             }
 
             const filtered = products.filter(product => {
+                // Show all products regardless of stock, but we will display sold out status
                 const matchesSearch = !searchText || (product.desc || '').toLowerCase().includes(searchText) || (
                     product.sku || '').toLowerCase().includes(searchText) || (product.brand || '').toLowerCase()
                     .includes(searchText);
                 const matchesSex = (sexFilter === 'all') || (product.sex === sexFilter);
                 const matchesBrand = (brandFilter === 'all') || ((product.brand || '').trim() === brandFilter);
                 const matchesClass = (classFilter === 'all') || ((product.class || '').trim() === classFilter);
-                return (parseInt(product.stock, 10) > 0) && matchesSearch && matchesSex && matchesBrand &&
-                    matchesClass && (parseFloat(product.price || 0) <= maxPrice);
+                const price = parseFloat(product.price || 0);
+                const matchesPrice = price <= maxPrice;
+                return matchesSearch && matchesSex && matchesBrand && matchesClass && matchesPrice;
             });
             displayProducts(filtered);
         }
