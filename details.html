@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Watch Details</title>
+    <title>Watch Details · Video support</title>
     <link rel="icon" type="image/png" href="https://i.ibb.co/xSPcz3mY/New-Project.png">
     <style>
+        * { box-sizing: border-box; }
         :root {
             --primary-color: #1a1a1a;
             --accent-color: #bfa15f;
@@ -53,6 +54,7 @@
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.06);
             position: relative;
+            min-height: 400px;
         }
         @media (max-width: 768px) {
             .detail-wrapper {
@@ -67,18 +69,21 @@
             gap: 15px;
             min-width: 0;
         }
-        
-        .main-img-view {
+        .main-media-view {
             width: 100%;
             height: auto;
             aspect-ratio: 1 / 1;
-            object-fit: contain; 
+            object-fit: contain;
             object-position: center;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             transition: opacity 0.2s ease-in-out;
+            background-color: #f7f7f7;
         }
-        
+        video.main-media-view {
+            background-color: #000;
+            aspect-ratio: 1 / 1;
+        }
         .thumbnails-grid {
             display: flex;
             gap: 10px;
@@ -93,26 +98,45 @@
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
-        
         .thumbnails-grid::-webkit-scrollbar {
             display: none;
         }
-
-        .thumb-img {
+        .thumb-item {
+            flex-shrink: 0;
             width: 70px;
             height: 70px;
-            object-fit: contain; 
-            object-position: center;
             border-radius: 4px;
             cursor: pointer;
             border: 2px solid transparent;
             transition: all 0.15s ease;
             background-color: #f7f7f7;
-            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
         }
-        .thumb-img:hover, .thumb-img.active {
+        .thumb-item:hover, .thumb-item.active {
             border-color: var(--accent-color);
             transform: scale(0.96);
+        }
+        .thumb-item img, .thumb-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+        }
+        .thumb-item .play-icon {
+            position: absolute;
+            font-size: 22px;
+            color: white;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+            pointer-events: none;
+            opacity: 0.8;
+            background: rgba(0,0,0,0.3);
+            border-radius: 30px;
+            padding: 4px 8px;
+            line-height: 1;
         }
         .info-container {
             display: flex;
@@ -143,18 +167,9 @@
             font-weight: bold;
             display: none;
         }
-        .badge-cat {
-            background: #e1f5fe;
-            color: #0288d1;
-        }
-        .badge-class {
-            background: #efebe9;
-            color: #5d4037;
-        }
-        .badge-sex {
-            background: #f3e5f5;
-            color: #8e24aa;
-        }
+        .badge-sex { background: #f3e5f5; color: #8e24aa; }
+        .badge-cat { background: #e1f5fe; color: #0288d1; }
+        .badge-class { background: #efebe9; color: #5d4037; }
         .watch-price {
             font-size: 30px;
             font-weight: 700;
@@ -173,12 +188,8 @@
             font-size: 14px;
             font-weight: bold;
         }
-        .in-stock {
-            color: var(--success-color);
-        }
-        .out-of-stock {
-            color: var(--danger-color);
-        }
+        .in-stock { color: var(--success-color); }
+        .out-of-stock { color: var(--danger-color); }
         .btn-group {
             display: flex;
             gap: 12px;
@@ -208,22 +219,14 @@
             background-color: var(--viber-color);
             box-shadow: 0 4px 10px rgba(79, 52, 235, 0.2);
         }
-        .btn-viber:hover {
-            background-color: #3b23c7;
-            transform: translateY(-1px);
-        }
+        .btn-viber:hover { background-color: #3b23c7; transform: translateY(-1px); }
         .btn-tiktok {
             background-color: var(--tiktok-color);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
-        .btn-tiktok:hover {
-            background-color: #222222;
-            transform: translateY(-1px);
-        }
+        .btn-tiktok:hover { background-color: #222222; transform: translateY(-1px); }
         @media (max-width: 480px) {
-            .btn-group {
-                flex-direction: column;
-            }
+            .btn-group { flex-direction: column; }
         }
         .back-link {
             display: inline-block;
@@ -232,9 +235,7 @@
             text-decoration: none;
             font-weight: bold;
         }
-        .back-link:hover {
-            color: var(--primary-color);
-        }
+        .back-link:hover { color: var(--primary-color); }
         #screenLoader {
             position: absolute;
             top: 0;
@@ -249,6 +250,77 @@
             color: #777;
             border-radius: 12px;
             z-index: 10;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .loader-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #appDynamicToast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-family: sans-serif;
+            font-size: 14px;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+            transition: opacity 0.2s ease;
+        }
+        .admin-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 20000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: sans-serif;
+            overflow-y: auto;
+        }
+        .admin-modal-card {
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin: 40px auto;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .admin-modal-card input, .admin-modal-card textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0 12px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+        .admin-modal-card textarea { resize: vertical; }
+        .flex-end { display: flex; justify-content: flex-end; gap: 10px; }
+        .btn-cancel { padding: 8px 16px; background: #ccc; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-confirm { padding: 8px 16px; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-save { padding: 8px 16px; background: var(--success-color); color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .error-message {
+            color: var(--danger-color);
+            text-align: center;
+            padding: 20px;
         }
     </style>
 </head>
@@ -257,11 +329,16 @@
         <a href="index.html" onclick="if(document.referrer && document.referrer.includes(window.location.host)) { history.back(); return false; }" class="logo">Swel Taw Watch Gallery (Loikaw)</a>
     </header>
     <div class="container">
-     <a href="index.html" onclick="if(document.referrer && document.referrer.includes(window.location.host)) { history.back(); return false; }" class="back-link">← Back</a>
+        <a href="index.html" onclick="if(document.referrer && document.referrer.includes(window.location.host)) { history.back(); return false; }" class="back-link">← Back</a>
         <div class="detail-wrapper">
-            <div id="screenLoader">ခဏစောင့်ပေးပါ... နာရီအချက်အလက်များကို ရယူနေပါသည်။</div>
+            <div id="screenLoader">
+                <div class="loader-spinner"></div>
+                <span>ခဏစောင့်ပေးပါ... နာရီအချက်အလက်များကို ရယူနေပါသည်။</span>
+            </div>
             <div class="gallery-container">
-                <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100%' height='100%' fill='%23eee'/></svg>" id="mainDisplayImg" class="main-img-view" alt="Watch Main View">
+                <div id="mainMediaWrapper" style="width:100%; aspect-ratio:1/1; background:#f7f7f7; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                    <img id="mainDisplayMedia" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100%' height='100%' fill='%23eee'/></svg>" class="main-media-view" alt="main media">
+                </div>
                 <div class="thumbnails-grid" id="thumbnailsContainer"></div>
             </div>
             <div class="info-container">
@@ -292,79 +369,159 @@
         const currentSku = urlParams.get('sku');
         let globalProductData = null;
 
-        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Initialize Supabase client
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const getSupabaseHeaders = () => ({
-            "apikey": SUPABASE_ANON_KEY,
-            "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-            "Content-Type": "application/json",
-            "Prefer": "return=representation"
-        });
+        function isVideoUrl(url) {
+            if (!url) return false;
+            const clean = url.toLowerCase();
+            if (clean.includes('.mp4') || clean.includes('.webm') || clean.includes('.mov') || 
+                clean.includes('.avi') || clean.includes('.mkv') || clean.includes('.ogg')) return true;
+            return false;
+        }
+
+        function createMediaElement(src, className = 'main-media-view') {
+            const isVideo = isVideoUrl(src);
+            if (isVideo) {
+                const video = document.createElement('video');
+                video.src = src;
+                video.controls = true;
+                video.muted = true;
+                video.playsInline = true;
+                video.className = className;
+                video.setAttribute('playsinline', '');
+                return video;
+            } else {
+                const img = document.createElement('img');
+                img.src = src;
+                img.className = className;
+                img.alt = 'watch media';
+                img.loading = 'lazy';
+                return img;
+            }
+        }
+
+        function renderThumbnails(mediaArray) {
+            const container = document.getElementById('thumbnailsContainer');
+            container.innerHTML = '';
+            if (!mediaArray || mediaArray.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'flex';
+            mediaArray.forEach((url, idx) => {
+                const thumbDiv = document.createElement('div');
+                thumbDiv.className = 'thumb-item' + (idx === 0 ? ' active' : '');
+                thumbDiv.dataset.index = idx;
+
+                const isVideo = isVideoUrl(url);
+                if (isVideo) {
+                    const video = document.createElement('video');
+                    video.src = url;
+                    video.muted = true;
+                    video.playsInline = true;
+                    video.preload = 'metadata';
+                    video.setAttribute('playsinline', '');
+                    const playSpan = document.createElement('span');
+                    playSpan.className = 'play-icon';
+                    playSpan.textContent = '▶';
+                    thumbDiv.appendChild(video);
+                    thumbDiv.appendChild(playSpan);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.alt = 'thumb';
+                    img.loading = 'lazy';
+                    thumbDiv.appendChild(img);
+                }
+
+                thumbDiv.addEventListener('click', () => {
+                    container.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
+                    thumbDiv.classList.add('active');
+                    const wrapper = document.getElementById('mainMediaWrapper');
+                    wrapper.innerHTML = '';
+                    const newMedia = createMediaElement(url, 'main-media-view');
+                    if (newMedia.tagName === 'VIDEO') {
+                        newMedia.controls = true;
+                        newMedia.muted = false;
+                        newMedia.autoplay = true;
+                    }
+                    wrapper.appendChild(newMedia);
+                });
+
+                container.appendChild(thumbDiv);
+            });
+        }
 
         async function loadProductDetails() {
             const loader = document.getElementById('screenLoader');
+            
             if (!currentSku) {
-                loader.textContent = "URL Parameter တွင် SKU ကုဒ် မှားယွင်းနေပါသည်။";
+                loader.innerHTML = `<span class="error-message">URL Parameter တွင် SKU ကုဒ် မှားယွင်းနေပါသည်။</span>`;
                 return;
             }
+
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/watches?sku=eq.${encodeURIComponent(currentSku.trim())}`, {
-                    method: "GET",
-                    headers: getSupabaseHeaders()
-                });
-                if (!response.ok) throw new Error("Network Error");
-                const data = await response.json();
-                if (data && data.length > 0) {
-                    globalProductData = data[0];
+                // Use Supabase client instead of raw fetch
+                const { data, error } = await supabase
+                    .from('watches')
+                    .select('*')
+                    .eq('sku', currentSku.trim())
+                    .maybeSingle();
+
+                if (error) {
+                    console.error('Supabase error:', error);
+                    throw new Error(error.message);
+                }
+
+                if (data) {
+                    globalProductData = data;
                     renderProductData(globalProductData);
                     loader.style.display = 'none';
                 } else {
-                    loader.textContent = `ပြသရန် SKU နာရီအချက်အလက်ကို ရှာမတွေ့ပါ။`;
+                    loader.innerHTML = `<span class="error-message">ပြသရန် SKU နာရီအချက်အလက်ကို ရှာမတွေ့ပါ။</span>`;
                 }
             } catch (err) {
-                console.error(err);
-                loader.textContent = "Error fetching details.";
+                console.error('Error:', err);
+                loader.innerHTML = `
+                    <span class="error-message">Error fetching details: ${err.message}</span>
+                    <button onclick="location.reload()" style="padding:8px 20px; border-radius:4px; border:1px solid #ccc; background:#fff; cursor:pointer;">ပြန်စမ်းမည်</button>
+                `;
             }
         }
 
         function renderProductData(product) {
-            let imgArray = [];
+            let mediaArray = [];
             if (product.imgs && typeof product.imgs === 'string') {
                 let cleanStr = product.imgs.trim();
                 if (cleanStr.startsWith('[') && cleanStr.endsWith(']')) {
-                    try { imgArray = JSON.parse(cleanStr); } catch(e) { imgArray = []; }
+                    try { mediaArray = JSON.parse(cleanStr); } catch(e) { mediaArray = []; }
                 } else {
-                    imgArray = cleanStr.split(',').map(l => l.trim());
+                    mediaArray = cleanStr.split(',').map(l => l.trim());
                 }
             } else if (Array.isArray(product.imgs)) {
-                imgArray = product.imgs;
+                mediaArray = product.imgs;
             }
-            imgArray = imgArray.filter(l => l && l.length > 0);
-            if (imgArray.length === 0) {
-                imgArray = ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"];
+            mediaArray = mediaArray.filter(l => l && l.length > 0);
+            if (mediaArray.length === 0) {
+                mediaArray = ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"];
             }
-            const mainImg = document.getElementById('mainDisplayImg');
-            mainImg.src = imgArray[0];
-            const thumbsContainer = document.getElementById('thumbnailsContainer');
-            if(imgArray.length > 1) {
-                let thumbsHTML = '';
-                imgArray.forEach((imgUrl, idx) => {
-                    thumbsHTML += `<img src="${imgUrl}" class="thumb-img ${idx === 0 ? 'active' : ''}" data-index="${idx}" alt="Thumb">`;
-                });
-                thumbsContainer.innerHTML = thumbsHTML;
-                thumbsContainer.querySelectorAll('.thumb-img').forEach(thumb => {
-                    thumb.addEventListener('click', (e) => {
-                        thumbsContainer.querySelectorAll('.thumb-img').forEach(t => t.classList.remove('active'));
-                        e.target.classList.add('active');
-                        mainImg.style.opacity = 0.5;
-                        mainImg.src = e.target.src;
-                        mainImg.onload = () => { mainImg.style.opacity = 1; };
-                    });
-                });
-                thumbsContainer.style.display = 'flex';
-            } else {
-                thumbsContainer.style.display = 'none';
+
+            // Main media
+            const wrapper = document.getElementById('mainMediaWrapper');
+            wrapper.innerHTML = '';
+            const mainMedia = createMediaElement(mediaArray[0], 'main-media-view');
+            if (mainMedia.tagName === 'VIDEO') {
+                mainMedia.controls = true;
+                mainMedia.muted = false;
+                mainMedia.autoplay = true;
             }
+            wrapper.appendChild(mainMedia);
+
+            // Thumbnails
+            renderThumbnails(mediaArray);
+
+            // Info
             document.getElementById('wBrand').textContent = product.brand || 'NO BRAND';
             document.getElementById('wSku').textContent = product.sku || 'N/A';
             document.getElementById('wPrice').textContent = (parseInt(product.price, 10) || 0).toLocaleString() + " MMK";
@@ -372,20 +529,27 @@
             setupBadge('badgeSex', product.sex);
             setupBadge('badgeCat', product.category);
             setupBadge('badgeClass', product.class);
+
             const parsedStock = parseInt(product.stock, 10) || 0;
             const stockElement = document.getElementById('wStock');
             const actionBtnWrapper = document.getElementById('actionButtonWrapper');
+            
             if(parsedStock > 0) {
                 stockElement.className = "stock-status in-stock";
                 stockElement.textContent = `● In Stock: ${parsedStock} လုံး လက်ကျန်ရှိပါသည်`;
-                actionBtnWrapper.innerHTML = ` <button id="buyViberBtn" class="btn btn-viber">Buy Now (Viber)</button> <button id="buyTiktokBtn" class="btn btn-tiktok">Buy Now (TikTok)</button> `;
+                actionBtnWrapper.innerHTML = ` 
+                    <button id="buyViberBtn" class="btn btn-viber">Buy Now (Viber)</button> 
+                    <button id="buyTiktokBtn" class="btn btn-tiktok">Buy Now (TikTok)</button> 
+                `;
                 const getDraftText = () => `မင်္ဂလာပါ ခင်ဗျာ။ Swel Taw Watch Gallery မှ SKU: ${product.sku || ''} နာရီကို ဝယ်ယူလိုပါသဖြင့် ဆက်သွယ်ရခြင်းဖြစ်ပါသည်။`;
+                
                 document.getElementById('buyViberBtn').addEventListener('click', () => {
                     navigator.clipboard.writeText(getDraftText()).then(() => {
                         showToast("နာရီ၏ SKU အား Copy ကူးပြီးပါပြီ။ Viber တွင် Paste လုပ်ပါ။");
                         setTimeout(() => { window.location.href = `viber://chat/?number=%2B959754735024`; }, 1200);
                     }).catch(() => { window.location.href = `viber://chat/?number=%2B959754735024`; });
                 });
+                
                 document.getElementById('buyTiktokBtn').addEventListener('click', () => {
                     navigator.clipboard.writeText(getDraftText()).then(() => {
                         showToast("နာရီ၏ SKU အား Copy ကူးပြီးပါပြီ။ TikTok Chat တွင် Paste လုပ်ပါ။");
@@ -397,6 +561,8 @@
                 stockElement.textContent = `✕ Out of Stock (ပစ္စည်းပြတ်နေပါသည်)`;
                 actionBtnWrapper.innerHTML = `<button class="btn" disabled>Out of Stock</button>`;
             }
+
+            // SKU copy + admin trigger
             let clickTimes = [];
             const newSkuClickArea = document.getElementById('skuClickArea');
             const clonedSkuArea = newSkuClickArea.cloneNode(true);
@@ -409,7 +575,7 @@
                 clickTimes = clickTimes.filter(t => currentTime - t <= 1000);
                 if (clickTimes.length >= 4) {
                     clickTimes = [];
-                    showAdminLoginModal(product, imgArray);
+                    showAdminLoginModal(product, mediaArray);
                 }
             });
         }
@@ -430,12 +596,6 @@
             const toast = document.createElement('div');
             toast.id = 'appDynamicToast';
             toast.textContent = text;
-            Object.assign(toast.style, {
-                position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
-                backgroundColor: '#333', color: '#fff', padding: '12px 24px', borderRadius: '8px',
-                zIndex: '10000', fontFamily: 'sans-serif', fontSize: '14px', boxShadow: '0px 4px 10px rgba(0,0,0,0.3)',
-                transition: 'opacity 0.2s ease'
-            });
             document.body.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';
@@ -443,73 +603,46 @@
             }, 2000);
         }
 
-        function showAdminLoginModal(product, imgArray) {
+        function showAdminLoginModal(product, mediaArray) {
             if(document.getElementById('adminModalOverlay')) return;
             const overlay = document.createElement('div');
             overlay.id = 'adminModalOverlay';
-            Object.assign(overlay.style, {
-                position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
-                backgroundColor: 'rgba(0,0,0,0.6)', zIndex: '20000', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif', overflowY: 'auto'
-            });
+            overlay.className = 'admin-modal-overlay';
             overlay.innerHTML = `
-            <div style="background: #fff; padding: 25px; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin: 40px auto; max-height: 85vh; overflow-y: auto;">
+            <div class="admin-modal-card">
                 <div id="loginGate">
                     <h3 style="margin-top:0; color:var(--primary-color);">Admin Access Required</h3>
                     <p style="font-size:13px; color:#666;">စနစ်အတွင်းသို့ဝင်ရောက်ရန် Admin အကောင့်အချက်အလက်များကို ရိုက်ထည့်ပေးပါ။</p>
-                    <input type="text" id="adminUserField" placeholder="Username" style="width:100%; padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                    <input type="password" id="adminPassField" placeholder="Password" style="width:100%; padding:10px; margin:10px 0; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                    <div style="display:flex; justify-content:flex-end; gap:10px;">
-                        <button id="closeAuthBtn" style="padding:8px 16px; background:#ccc; border:none; border-radius:4px; cursor:pointer;">Cancel</button>
-                        <button id="loginAuthBtn" style="padding:8px 16px; background:var(--accent-color); color:white; border:none; border-radius:4px; cursor:pointer;">Confirm</button>
+                    <input type="text" id="adminUserField" placeholder="Username">
+                    <input type="password" id="adminPassField" placeholder="Password">
+                    <div class="flex-end">
+                        <button class="btn-cancel" id="closeAuthBtn">Cancel</button>
+                        <button class="btn-confirm" id="loginAuthBtn">Confirm</button>
                     </div>
                 </div>
                 <div id="editPane" style="display:none;">
                     <h3 style="margin-top:0; color:var(--primary-color);">Update SKU: ${product.sku}</h3>
-                    <div style="margin-bottom:12px;">
-                        <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Brand Name</label>
-                        <input type="text" id="editBrand" value="${product.brand || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
+                    <div><label style="font-weight:bold; font-size:12px;">Brand Name</label><input type="text" id="editBrand" value="${product.brand || ''}"></div>
+                    <div class="grid-2">
+                        <div><label style="font-weight:bold; font-size:12px;">Category</label><input type="text" id="editCategory" value="${product.category || ''}"></div>
+                        <div><label style="font-weight:bold; font-size:12px;">Class</label><input type="text" id="editClass" value="${product.class || ''}"></div>
                     </div>
-                    <div style="margin-bottom:12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div>
-                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Category</label>
-                            <input type="text" id="editCategory" value="${product.category || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                        </div>
-                        <div>
-                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Class</label>
-                            <input type="text" id="editClass" value="${product.class || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                        </div>
+                    <div class="grid-2">
+                        <div><label style="font-weight:bold; font-size:12px;">Sex</label><input type="text" id="editSex" value="${product.sex || ''}"></div>
+                        <div><label style="font-weight:bold; font-size:12px;">Stock</label><input type="number" id="editStock" value="${product.stock || 0}"></div>
                     </div>
-                    <div style="margin-bottom:12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div>
-                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Sex</label>
-                            <input type="text" id="editSex" value="${product.sex || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                        </div>
-                        <div>
-                            <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">လက်ကျန်အရေအတွက် (Stock)</label>
-                            <input type="number" id="editStock" value="${product.stock || 0}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                        </div>
-                    </div>
-                    <div style="margin-bottom:12px;">
-                        <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">စျေးနှုန်း (MMK)</label>
-                        <input type="number" id="editPrice" value="${product.price || 0}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
-                    </div>
-                    <div style="margin-bottom:12px;">
-                        <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">Image Links သို့မဟုတ် HTML Codes</label>
-                        <textarea id="editImgs" rows="4" placeholder="လင့်ခ်များကို ကော်မာခံ၍ဖြစ်စေ ထည့်သွင်းနိုင်ပါသည်။" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; font-family:sans-serif; resize:vertical;">${imgArray.join(', ')}</textarea>
-                    </div>
-                    <div style="margin-bottom:16px;">
-                        <label style="display:block; font-size:12px; margin-bottom:4px; font-weight:bold;">အကြောင်းအရာ ဖော်ပြချက် (Description)</label>
-                        <textarea id="editDesc" rows="4" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; box-sizing:border-box; resize:vertical; font-family:sans-serif;">${product.desc || ''}</textarea>
-                    </div>
-                    <div style="display:flex; justify-content:flex-end; gap:10px;">
-                        <button id="closeEditBtn" style="padding:8px 16px; background:#ccc; border:none; border-radius:4px; cursor:pointer;">Close</button>
-                        <button id="saveEditBtn" style="padding:8px 16px; background:var(--success-color); color:white; border:none; border-radius:4px; cursor:pointer;">Save Updates</button>
+                    <div><label style="font-weight:bold; font-size:12px;">Price (MMK)</label><input type="number" id="editPrice" value="${product.price || 0}"></div>
+                    <div><label style="font-weight:bold; font-size:12px;">Image/Video Links (comma separated)</label><textarea id="editImgs" rows="3">${mediaArray.join(', ')}</textarea></div>
+                    <div><label style="font-weight:bold; font-size:12px;">Description</label><textarea id="editDesc" rows="4">${product.desc || ''}</textarea></div>
+                    <div class="flex-end">
+                        <button class="btn-cancel" id="closeEditBtn">Close</button>
+                        <button class="btn-save" id="saveEditBtn">Save Updates</button>
                     </div>
                 </div>
             </div>
             `;
             document.body.appendChild(overlay);
+
             const loginGate = document.getElementById('loginGate');
             const editPane = document.getElementById('editPane');
             const loginAuthBtn = document.getElementById('loginAuthBtn');
@@ -520,24 +653,16 @@
             loginAuthBtn.addEventListener('click', async () => {
                 const userInp = document.getElementById('adminUserField').value.trim();
                 const passInp = document.getElementById('adminPassField').value;
-
-                if (!userInp || !passInp) {
-                    alert("Username နှင့် Password ဖြည့်စွက်ပေးပါ။");
-                    return;
-                }
-
+                if (!userInp || !passInp) { alert("Username နှင့် Password ဖြည့်စွက်ပေးပါ။"); return; }
                 loginAuthBtn.disabled = true;
                 loginAuthBtn.textContent = 'Verifying...';
-
                 try {
-                    const { data, error } = await supabaseClient
+                    const { data, error } = await supabase
                         .from('admin_accounts')
                         .select('username, password, role')
                         .eq('username', userInp)
                         .maybeSingle();
-
                     if (error) throw error;
-
                     if (data && data.password === passInp) {
                         loginGate.style.display = 'none';
                         editPane.style.display = 'block';
@@ -557,32 +682,19 @@
                 const newPrice = parseInt(document.getElementById('editPrice').value, 10);
                 const newStock = parseInt(document.getElementById('editStock').value, 10);
                 const rawImgText = document.getElementById('editImgs').value.trim();
-                let extractedUrls = [];
-                if (rawImgText.includes('<img') || rawImgText.includes('<a')) {
-                    const srcRegex = /src=["']([^"']+)["']/g;
-                    let match;
-                    while ((match = srcRegex.exec(rawImgText)) !== null) {
-                        if (match[1] && !match[1].startsWith('data:')) {
-                            extractedUrls.push(match[1].trim());
-                        }
-                    }
-                } else {
-                    extractedUrls = rawImgText.split(',').map(l => l.trim()).filter(l => l.length > 0);
-                }
+                let extractedUrls = rawImgText.split(',').map(l => l.trim()).filter(l => l.length > 0);
                 if (isNaN(newPrice) || isNaN(newStock)) {
                     alert('စျေးနှုန်းနှင့် လက်ကျန်အရေအတွက်အား မှန်ကန်စွာ ဖြည့်စွက်ပါ။');
                     return;
                 }
                 if (extractedUrls.length === 0) {
-                    alert('မှန်ကန်သော ပုံလင့်ခ် (သို့မဟုတ်) HTML ကုဒ်များ ထည့်သွင်းပေးရန် လိုအပ်ပါသည်။');
+                    alert('မှန်ကန်သော ပုံ/Video လင့်ခ် ထည့်သွင်းပေးရန် လိုအပ်ပါသည်။');
                     return;
                 }
                 try {
-                    const finalStringData = extractedUrls.join(', ');
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/watches?sku=eq.${encodeURIComponent(globalProductData.sku)}`, {
-                        method: "PATCH",
-                        headers: getSupabaseHeaders(),
-                        body: JSON.stringify({
+                    const { error } = await supabase
+                        .from('watches')
+                        .update({
                             brand: document.getElementById('editBrand').value.trim(),
                             category: document.getElementById('editCategory').value.trim(),
                             class: document.getElementById('editClass').value.trim(),
@@ -590,13 +702,12 @@
                             price: newPrice,
                             stock: newStock,
                             desc: document.getElementById('editDesc').value,
-                            imgs: finalStringData
+                            imgs: extractedUrls.join(', ')
                         })
-                    });
-                    if (!response.ok) {
-                        const errBody = await response.text();
-                        throw new Error(`Server Error: ${response.status} - ${errBody}`);
-                    }
+                        .eq('sku', globalProductData.sku);
+
+                    if (error) throw error;
+                    
                     showToast('ပြင်ဆင်မှုများအား သိမ်းဆည်းပြီးပါပြီ။');
                     overlay.remove();
                     loadProductDetails();
@@ -606,6 +717,7 @@
                 }
             });
         }
+
         loadProductDetails();
     </script>
 </body>
