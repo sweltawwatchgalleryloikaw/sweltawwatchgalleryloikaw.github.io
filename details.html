@@ -17,6 +17,9 @@
             --success-color: #388e3c;
             --viber-color: #4f34eb;
             --tiktok-color: #010101;
+            
+            --titlebar-crop-top: 42px;    
+            --titlebar-crop-bottom: 42px; 
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Pyidaungsu';
@@ -26,6 +29,15 @@
             color: var(--text-color);
             -webkit-font-smoothing: antialiased;
         }
+
+        /* Titlebar & Controls DOM Force Hide Fallback */
+        .titlebar, .controls, .window-controls {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
         header {
             background-color: var(--primary-color);
             color: white;
@@ -69,21 +81,44 @@
             gap: 15px;
             min-width: 0;
         }
-        .main-media-view {
+
+    
+        #mainMediaWrapper {
             width: 100%;
-            height: auto;
             aspect-ratio: 1 / 1;
+            background: #f7f7f7;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+   
+        .main-media-view {
+            position: absolute;
+            top: calc(-1 * var(--titlebar-crop-top)); 
+            left: 0;
+            width: 100%;
+ 
+            height: calc(100% + var(--titlebar-crop-top) + var(--titlebar-crop-bottom));
             object-fit: contain;
             object-position: center;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: opacity 0.2s ease-in-out;
-            background-color: #f7f7f7;
+            border: none;
+            border-radius: 0;
         }
+
+
+        img.main-media-view {
+            top: 0;
+            height: 100%;
+        }
+
         video.main-media-view {
             background-color: #000;
-            aspect-ratio: 1 / 1;
+            top: 0;
+            height: 100%;
         }
+
         .thumbnails-grid {
             display: flex;
             gap: 10px;
@@ -336,7 +371,8 @@
                 <span>ခဏစောင့်ပေးပါ... နာရီအချက်အလက်များကို ရယူနေပါသည်။</span>
             </div>
             <div class="gallery-container">
-                <div id="mainMediaWrapper" style="width:100%; aspect-ratio:1/1; background:#f7f7f7; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                <!-- Top & Bottom Crop Container -->
+                <div id="mainMediaWrapper">
                     <img id="mainDisplayMedia" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100%' height='100%' fill='%23eee'/></svg>" class="main-media-view" alt="main media">
                 </div>
                 <div class="thumbnails-grid" id="thumbnailsContainer"></div>
@@ -360,6 +396,29 @@
             </div>
         </div>
     </div>
+
+    <!-- JS Force Remove Script -->
+    <script>
+        (function forceRemoveTitlebarControls() {
+            function removeElements() {
+                const targets = document.querySelectorAll('.titlebar, .controls, .window-controls');
+                targets.forEach(el => el.remove());
+            }
+
+            removeElements();
+            document.addEventListener('DOMContentLoaded', removeElements);
+
+            const observer = new MutationObserver(() => {
+                removeElements();
+            });
+
+            observer.observe(document.documentElement, {
+                childList: true,
+                subtree: true
+            });
+        })();
+    </script>
+
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
@@ -369,20 +428,38 @@
         const currentSku = urlParams.get('sku');
         let globalProductData = null;
 
-        // Initialize Supabase client
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         function isVideoUrl(url) {
             if (!url) return false;
             const clean = url.toLowerCase();
-            if (clean.includes('.mp4') || clean.includes('.webm') || clean.includes('.mov') || 
-                clean.includes('.avi') || clean.includes('.mkv') || clean.includes('.ogg')) return true;
-            return false;
+            return clean.includes('.mp4') || clean.includes('.webm') || clean.includes('.mov') || 
+                   clean.includes('.avi') || clean.includes('.mkv') || clean.includes('.ogg');
+        }
+
+        function isSketchfabUrl(url) {
+            if (!url) return false;
+            return url.toLowerCase().includes('sketchfab.com');
+        }
+
+        function formatSketchfabEmbedUrl(url) {
+            if (!url) return '';
+            if (url.includes('/embed')) return url;
+            
+            let cleanUrl = url.split('?')[0].replace(/\/$/, "");
+            return `${cleanUrl}/embed?autospin=1&autostart=1&preload=1&transparent=1&ui_controls=0&ui_infos=0&ui_stop=0`;
         }
 
         function createMediaElement(src, className = 'main-media-view') {
-            const isVideo = isVideoUrl(src);
-            if (isVideo) {
+            if (isSketchfabUrl(src)) {
+                const iframe = document.createElement('iframe');
+                iframe.src = formatSketchfabEmbedUrl(src);
+                iframe.title = 'Sketchfab 3D Model';
+                iframe.className = className;
+                iframe.setAttribute('allow', 'autoplay; fullscreen; xr-spatial-tracking');
+                iframe.setAttribute('allowfullscreen', '');
+                return iframe;
+            } else if (isVideoUrl(src)) {
                 const video = document.createElement('video');
                 video.src = src;
                 video.controls = true;
@@ -414,8 +491,17 @@
                 thumbDiv.className = 'thumb-item' + (idx === 0 ? ' active' : '');
                 thumbDiv.dataset.index = idx;
 
+                const isSketchfab = isSketchfabUrl(url);
                 const isVideo = isVideoUrl(url);
-                if (isVideo) {
+
+                if (isSketchfab) {
+                    const iconSpan = document.createElement('span');
+                    iconSpan.style.fontSize = '18px';
+                    iconSpan.style.fontWeight = 'bold';
+                    iconSpan.style.color = 'var(--accent-color)';
+                    iconSpan.textContent = '3D';
+                    thumbDiv.appendChild(iconSpan);
+                } else if (isVideo) {
                     const video = document.createElement('video');
                     video.src = url;
                     video.muted = true;
@@ -462,7 +548,6 @@
             }
 
             try {
-                // Use Supabase client instead of raw fetch
                 const { data, error } = await supabase
                     .from('watches')
                     .select('*')
@@ -507,7 +592,6 @@
                 mediaArray = ["https://cdn.dribbble.com/userupload/23046077/file/original-8110bed559ea64f5d45c607c7c1c4b46.gif"];
             }
 
-            // Main media
             const wrapper = document.getElementById('mainMediaWrapper');
             wrapper.innerHTML = '';
             const mainMedia = createMediaElement(mediaArray[0], 'main-media-view');
@@ -518,10 +602,8 @@
             }
             wrapper.appendChild(mainMedia);
 
-            // Thumbnails
             renderThumbnails(mediaArray);
 
-            // Info
             document.getElementById('wBrand').textContent = product.brand || 'NO BRAND';
             document.getElementById('wSku').textContent = product.sku || 'N/A';
             document.getElementById('wPrice').textContent = (parseInt(product.price, 10) || 0).toLocaleString() + " MMK";
@@ -562,7 +644,6 @@
                 actionBtnWrapper.innerHTML = `<button class="btn" disabled>Out of Stock</button>`;
             }
 
-            // SKU copy + admin trigger
             let clickTimes = [];
             const newSkuClickArea = document.getElementById('skuClickArea');
             const clonedSkuArea = newSkuClickArea.cloneNode(true);
