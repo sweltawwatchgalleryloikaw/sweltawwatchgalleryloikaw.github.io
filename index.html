@@ -871,7 +871,6 @@
         let isEditMode = false;
         let currentAdminUser = "";
         let currentAdminRole = "";
-        const IMG_FOUR_GRIDS = "https://i.ibb.co/n8LCSF7T/two-grids.png";
         const IMG_THREE_GRIDS = "https://i.ibb.co/svL9Q04W/three-grids.png";
         const IMG_TWO_GRIDS = "https://i.ibb.co/n8LCSF7T/two-grids.png";
 
@@ -1107,19 +1106,10 @@
             const gridToggleBtn = document.getElementById('gridToggleBtn');
             const toggleButtonIcon = document.getElementById('toggleButtonIcon');
             const productsContainer = document.getElementById('productsContainer');
-            if (window.innerWidth <= 768) {
-                productsContainer.classList.add('grid-cols-3');
-            } else {
-                productsContainer.classList.add('grid-cols-4');
-            }
-
+            if (window.innerWidth <= 768) productsContainer.classList.add('grid-cols-3');
             gridToggleBtn.addEventListener('click', () => {
                 if (productsContainer.classList.contains('grid-cols-3')) {
                     productsContainer.classList.remove('grid-cols-3');
-                    productsContainer.classList.add('grid-cols-4');
-                    toggleButtonIcon.src = IMG_FOUR_GRIDS;
-                } else if (productsContainer.classList.contains('grid-cols-4')) {
-                    productsContainer.classList.remove('grid-cols-4');
                     productsContainer.classList.add('grid-cols-2');
                     toggleButtonIcon.src = IMG_THREE_GRIDS;
                 } else {
