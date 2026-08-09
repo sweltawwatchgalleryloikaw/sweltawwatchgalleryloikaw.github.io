@@ -8,7 +8,6 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js">
     </script>
     <style>
-        /* --- styles unchanged from original for brevity --- */
         :root {
             --primary-color: #1a1a1a;
             --accent-color: #bfa15f;
@@ -549,66 +548,6 @@
             object-fit: contain;
             display: block;
         }
-        .loading-watch-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            grid-column: 1 / -1;
-            padding: 20px 0 10px 0;
-        }
-        .loading-watch-wrapper .watch {
-            width: 140px;
-            height: 140px;
-        }
-        .loading-watch-wrapper .dial .brand-top {
-            font-size: 12px;
-            top: 12%;
-        }
-        .loading-watch-wrapper .dial .day-date {
-            font-size: 9px;
-            bottom: 18%;
-            width: 70%;
-            left: 15%;
-            padding: 2px 0;
-        }
-        .loading-watch-wrapper .dial .water-resist {
-            font-size: 7px;
-            bottom: 8%;
-        }
-        .loading-watch-wrapper .dial .marker {
-            height: 8px;
-            width: 2px;
-        }
-        .loading-watch-wrapper .dial .marker-12 {
-            height: 12px;
-            width: 3px;
-        }
-        .loading-watch-wrapper .dial .marker-3,
-        .loading-watch-wrapper .dial .marker-6,
-        .loading-watch-wrapper .dial .marker-9 {
-            height: 10px;
-            width: 3px;
-        }
-        .loading-watch-wrapper .dial .hour-hand {
-            width: 4px;
-            height: 26%;
-        }
-        .loading-watch-wrapper .dial .minute-hand {
-            width: 3px;
-            height: 34%;
-        }
-        .loading-watch-wrapper .dial .second-hand {
-            width: 1.5px;
-            height: 38%;
-        }
-        .loading-watch-wrapper .dial .center-cap {
-            width: 12px;
-            height: 12px;
-        }
-        .loading-watch-wrapper .dial .center-cap::after {
-            width: 5px;
-            height: 5px;
-        }
         .loading-text {
             grid-column: 1 / -1;
             text-align: center;
@@ -648,20 +587,6 @@
             }
             .grid-control-item {
                 display: block;
-            }
-            .loading-watch-wrapper .watch {
-                width: 100px;
-                height: 100px;
-            }
-            .loading-watch-wrapper .dial .brand-top {
-                font-size: 9px;
-            }
-            .loading-watch-wrapper .dial .day-date {
-                font-size: 7px;
-                bottom: 16%;
-            }
-            .loading-watch-wrapper .dial .water-resist {
-                font-size: 6px;
             }
         }
         .brand-filter-control-item {
@@ -835,7 +760,7 @@
                         <div id="brandFilterPerBrandContainer">
                             <p style="font-weight:600; margin:12px 0 8px 0;">Per-Brand Disable:</p>
                             <div id="brandFilterCheckboxList"></div>
-                            <span class="brand-filter-control-note" style="margin-top:8px;">Uncheck a brand to disable it in the filter dropdown.</span>
+                            <span class="brand-filter-control-note" style="margin-top:8px;">Uncheck a brand to disable and completely hide it from the filter dropdown.</span>
                         </div>
                         <button type="button" id="saveBrandFilterSettingsBtn" class="btn btn-success" style="margin-top:15px;">Save Brand Filter Settings</button>
                     </div>
@@ -895,7 +820,6 @@
                     disabledBrands = new Set(parsed.disabledBrands || []);
                     globalBrandFilterDisabled = parsed.global === true;
                 } else {
-                    // fallback: empty state
                     disabledBrands = new Set();
                     globalBrandFilterDisabled = false;
                 }
@@ -950,27 +874,10 @@
                 cb.disabled = false;
             });
 
-            const options = brandSelect.querySelectorAll('option');
-            options.forEach(opt => {
-                const brandVal = opt.value;
-                if (brandVal === 'all') {
-                    opt.disabled = false;
-                    return;
-                }
-                if (disabledBrands.has(brandVal)) {
-                    opt.disabled = true;
-                    opt.style.color = '#aaa';
-                } else {
-                    opt.disabled = false;
-                    opt.style.color = '';
-                }
-            });
+            // Re-populate to strictly show enabled brands only
+            populateBrandDropdown();
 
-            if (disabledBrands.has(brandSelect.value)) {
-                brandSelect.value = 'all';
-            }
-
-            // update checkboxes
+            // update checkboxes in Admin Control
             document.querySelectorAll('#brandFilterCheckboxList input[type="checkbox"]').forEach(cb => {
                 const brandName = cb.getAttribute('data-brand');
                 if (brandName) {
@@ -978,28 +885,24 @@
                 }
             });
 
-            document.getElementById('globalBrandFilterToggle').checked = globalBrandFilterDisabled;
+            const globalToggle = document.getElementById('globalBrandFilterToggle');
+            if (globalToggle) globalToggle.checked = globalBrandFilterDisabled;
         }
 
-        // --- populate brand filter checkboxes ---
+        // --- populate brand filter checkboxes in Admin Control Panel ---
         function renderBrandFilterControl() {
             const container = document.getElementById('brandFilterCheckboxList');
             if (!container) return;
             container.innerHTML = '';
-            const brandSelect = document.getElementById('filterBrand');
-            if (!brandSelect) return;
-            const options = brandSelect.querySelectorAll('option');
-            let brands = [];
-            options.forEach(opt => {
-                if (opt.value !== 'all') brands.push(opt.value);
-            });
-            brands = [...new Set(brands)];
-            brands.sort();
-            if (brands.length === 0) {
+            
+            // Collect ALL unique brands from database products
+            const allBrands = [...new Set(products.map(p => (p.brand || 'Generic').trim()))].sort();
+
+            if (allBrands.length === 0) {
                 container.innerHTML = '<p style="color:#888;">No brands available yet.</p>';
                 return;
             }
-            brands.forEach(brand => {
+            allBrands.forEach(brand => {
                 const div = document.createElement('div');
                 div.className = 'brand-filter-control-item';
                 const isChecked = !disabledBrands.has(brand);
@@ -1011,32 +914,40 @@
                 `;
                 container.appendChild(div);
             });
-            document.getElementById('globalBrandFilterToggle').checked = globalBrandFilterDisabled;
-            applyBrandFilterState();
+            const globalToggle = document.getElementById('globalBrandFilterToggle');
+            if (globalToggle) globalToggle.checked = globalBrandFilterDisabled;
         }
 
-        // --- populate brand dropdown from products ---
+        // --- populate brand dropdown from products (Showing ENABLED Brands Only) ---
         function populateBrandDropdown() {
             const brandDropdown = document.getElementById('filterBrand');
+            if (!brandDropdown) return;
             const savedValue = brandDropdown.value;
+            
             brandDropdown.innerHTML = '<option value="all">Brands</option>';
+            
+            // Get all unique brands from products
             const uniqueBrands = [...new Set(products.map(p => (p.brand || 'Generic').trim()))].sort();
-            uniqueBrands.forEach(brand => {
+            
+            // Filter out disabled brands so they are COMPLETELY HIDDEN in the create/filter dropdown
+            const enabledBrands = uniqueBrands.filter(b => !disabledBrands.has(b));
+
+            enabledBrands.forEach(brand => {
                 const opt = document.createElement('option');
                 opt.value = brand;
                 opt.innerText = brand;
                 brandDropdown.appendChild(opt);
             });
-            if (uniqueBrands.includes(savedValue)) brandDropdown.value = savedValue;
-            // re-render brand filter control and re-apply state
-            renderBrandFilterControl();
-            // apply disabled state after re-render
-            applyBrandFilterState();
+
+            if (enabledBrands.includes(savedValue)) {
+                brandDropdown.value = savedValue;
+            } else {
+                brandDropdown.value = 'all';
+            }
         }
 
         // --- save button handler ---
         async function saveBrandFilterHandler() {
-            // gather state from UI
             globalBrandFilterDisabled = document.getElementById('globalBrandFilterToggle').checked;
             disabledBrands = new Set();
             document.querySelectorAll('#brandFilterCheckboxList input[type="checkbox"]').forEach(cb => {
@@ -1045,16 +956,12 @@
                     disabledBrands.add(brandName);
                 }
             });
-            // save to DB
+            
             await saveBrandFilterSettingsToDB();
-            // apply to UI
             applyBrandFilterState();
-            // re-filter products
             filterProducts();
-            alert('Brand filter settings saved to database.');
+            alert('Brand filter settings saved successfully.');
         }
-
-        // --- other functions from original (unchanged, but adapted) ---
 
         function saveSession(user, role) {
             if (user && role) {
@@ -1089,11 +996,8 @@
             const SUPABASE_ANON_KEY = "sb_publishable_kdiHUUF7k6kRE6fOsQGELQ_Pc4Fqrqw";
             supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            // load brand filter settings from supabase first
-            loadBrandFilterSettingsFromDB().then(() => {
-                // then fetch products
-                listenToProductsSupabase();
-            });
+            // Fetch Data directly (It now internally waits for brand settings before filtering products)
+            listenToProductsSupabase();
 
             if (loadSession()) {
                 document.getElementById('loggedInUserBadge').innerText = `User: ${currentAdminUser} (${currentAdminRole.toUpperCase()})`;
@@ -1131,7 +1035,6 @@
             document.getElementById('exportSpreadsheetBtn').addEventListener('click', exportSpreadsheetToExcel);
             document.getElementById('exportBrandInventoryBtn').addEventListener('click', exportBrandInventoryToExcel);
 
-            // save brand filter settings button
             document.getElementById('saveBrandFilterSettingsBtn').addEventListener('click', saveBrandFilterHandler);
 
             document.getElementById('adminPassword').addEventListener('keydown', function(e) {
@@ -1222,10 +1125,6 @@
             document.getElementById('filterPrice').addEventListener('input', filterProducts);
         });
 
-        function initLoadingWatch() {
-            // placeholder for loading animation – kept as in original
-        }
-
         function listenToProductsSupabase() {
             fetchWatchData();
             supabaseClient.channel('realtime-watches-gallery').on('postgres_changes', {
@@ -1237,6 +1136,11 @@
 
         async function fetchWatchData() {
             try {
+                // Ensure Brand Filter Settings are loaded before filtering on page start
+                if (!brandFilterSettingsLoaded) {
+                    await loadBrandFilterSettingsFromDB();
+                }
+
                 const { data, error } = await supabaseClient.from('watches').select('*').order('brand', { ascending: true })
                     .order('created_at', { ascending: false });
                 if (error) throw error;
@@ -1347,10 +1251,17 @@
                 if (window.location.search.substring(1) !== f) history.replaceState(null, '', '?' + f);
             }
             const filtered = products.filter(p => {
+                const prodBrand = (p.brand || 'Generic').trim();
+                
+                // --- CRITICAL FIX: Hide items from Disabled Brands entirely on Page Start / Load ---
+                if (disabledBrands.has(prodBrand)) {
+                    return false;
+                }
+
                 const matchesSearch = !searchText || (p.desc || '').toLowerCase().includes(searchText) || (p.sku || '')
                     .toLowerCase().includes(searchText) || (p.brand || '').toLowerCase().includes(searchText);
                 const matchesSex = (sexFilter === 'all') || (p.sex === sexFilter);
-                const matchesBrand = (brandFilter === 'all') || ((p.brand || '').trim() === brandFilter);
+                const matchesBrand = (brandFilter === 'all') || (prodBrand === brandFilter);
                 const matchesClass = (classFilter === 'all') || ((p.class || '').trim() === classFilter);
                 return matchesSearch && matchesSex && matchesBrand && matchesClass && (parseFloat(p.price || 0) <= maxPrice);
             });
@@ -1438,35 +1349,35 @@
                 showView('userView'); }
         }
 
-       async function handleDeleteAllItems() {
-    if (currentAdminRole !== 'superadmin') return alert("Permission Denied!");
-    if (!confirm("⚠️ သတိပြုရန် - နာရီအကုန်လုံးရဲ့ အရေအတွက်ကို သုည (0) ဖြစ်အောင် ပြောင်းလဲမှာဖြစ်ပါတယ်။ ဆက်လုပ်မှာလား?")) return;
-    
-    try {
-        const { error } = await supabaseClient
-            .from('watches')
-            .update({ stock: 0 })
-            .neq('sku', 'TRASH'); 
-        
-        if (error) throw error;
-        alert('✅ နာရီအကုန်လုံးရဲ့ အရေအတွက်ကို 0 သို့ ပြောင်းလဲပြီးပါပြီ။');
-        await fetchWatchData();
-        filterProducts();
-     
-        const spreadsheetTab = document.getElementById('spreadsheetTab');
-        if (spreadsheetTab && spreadsheetTab.classList.contains('active')) {
-            renderSpreadsheetGrid();
+        async function handleDeleteAllItems() {
+            if (currentAdminRole !== 'superadmin') return alert("Permission Denied!");
+            if (!confirm("⚠️ သတိပြုရန် - နာရီအကုန်လုံးရဲ့ အရေအတွက်ကို သုည (0) ဖြစ်အောင် ပြောင်းလဲမှာဖြစ်ပါတယ်။ ဆက်လုပ်မှာလား?")) return;
+            
+            try {
+                const { error } = await supabaseClient
+                    .from('watches')
+                    .update({ stock: 0 })
+                    .neq('sku', 'TRASH'); 
+                
+                if (error) throw error;
+                alert('✅ နာရီအကုန်လုံးရဲ့ အရေအတွက်ကို 0 သို့ ပြောင်းလဲပြီးပါပြီ။');
+                await fetchWatchData();
+                filterProducts();
+             
+                const spreadsheetTab = document.getElementById('spreadsheetTab');
+                if (spreadsheetTab && spreadsheetTab.classList.contains('active')) {
+                    renderSpreadsheetGrid();
+                }
+            
+                const inventoryTab = document.getElementById('brandInventoryTab');
+                if (inventoryTab && inventoryTab.classList.contains('active')) {
+                    renderBrandInventory();
+                }
+                showView('userView');
+            } catch (err) {
+                alert('❌ Error: ' + err.message);
+            }
         }
-    
-        const inventoryTab = document.getElementById('brandInventoryTab');
-        if (inventoryTab && inventoryTab.classList.contains('active')) {
-            renderBrandInventory();
-        }
-        showView('userView');
-    } catch (err) {
-        alert('❌ Error: ' + err.message);
-    }
-}
 
         function renderSpreadsheetGrid() {
             const tbody = document.getElementById('spreadsheetBody');
