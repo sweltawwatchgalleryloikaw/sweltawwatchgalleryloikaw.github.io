@@ -1303,9 +1303,25 @@
                         <div class="product-desc">${product.desc || ''}</div>
                         <div class="product-price">${Number(product.price).toLocaleString()} MMK</div>
                         ${stockHtml}
-                        <a href="details.html?sku=${encodeURIComponent(product.sku)}" class="btn view-details-btn" style="width:100%; box-sizing:border-box;">View Details</a>
                     </div>
                 `;
+
+                const detailsUrl = `details.html?sku=${encodeURIComponent(product.sku)}`;
+                card.setAttribute('role', 'button');
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('aria-label', `View details for ${product.brand || 'watch'} ${product.sku || ''}`.trim());
+
+                card.addEventListener('click', () => {
+                    window.location.href = detailsUrl;
+                });
+
+                card.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        window.location.href = detailsUrl;
+                    }
+                });
+
                 container.appendChild(card);
             });
         }
