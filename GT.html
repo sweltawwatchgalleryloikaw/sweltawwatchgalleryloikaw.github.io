@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch Guitar Tuner</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0d0d0d;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #fff;
+  }
+
+  /* Watch Round Screen Area Container */
+  .watch-screen {
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #1a221a 0%, #050805 100%);
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #222;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+  }
+
+  /* Grid Background Effect */
+  .grid-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 140px;
+    background-image: 
+      linear-gradient(to right, rgba(0, 255, 64, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 255, 64, 0.08) 1px, transparent 1px);
+    background-size: 16px 16px;
+    border-bottom: 1px solid rgba(0,255,64,0.15);
+  }
+
+  /* Tuning Display Header */
+  .tuner-display {
+    position: absolute;
+    top: 15px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 5;
+  }
+
+  .cents-badge {
+    background: #d9381e;
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    min-width: 36px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    margin-bottom: 2px;
+    transition: background 0.2s;
+  }
+
+  .cents-badge.in-tune { background: #2ecc71; }
+
+  .note-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+
+  .note-name {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+
+  .note-octave {
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .status-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: #aaa;
+    letter-spacing: 0.5px;
+  }
+
+  /* Center Tuning Line Indicator */
+  .center-line {
+    position: absolute;
+    top: 0; left: 50%;
+    width: 2px; height: 110px;
+    background: rgba(217, 56, 30, 0.6);
+    transform: translateX(-50%);
+    z-index: 2;
+  }
+
+  /* Mode Toggle Banner */
+  .mode-indicator {
+    position: absolute;
+    top: 100px;
+    font-size: 9px;
+    color: #2ecc71;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+    background: rgba(0,0,0,0.6);
+    padding: 2px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+  }
+
+  /* Headstock Graphic Frame */
+  .headstock {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 180px;
+    background: #4a2810;
+    border-radius: 18px 18px 4px 4px;
+    border: 3px solid #2a1405;
+    box-shadow: inset 0 0 10px #1a0a02;
+    z-index: 3;
+  }
+
+  /* Peg Controls Layout */
+  .peg-btn {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #2ecc71;
+    color: #2ecc71;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s;
+  }
+
+  .peg-btn.active {
+    background: #ffffff;
+    color: #000;
+    border-color: #ffffff;
+    box-shadow: 0 0 10px rgba(255,255,255,0.8);
+  }
+
+  /* Peg Positioning for Round Display */
+  .peg-e6 { left: 50px; bottom: 50px; }
+  .peg-a  { left: 40px; bottom: 95px; }
+  .peg-d  { left: 50px; bottom: 140px; }
+
+  .peg-g  { right: 50px; bottom: 140px; }
+  .peg-b  { right: 40px; bottom: 95px; }
+  .peg-e1 { right: 50px; bottom: 50px; }
+
+  /* Audio Permission Overlay */
+  .start-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99;
+    border-radius: 50%;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .start-btn {
+    background: #2ecc71;
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="watch-screen">
+  <!-- Overlay Start Button for Web Audio -->
+  <div class="start-overlay" id="overlay">
+    <button class="start-btn" onclick="initAudio()">START TUNER</button>
+  </div>
+
+  <div class="grid-bg"></div>
+  <div class="center-line"></div>
+
+  <!-- Realtime Audio Output Display -->
+  <div class="tuner-display">
+    <div class="cents-badge" id="cents-display">--</div>
+    <div class="note-row">
+      <span class="note-name" id="note-display">--</span>
+      <span class="note-octave" id="octave-display"></span>
+    </div>
+    <div class="status-text" id="status-display">LISTEN...</div>
+  </div>
+
+  <div class="mode-indicator" id="mode-btn" onclick="toggleAutoMode()">AUTO DETECT</div>
+
+  <!-- Headstock UI Visual -->
+  <div class="headstock"></div>
+
+  <!-- Guitar Peg Buttons -->
+  <div class="peg-btn peg-d" data-index="2" onclick="selectString(2)">D</div>
+  <div class="peg-a" class="peg-btn peg-a" data-index="1" onclick="selectString(1)">
+    <div class="peg-btn peg-a" data-index="1" onclick="selectString(1)">A</div>
+  </div>
+  <div class="peg-btn peg-e6" data-index="0" onclick="selectString(0)">E</div>
+
+  <div class="peg-btn peg-g" data-index="3" onclick="selectString(3)">G</div>
+  <div class="peg-btn peg-b" data-index="4" onclick="selectString(4)">B</div>
+  <div class="peg-btn peg-e1" data-index="5" onclick="selectString(5)">E</div>
+</div>
+
+<script>
+  // Standard Guitar Tuning Frequencies (E2, A2, D3, G3, B3, E4)
+  const STRINGS = [
+    { note: 'E', octave: '2', freq: 82.41 },
+    { note: 'A', octave: '2', freq: 110.00 },
+    { note: 'D', octave: '3', freq: 146.83 },
+    { note: 'G', octave: '3', freq: 196.00 },
+    { note: 'B', octave: '3', freq: 246.94 },
+    { note: 'E', octave: '4', freq: 329.63 }
+  ];
+
+  let audioCtx, analyser, dataArray;
+  let isAuto = true;
+  let lockedIndex = null;
+
+  function initAudio() {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 2048;
+      
+      const source = audioCtx.createMediaStreamSource(stream);
+      source.connect(analyser);
+      
+      dataArray = new Float32Array(analyser.fftSize);
+      document.getElementById('overlay').style.display = 'none';
+      updatePitch();
+    }).catch(err => {
+      alert("Microphone access denied!");
+    });
+  }
+
+  // Pitch Detection using Autocorrelation
+  function autoCorrelate(buffer, sampleRate) {
+    let SIZE = buffer.length;
+    let rms = 0;
+    for (let i = 0; i < SIZE; i++) {
+      let val = buffer[i];
+      rms += val * val;
+    }
+    rms = Math.sqrt(rms / SIZE);
+    if (rms < 0.01) return -1; // Volume too low
+
+    let r1 = 0, r2 = SIZE - 1, thres = 0.2;
+    for (let i = 0; i < SIZE / 2; i++) {
+      if (Math.abs(buffer[i]) < thres) { r1 = i; break; }
+    }
+    for (let i = 1; i < SIZE / 2; i++) {
+      if (Math.abs(buffer[SIZE - i]) < thres) { r2 = SIZE - i; break; }
+    }
+
+    buffer = buffer.slice(r1, r2);
+    SIZE = buffer.length;
+
+    let c = new Array(SIZE).fill(0);
+    for (let i = 0; i < SIZE; i++) {
+      for (let j = 0; j < SIZE - i; j++) {
+        c[i] = c[i] + buffer[j] * buffer[j + i];
+      }
+    }
+
+    let d = 0;
+    while (c[d] > c[d + 1]) d++;
+    let maxval = -1, maxpos = -1;
+    for (let i = d; i < SIZE; i++) {
+      if (c[i] > maxval) {
+        maxval = c[i];
+        maxpos = i;
+      }
+    }
+    let T0 = maxpos;
+
+    return sampleRate / T0;
+  }
+
+  function updatePitch() {
+    analyser.getFloatTimeDomainData(dataArray);
+    let pitch = autoCorrelate(dataArray, audioCtx.sampleRate);
+
+    if (pitch !== -1) {
+      let targetString;
+
+      if (isAuto) {
+        // Auto-detect closest string frequency
+        targetString = STRINGS.reduce((prev, curr) => 
+          Math.abs(curr.freq - pitch) < Math.abs(prev.freq - pitch) ? curr : prev
+        );
+        highlightPeg(STRINGS.indexOf(targetString));
+      } else {
+        targetString = STRINGS[lockedIndex];
+      }
+
+      // Calculate difference in Cents
+      let cents = Math.floor(1200 * Math.log2(pitch / targetString.freq));
+
+      document.getElementById('note-display').innerText = targetString.note;
+      document.getElementById('octave-display').innerText = targetString.octave;
+      
+      const centsElem = document.getElementById('cents-display');
+      centsElem.innerText = (cents > 0 ? "+" : "") + cents;
+
+      const statusElem = document.getElementById('status-display');
+      if (Math.abs(cents) <= 5) {
+        statusElem.innerText = "IN TUNE!";
+        statusElem.style.color = "#2ecc71";
+        centsElem.classList.add('in-tune');
+      } else if (cents < -5) {
+        statusElem.innerText = "TOO LOW!";
+        statusElem.style.color = "#d9381e";
+        centsElem.classList.remove('in-tune');
+      } else {
+        statusElem.innerText = "TOO HIGH!";
+        statusElem.style.color = "#d9381e";
+        centsElem.classList.remove('in-tune');
+      }
+    }
+
+    requestAnimationFrame(updatePitch);
+  }
+
+  function selectString(index) {
+    isAuto = false;
+    lockedIndex = index;
+    document.getElementById('mode-btn').innerText = "LOCKED";
+    document.getElementById('mode-btn').style.color = "#ffffff";
+    highlightPeg(index);
+  }
+
+  function toggleAutoMode() {
+    isAuto = true;
+    lockedIndex = null;
+    document.getElementById('mode-btn').innerText = "AUTO DETECT";
+    document.getElementById('mode-btn').style.color = "#2ecc71";
+    clearPegHighlights();
+  }
+
+  function highlightPeg(index) {
+    clearPegHighlights();
+    const pegs = document.querySelectorAll('.peg-btn');
+    pegs.forEach(peg => {
+      if (parseInt(peg.getAttribute('data-index')) === index) {
+        peg.classList.add('active');
+      }
+    });
+  }
+
+  function clearPegHighlights() {
+    document.querySelectorAll('.peg-btn').forEach(p => p.classList.remove('active'));
+  }
+</script>
+</body>
+    </html>
