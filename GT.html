@@ -16,7 +16,6 @@
     color: #fff;
   }
 
-  /* Watch Round Screen Area Container */
   .watch-screen {
     width: 320px;
     height: 320px;
@@ -28,7 +27,6 @@
     box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
   }
 
-  /* Grid Background Effect */
   .grid-bg {
     position: absolute;
     top: 0; left: 0; right: 0; height: 140px;
@@ -39,7 +37,6 @@
     border-bottom: 1px solid rgba(0,255,64,0.15);
   }
 
-  /* Tuning Display Header */
   .tuner-display {
     position: absolute;
     top: 15px;
@@ -91,7 +88,6 @@
     letter-spacing: 0.5px;
   }
 
-  /* Center Tuning Line Indicator */
   .center-line {
     position: absolute;
     top: 0; left: 50%;
@@ -101,7 +97,6 @@
     z-index: 2;
   }
 
-  /* Mode Toggle Banner */
   .mode-indicator {
     position: absolute;
     top: 100px;
@@ -118,7 +113,6 @@
     border: 1px solid rgba(46, 204, 113, 0.3);
   }
 
-  /* Headstock Graphic Frame */
   .headstock {
     position: absolute;
     bottom: 5px;
@@ -133,7 +127,6 @@
     z-index: 3;
   }
 
-  /* Peg Controls Layout */
   .peg-btn {
     position: absolute;
     width: 36px;
@@ -159,7 +152,6 @@
     box-shadow: 0 0 10px rgba(255,255,255,0.8);
   }
 
-  /* Peg Positioning for Round Display */
   .peg-e6 { left: 50px; bottom: 50px; }
   .peg-a  { left: 40px; bottom: 95px; }
   .peg-d  { left: 50px; bottom: 140px; }
@@ -168,12 +160,12 @@
   .peg-b  { right: 40px; bottom: 95px; }
   .peg-e1 { right: 50px; bottom: 50px; }
 
-  /* Audio Permission Overlay */
   .start-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.9);
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 99;
@@ -192,20 +184,26 @@
     border-radius: 20px;
     cursor: pointer;
   }
+
+  .err-msg {
+    color: #ff4d4d;
+    font-size: 10px;
+    margin-top: 8px;
+    max-width: 80%;
+  }
 </style>
 </head>
 <body>
 
 <div class="watch-screen">
-  <!-- Overlay Start Button for Web Audio -->
   <div class="start-overlay" id="overlay">
-    <button class="start-btn" onclick="initAudio()">START TUNER</button>
+    <button class="start-btn" id="start-btn" onclick="initAudio()">START TUNER</button>
+    <div class="err-msg" id="err-text"></div>
   </div>
 
   <div class="grid-bg"></div>
   <div class="center-line"></div>
 
-  <!-- Realtime Audio Output Display -->
   <div class="tuner-display">
     <div class="cents-badge" id="cents-display">--</div>
     <div class="note-row">
@@ -217,14 +215,10 @@
 
   <div class="mode-indicator" id="mode-btn" onclick="toggleAutoMode()">AUTO DETECT</div>
 
-  <!-- Headstock UI Visual -->
   <div class="headstock"></div>
 
-  <!-- Guitar Peg Buttons -->
   <div class="peg-btn peg-d" data-index="2" onclick="selectString(2)">D</div>
-  <div class="peg-a" class="peg-btn peg-a" data-index="1" onclick="selectString(1)">
-    <div class="peg-btn peg-a" data-index="1" onclick="selectString(1)">A</div>
-  </div>
+  <div class="peg-btn peg-a" data-index="1" onclick="selectString(1)">A</div>
   <div class="peg-btn peg-e6" data-index="0" onclick="selectString(0)">E</div>
 
   <div class="peg-btn peg-g" data-index="3" onclick="selectString(3)">G</div>
@@ -233,7 +227,6 @@
 </div>
 
 <script>
-  // Standard Guitar Tuning Frequencies (E2, A2, D3, G3, B3, E4)
   const STRINGS = [
     { note: 'E', octave: '2', freq: 82.41 },
     { note: 'A', octave: '2', freq: 110.00 },
@@ -247,33 +240,71 @@
   let isAuto = true;
   let lockedIndex = null;
 
-  function initAudio() {
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+  async function initAudio() {
+    const errElem = document.getElementById('err-text');
+    errElem.innerText = "";
+
+    if (!window.isSecureContext && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+      errElem.innerText = "Error: Requires HTTPS or localhost.";
+      return;
+    }
+
+    try {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+      }
+
+      // Browser Built-in Noise Suppression & Echo Cancellation Enabled
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+
+      const source = audioCtx.createMediaStreamSource(stream);
+
+      // Guitar Frequency Bandpass Filter (70Hz - 360Hz)
+      const lowpass = audioCtx.createBiquadFilter();
+      lowpass.type = 'lowpass';
+      lowpass.frequency.setValueAtTime(360, audioCtx.currentTime); // Standard guitar range top end
+
+      const highpass = audioCtx.createBiquadFilter();
+      highpass.type = 'highpass';
+      highpass.frequency.setValueAtTime(70, audioCtx.currentTime); // Standard guitar range low end
+
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 2048;
-      
-      const source = audioCtx.createMediaStreamSource(stream);
-      source.connect(analyser);
-      
+
+      // Audio Nodes Chain Setup: Mic -> Highpass -> Lowpass -> Analyser
+      source.connect(highpass);
+      highpass.connect(lowpass);
+      lowpass.connect(analyser);
+
       dataArray = new Float32Array(analyser.fftSize);
       document.getElementById('overlay').style.display = 'none';
       updatePitch();
-    }).catch(err => {
-      alert("Microphone access denied!");
-    });
+
+    } catch (err) {
+      errElem.innerText = "Mic Error: " + err.message;
+    }
   }
 
-  // Pitch Detection using Autocorrelation
+  // Enhanced Autocorrelation Algorithm with Pitch Clarity Noise Rejection
   function autoCorrelate(buffer, sampleRate) {
     let SIZE = buffer.length;
     let rms = 0;
+
     for (let i = 0; i < SIZE; i++) {
       let val = buffer[i];
       rms += val * val;
     }
     rms = Math.sqrt(rms / SIZE);
-    if (rms < 0.01) return -1; // Volume too low
+
+    // RMS Threshold (Noise Floor Gate)
+    if (rms < 0.015) return -1;
 
     let r1 = 0, r2 = SIZE - 1, thres = 0.2;
     for (let i = 0; i < SIZE / 2; i++) {
@@ -302,8 +333,12 @@
         maxpos = i;
       }
     }
-    let T0 = maxpos;
 
+    // Harmonic Confidence Check (Noise Cancellation Gate)
+    let clarity = maxval / c[0];
+    if (clarity < 0.85) return -1; // Ignore unpitched noise (speech, wind, ambient sounds)
+
+    let T0 = maxpos;
     return sampleRate / T0;
   }
 
@@ -311,11 +346,10 @@
     analyser.getFloatTimeDomainData(dataArray);
     let pitch = autoCorrelate(dataArray, audioCtx.sampleRate);
 
-    if (pitch !== -1) {
+    if (pitch !== -1 && pitch >= 75 && pitch <= 360) {
       let targetString;
 
       if (isAuto) {
-        // Auto-detect closest string frequency
         targetString = STRINGS.reduce((prev, curr) => 
           Math.abs(curr.freq - pitch) < Math.abs(prev.freq - pitch) ? curr : prev
         );
@@ -324,7 +358,6 @@
         targetString = STRINGS[lockedIndex];
       }
 
-      // Calculate difference in Cents
       let cents = Math.floor(1200 * Math.log2(pitch / targetString.freq));
 
       document.getElementById('note-display').innerText = targetString.note;
@@ -347,6 +380,9 @@
         statusElem.style.color = "#d9381e";
         centsElem.classList.remove('in-tune');
       }
+    } else if (pitch === -1) {
+      document.getElementById('status-display').innerText = "LISTEN...";
+      document.getElementById('status-display').style.color = "#aaa";
     }
 
     requestAnimationFrame(updatePitch);
@@ -383,4 +419,4 @@
   }
 </script>
 </body>
-    </html>
+</html>
