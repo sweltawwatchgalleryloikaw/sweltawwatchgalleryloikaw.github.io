@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101827">
+
+<title>App Update - Version 1.0 (4)</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #101827;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 430px;
+    background: #1b2738;
+    border: 1px solid #2b3a50;
+    border-radius: 22px;
+    padding: 28px 24px;
+    text-align: center;
+}
+
+.app-icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 23px;
+    object-fit: cover;
+    margin-bottom: 18px;
+    box-shadow: 0 8px 25px #0005;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: #9baac0;
+    font-size: 14px;
+    margin-bottom: 22px;
+}
+
+.version-box {
+    background: #26364d;
+    border-radius: 13px;
+    padding: 15px;
+    margin-bottom: 25px;
+}
+
+.version {
+    font-size: 22px;
+    font-weight: bold;
+    color: #60a5fa;
+}
+
+.version-label {
+    font-size: 12px;
+    color: #a9b8cc;
+    margin-top: 5px;
+}
+
+.section-title {
+    text-align: left;
+    font-size: 17px;
+    margin-bottom: 17px;
+}
+
+.update-list {
+    text-align: left;
+    list-style: none;
+}
+
+.update-list li {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 17px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #d5deea;
+}
+
+.check {
+    color: #34d399;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.download-btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin-top: 25px;
+    background: #3b82f6;
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: .2s;
+}
+
+.download-btn:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+}
+
+.footer {
+    margin-top: 22px;
+    color: #718096;
+    font-size: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <img
+        class="app-icon"
+        src="https://raw.githubusercontent.com/sweltawwatchgalleryloikaw/sweltawwatchgalleryloikaw.github.io/refs/heads/main/updates/ic_launcher.png"
+        alt="App Icon"
+    >
+
+    <h1>App Update Available</h1>
+
+    <p class="subtitle">
+        A new version is ready to download.
+    </p>
+
+    <div class="version-box">
+        <div class="version">Version 1.0 (4)</div>
+        <div class="version-label">Latest Release</div>
+    </div>
+
+    <h2 class="section-title">What's New</h2>
+
+    <ul class="update-list">
+        <li>
+            <span class="check">✓</span>
+            <span>
+                Migrated the Online Cloud Sync functionality
+                for improved synchronization.
+            </span>
+        </li>
+
+        <li>
+            <span class="check">✓</span>
+            <span>
+                Improved the user interface for a cleaner
+                and more intuitive experience.
+            </span>
+        </li>
+
+        <li>
+            <span class="check">✓</span>
+            <span>
+                Fixed an issue that caused fragments to
+                overlap when switching between sections.
+            </span>
+        </li>
+
+        <li>
+            <span class="check">✓</span>
+            <span>
+                Minor bug fixes and performance improvements.
+            </span>
+        </li>
+    </ul>
+
+    <a href="YOUR_APK_DOWNLOAD_URL"
+       class="download-btn">
+        ↓ Download Update
+    </a>
+
+    <div class="footer">
+        Swel Taw Watch Gallery(Loikaw)
+        <br><br>
+        © 2026 All Rights Reserved.
+    </div>
+
+</div>
+
+</body>
+</html>
