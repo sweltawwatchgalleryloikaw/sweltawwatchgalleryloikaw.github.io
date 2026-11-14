@@ -1,1 +1,14 @@
-updates
+{
+  "versionCode": 5,
+  "versionName": "1.1",
+  "releaseDate": "November 12th, 2026",
+  "downloadUrl": "https://github.com/sweltawadmin/Raw/raw/refs/heads/main/Daily%20Sale%20Calc%20v_1.1(5).apk",
+  "qrClientUrl": "https://github.com/sweltawadmin/Raw/raw/refs/heads/main/QRClient.exe"
+  "changelog": [
+    "Added QR Scanner feature to read price tag QR codes and send data directly to PC (for branches without a physical scanner device).",
+    "Fixed a minor bug in the Expenses section.",
+    "Optimized and smoothed out the Cloud Sync functionality.",
+    "Minor bug fixes and performance improvements."
+  ],
+  "isMandatory": false
+}
