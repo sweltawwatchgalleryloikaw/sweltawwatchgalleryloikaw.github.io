@@ -80,7 +80,7 @@
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                         </svg>
-                        <span class="text-sm sm:text-base">Android APK</span>
+                        <span class="text-sm sm:text-base">Android APK ဒေါင်းလုပ်ဆွဲရန်</span>
                     </div>
                     <span class="text-[11px] text-emerald-100 font-normal">Mobile & Tablet (.apk)</span>
                 </a>
@@ -92,23 +92,28 @@
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                         </svg>
-                        <span class="text-sm sm:text-base">Windows QRClient.exe</span>
+                        <span class="text-sm sm:text-base">Windows QRClient.exe ဒေါင်းလုပ်ဆွဲရန်</span>
                     </div>
                     <span class="text-[11px] text-blue-100 font-normal">Windows PC Client (.exe)</span>
                 </a>
             </div>
 
             <div class="mt-7 pt-6 border-t border-slate-100">
-                <div class="flex items-center justify-between mb-3.5">
-                    <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500">
-                        Changelog
-                    </h2>
-                    <span id="mandatoryBadge" class="text-[11px] font-medium px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                <div class="flex items-center justify-between gap-2">
+                    <button id="changelogToggleBtn" type="button" onclick="toggleChangelog()" aria-expanded="false" aria-controls="changelogDrawer" class="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/75 active:scale-[0.98] px-3.5 py-2 rounded-xl transition duration-200">
+                        <span id="changelogToggleText">View Changelog</span>
+                        <svg id="changelogChevron" class="w-4 h-4 text-slate-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <span id="mandatoryBadge" class="text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-100 text-slate-600">
                         Optional Update
                     </span>
                 </div>
                 
-                <ul id="changelogList" class="space-y-3 text-sm text-slate-700 leading-relaxed"></ul>
+                <div id="changelogDrawer" class="hidden mt-4 pt-3 border-t border-slate-100/80">
+                    <ul id="changelogList" class="space-y-3 text-sm text-slate-700 leading-relaxed"></ul>
+                </div>
             </div>
         </div>
 
@@ -124,114 +129,25 @@
     <script>
         const JSON_URL = "https://raw.githubusercontent.com/sweltawwatchgalleryloikaw/sweltawwatchgalleryloikaw.github.io/refs/heads/main/updates/update.json";
 
+        function toggleChangelog() {
+            const drawer = document.getElementById('changelogDrawer');
+            const toggleBtn = document.getElementById('changelogToggleBtn');
+            const toggleText = document.getElementById('changelogToggleText');
+            const chevron = document.getElementById('changelogChevron');
+            const isHidden = drawer.classList.contains('hidden');
+
+            if (isHidden) {
+                drawer.classList.remove('hidden');
+                toggleBtn.setAttribute('aria-expanded', 'true');
+                toggleText.textContent = 'Hide Changelog';
+                chevron.classList.add('rotate-180');
+            } else {
+                drawer.classList.add('hidden');
+                toggleBtn.setAttribute('aria-expanded', 'false');
+                toggleText.textContent = 'View Changelog';
+                chevron.classList.remove('rotate-180');
+            }
+        }
+
         function safeParseJson(rawText) {
-            const cleaned = rawText
-                .replace(/,\s*([}\]])/g, '$1')
-                .replace(/("qrClientUrl"\s*:\s*"[^"]*")\s*\n(\s*"changelog")/g, '$1,\n$2');
-            return JSON.parse(cleaned);
-        }
-
-        function renderAppInfo(data) {
-            if (!data || !data.versionName || !data.downloadUrl) {
-                throw new Error('Invalid JSON structure');
-            }
-
-            document.getElementById('versionText').textContent = `Version ${data.versionName} (Build ${data.versionCode})`;
-            document.getElementById('releaseDateText').textContent = `Release Date: ${data.releaseDate}`;
-            document.getElementById('releaseBadgeWrapper').classList.remove('hidden');
-
-            const apkBtn = document.getElementById('apkDownloadBtn');
-            apkBtn.href = data.downloadUrl;
-
-            const exeBtn = document.getElementById('exeDownloadBtn');
-            if (data.qrClientUrl) {
-                exeBtn.href = data.qrClientUrl;
-                exeBtn.classList.remove('opacity-50', 'pointer-events-none');
-            } else {
-                exeBtn.href = '#';
-                exeBtn.classList.add('opacity-50', 'pointer-events-none');
-            }
-
-            const badge = document.getElementById('mandatoryBadge');
-            if (data.isMandatory) {
-                badge.textContent = 'Required Update';
-                badge.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-200';
-            } else {
-                badge.textContent = 'Optional Update';
-                badge.className = 'text-[11px] font-medium px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-600';
-            }
-
-            const listEl = document.getElementById('changelogList');
-            listEl.innerHTML = '';
-            (data.changelog || []).forEach(item => {
-                const li = document.createElement('li');
-                li.className = 'flex items-start gap-2.5';
-                li.innerHTML = `
-                    <span class="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold border border-emerald-200">✓</span>
-                    <span>${item}</span>
-                `;
-                listEl.appendChild(li);
-            });
-
-            document.getElementById('loadingState').classList.add('hidden');
-            document.getElementById('errorState').classList.add('hidden');
-            document.getElementById('contentContainer').classList.remove('hidden');
-        }
-
-        function showVpnError() {
-            document.getElementById('versionText').textContent = 'Connection Required';
-            document.getElementById('releaseBadgeWrapper').classList.add('hidden');
-            document.getElementById('loadingState').classList.add('hidden');
-            document.getElementById('contentContainer').classList.add('hidden');
-            document.getElementById('errorState').classList.remove('hidden');
-        }
-
-        async function loadUpdateMetadata() {
-            document.getElementById('errorState').classList.add('hidden');
-            document.getElementById('contentContainer').classList.add('hidden');
-            document.getElementById('loadingState').classList.remove('hidden');
-            document.getElementById('versionText').textContent = 'Loading version...';
-
-            try {
-                const response = await fetch(JSON_URL, { cache: 'no-store' });
-                if (!response.ok) {
-                    throw new Error(`HTTP error: ${response.status}`);
-                }
-                const rawText = await response.text();
-                const parsedData = safeParseJson(rawText);
-                renderAppInfo(parsedData);
-            } catch (error) {
-                showVpnError();
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', loadUpdateMetadata);
-
-        function showToast(message, color = 'emerald') {
-            const container = document.getElementById('toastContainer');
-            const toast = document.createElement('div');
-            
-            const borderClass = color === 'blue' 
-                ? 'border-blue-200 bg-white text-blue-900 shadow-xl' 
-                : 'border-emerald-200 bg-white text-emerald-900 shadow-xl';
-            
-            const dotClass = color === 'blue' ? 'bg-blue-500' : 'bg-emerald-500';
-
-            toast.className = `animate-toast pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border ${borderClass} text-xs sm:text-sm font-medium`;
-            toast.innerHTML = `
-                <span class="w-2.5 h-2.5 rounded-full ${dotClass} shrink-0 animate-pulse"></span>
-                <span>${message}</span>
-            `;
-
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(8px)';
-                toast.style.transition = 'all 0.25s ease';
-                setTimeout(() => toast.remove(), 250);
-            }, 3200);
-        }
-    </script>
-</body>
-</html>
+// ... existing code ... -->
