@@ -150,4 +150,113 @@
         }
 
         function safeParseJson(rawText) {
-// ... existing code ... -->
+            const cleaned = rawText
+                .replace(/,\s*([}\]])/g, '$1')
+                .replace(/("qrClientUrl"\s*:\s*"[^"]*")\s*\n(\s*"changelog")/g, '$1,\n$2');
+            return JSON.parse(cleaned);
+        }
+
+        function renderAppInfo(data) {
+            if (!data || !data.versionName || !data.downloadUrl) {
+                throw new Error('Invalid JSON structure');
+            }
+
+            document.getElementById('versionText').textContent = `Version ${data.versionName} (Build ${data.versionCode})`;
+            document.getElementById('releaseDateText').textContent = `Release Date: ${data.releaseDate}`;
+            document.getElementById('releaseBadgeWrapper').classList.remove('hidden');
+
+            const apkBtn = document.getElementById('apkDownloadBtn');
+            apkBtn.href = data.downloadUrl;
+
+            const exeBtn = document.getElementById('exeDownloadBtn');
+            if (data.qrClientUrl) {
+                exeBtn.href = data.qrClientUrl;
+                exeBtn.classList.remove('opacity-50', 'pointer-events-none');
+            } else {
+                exeBtn.href = '#';
+                exeBtn.classList.add('opacity-50', 'pointer-events-none');
+            }
+
+            const badge = document.getElementById('mandatoryBadge');
+            if (data.isMandatory) {
+                badge.textContent = 'Required Update';
+                badge.className = 'text-[11px] font-semibold px-2.5 py-1 rounded-md bg-rose-50 text-rose-600 border border-rose-200';
+            } else {
+                badge.textContent = 'Optional Update';
+                badge.className = 'text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-100 text-slate-600';
+            }
+
+            const listEl = document.getElementById('changelogList');
+            listEl.innerHTML = '';
+            (data.changelog || []).forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'flex items-start gap-2.5';
+                li.innerHTML = `
+                    <span class="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold border border-emerald-200">✓</span>
+                    <span>${item}</span>
+                `;
+                listEl.appendChild(li);
+            });
+
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+            document.getElementById('contentContainer').classList.remove('hidden');
+        }
+
+        function showVpnError() {
+            document.getElementById('versionText').textContent = 'Connection Required';
+            document.getElementById('releaseBadgeWrapper').classList.add('hidden');
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('contentContainer').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+        }
+
+        async function loadUpdateMetadata() {
+            document.getElementById('errorState').classList.add('hidden');
+            document.getElementById('contentContainer').classList.add('hidden');
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('versionText').textContent = 'Loading version...';
+
+            try {
+                const response = await fetch(JSON_URL, { cache: 'no-store' });
+                if (!response.ok) {
+                    throw new Error(`HTTP error: ${response.status}`);
+                }
+                const rawText = await response.text();
+                const parsedData = safeParseJson(rawText);
+                renderAppInfo(parsedData);
+            } catch (error) {
+                showVpnError();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', loadUpdateMetadata);
+
+        function showToast(message, color = 'emerald') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const borderClass = color === 'blue' 
+                ? 'border-blue-200 bg-white text-blue-900 shadow-xl' 
+                : 'border-emerald-200 bg-white text-emerald-900 shadow-xl';
+            
+            const dotClass = color === 'blue' ? 'bg-blue-500' : 'bg-emerald-500';
+
+            toast.className = `animate-toast pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border ${borderClass} text-xs sm:text-sm font-medium`;
+            toast.innerHTML = `
+                <span class="w-2.5 h-2.5 rounded-full ${dotClass} shrink-0 animate-pulse"></span>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(8px)';
+                toast.style.transition = 'all 0.25s ease';
+                setTimeout(() => toast.remove(), 250);
+            }, 3200);
+        }
+    </script>
+</body>
+</html>
