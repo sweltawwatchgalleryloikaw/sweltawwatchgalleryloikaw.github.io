@@ -4,11 +4,21 @@
   "releaseDate": "November 25th, 2026",
   "downloadUrl": "https://github.com/sweltawwatchgalleryloikaw/sweltawwatchgalleryloikaw.github.io/raw/refs/heads/main/updates/Daily%20Sale%20Calc_1.1(5).apk",
   "qrClientUrl": "https://github.com/sweltawwatchgalleryloikaw/sweltawwatchgalleryloikaw.github.io/raw/refs/heads/main/updates/QRClient.exe",
-  "changelog": [
-    "Added QR Scanner feature to read price tag QR codes and send data directly to PC (for branches without a physical scanner device).",
-    "Fixed a minor bug in the Expenses section.",
-    "Optimized and smoothed out the Cloud Sync functionality.",
-    "Minor bug fixes and performance improvements."
-  ],
+"changelog": [
+  "Added QR Scanner feature to read price tag QR codes and send data directly to PC (for branches without a physical scanner device).",
+  "Scanner customer entry now fills Name, Short, Township and Phone on the PC automatically, handles the 'name already exists' prompt, and ends with Cancel / Re-enter / Save.",
+  "Added Clinic tab with doctor fee tracking.",
+  "Added Shop Mode: choose any mix of Glasses, Contact Lens, Watches & Service and Clinic. Navigation and Summary now show only what you enable.",
+  "Redesigned Summary with Total Cash Income, Doctor Fee, Cash Balance and Monthly Total. Glasses and Watches are now clearly separated.",
+  "Monthly Statement and Remittance now include Clinic income and Doctor fee.",
+  "Lens Stock History now belongs to Glasses only.",
+  "Watch Daily Ground: tap the clipboard button to copy the report with your shop name and open the preview dialog. Added a new button to add watch brands.",
+  "Added Theme Gallery: customize colors, table lines, corner radius, fonts, spacing and background image for Summary, Expenses, Daily Ground and Monthly Statement images. Themes can be shared and imported as XML.",
+  "Added App Theme presets.",
+  "Settings reorganized into a compact menu. Backup, restore and clear old backups moved into Manage offline database.",
+  "Fixed a minor bug in the Expenses section.",
+  "Optimized and smoothed out the Cloud Sync functionality.",
+  "Minor bug fixes and performance improvements."
+],
   "isMandatory": false
 }
